@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="resources"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.launching.macosx.MacOSXType/Java SE 8 [1.8.0_77]">
+		<attributes>
+			<attribute name="owner.project.facets" value="java"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="resources/commons-lang-2.6.jar"/>
+	<classpathentry kind="lib" path="resources/gson-2.3.1.jar"/>
+	<classpathentry kind="lib" path="resources/guava-r05.jar"/>
+	<classpathentry kind="lib" path="resources/jackson-annotations-2.8.8.jar"/>
+	<classpathentry kind="lib" path="resources/jackson-core-2.8.8.jar"/>
+	<classpathentry kind="lib" path="resources/jackson-databind-2.8.8.jar"/>
+	<classpathentry kind="lib" path="resources/java-sizeof-0.0.3.jar"/>
+	<classpathentry kind="lib" path="resources/javacsv-2.1.jar"/>
+	<classpathentry kind="lib" path="resources/jdom-2.0.2.jar"/>
+	<classpathentry kind="lib" path="resources/joda-time-2.1.jar"/>
+	<classpathentry kind="lib" path="resources/json-20160810.jar"/>
+	<classpathentry kind="lib" path="resources/json-simple.jar"/>
+	<classpathentry kind="lib" path="resources/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="resources/opencsv-2.3.jar"/>
+	<classpathentry kind="lib" path="resources/reflections-0.9.8.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
