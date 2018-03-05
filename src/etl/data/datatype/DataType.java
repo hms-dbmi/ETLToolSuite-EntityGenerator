@@ -23,12 +23,12 @@ public abstract class DataType {
 	
 	public static final String OPTIONS_KV_DELIMITER = ":";
 		
-	protected static String DEFAULT_SOURCESYSTEM_CD = "JSONtoI2B2etl";
+	public static String DEFAULT_SOURCESYSTEM_CD = "";
 	
 	public static String ROOT_NODE = "";
 	
 	protected static final String C_METADATAXML = "<?xml version=\"1.0\"?><ValueMetadata><Version>3.02</Version><CreationDateTime>08/14/2008 01:22:59</CreationDateTime><TestID></TestID><TestName></TestName><DataType>PosFloat</DataType><CodeType></CodeType><Loinc></Loinc><Flagstouse></Flagstouse><Oktousevalues>Y</Oktousevalues><MaxStringLength></MaxStringLength><LowofLowValue>0</LowofLowValue><HighofLowValue>0</HighofLowValue><LowofHighValue>100</LowofHighValue>100<HighofHighValue>100</HighofHighValue><LowofToxicValue></LowofToxicValue><HighofToxicValue></HighofToxicValue><EnumValues></EnumValues><CommentsDeterminingExclusion><Com></Com></CommentsDeterminingExclusion><UnitValues><NormalUnits>ratio</NormalUnits><EqualUnits></EqualUnits><ExcludingUnits></ExcludingUnits><ConvertingUnits><Units></Units><MultiplyingFactor></MultiplyingFactor></ConvertingUnits></UnitValues><Analysis><Enums /><Counts /><New /></Analysis></ValueMetadata>";
-	
+		
 	public DataType(String dataType){};
 	
 	public static boolean isValidDataType(String dataType) {

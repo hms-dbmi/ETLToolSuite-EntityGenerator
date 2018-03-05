@@ -61,19 +61,7 @@ public class Aarray extends Objectarray {
 		if(map != null && map.containsKey(mapping.getKey()) && map.containsKey(relationalKey) && ( omissionKey != null || !omissionKey.isEmpty())){
 							
 			for(String str: textKeys){
-				String[] lKey = str.split(":");
-
-				for(Map<String, List<String>> mmm : m){
-					
-					
-					if(mmm.containsKey(lKey[lKey.length - 1])){
-						
-						//System.err.println(lKey[lKey.length - 1] + " " + mmm.get(lKey[lKey.length - 1]));
-					
-					};
-				
-				}
-				
+				String[] lKey = str.split(":");			
 
 				if(map.get(str) != null && !map.get(str).toString().isEmpty() && !str.equals(mapping.getKey()) && !omissions.contains(str.replace(mapping.getKey() + ":", ""))){
 					try {

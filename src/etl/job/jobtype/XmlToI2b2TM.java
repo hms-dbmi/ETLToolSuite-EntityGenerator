@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import etl.data.datasource.XMLDataSource;
 import etl.data.datasource.entities.CriteriaNode;import etl.data.datasource.xmlhandlers.entryclasses.XMLEntity;
+import etl.job.jobtype.properties.JobProperties;
 
 
 public class XmlToI2b2TM extends JobType {
@@ -51,7 +52,7 @@ public class XmlToI2b2TM extends JobType {
 	}
 
 	@Override
-	public void runJob() {
+	public void runJob(JobProperties jobProperties) {
 
 		try {
 			
@@ -241,5 +242,11 @@ public class XmlToI2b2TM extends JobType {
 			
 		return sibs;
 
+	}
+
+	@Override
+	public void setVariables(JobProperties jobProperties) {
+		// TODO Auto-generated method stub
+		
 	}
 }

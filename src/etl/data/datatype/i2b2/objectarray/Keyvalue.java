@@ -52,9 +52,7 @@ public class Keyvalue extends Objectarray {
 		}
 		
 		Set<Entity> ents = new HashSet<Entity>();
-		
-		System.out.println(generateArray(map.get(mapping.getKey())));
-		
+				
 		List<Map<String, List<String>>> m = (generateArray(map.get(mapping.getKey())));
 		
 		String str = mapping.getKey();

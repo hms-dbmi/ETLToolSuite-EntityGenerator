@@ -6,6 +6,7 @@ import static java.nio.file.StandardOpenOption.WRITE;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -32,41 +33,38 @@ import etl.data.export.Export;
 import etl.data.export.entities.Entity;
 import etl.data.export.entities.i2b2.I2B2;
 import etl.data.export.entities.i2b2.PatientDimension;
+import etl.job.jobtype.properties.JobProperties;
 import etl.mapping.CsvToI2b2TMMapping;
 import etl.mapping.PatientMapping;
 import utility.directoryutils.DirUtils;
 
-public class CSVNew extends JobType {
-
+public class CsvToI2B2TM extends JobType {
 	// Parameters to go in a config file
-	private static final String DATA_DIR = "/Users/tom/Documents/JacksonMapping/load/"; 
+	private static String DATA_DIR; 
 
-	private static final String WRITE_PROCESSING_DIR = "/Users/tom/Documents/JacksonMapping/Processing/";
+	private static String WRITE_PROCESSING_DIR;
 	
-	private static final String WRITE_COMPLETED_DIR = "/Users/tom/Documents/JacksonMapping/Completed/"; 
+	private static String WRITE_COMPLETED_DIR; 
 	
-	private static final String MAPPING_FILE = "/Users/tom/Documents/JacksonMapping/mapping.csv";
+	private static String MAPPING_FILE;
 	
-	private static final String PATIENT_MAPPING_FILE = "/Users/tom/Documents/JacksonMapping/PatientMapping.csv";
+	private static String PATIENT_MAPPING_FILE;
 	
-	private static final OpenOption[] WRITE_OPTIONS = new OpenOption[] { WRITE, CREATE, APPEND };
+	private static OpenOption[] WRITE_OPTIONS;
 	
-	private static String SKIP_MAPPER_HEADER = "N";
+	private static String SKIP_MAPPER_HEADER;
 	
-	private static String SKIP_DATA_HEADER = "N";
+	private static String SKIP_DATA_HEADER;
 	
-	private static final String ROOT_NODE = "Test";
+	private static String ROOT_NODE;
+	
+	private static List<String> EXPORT_TABLES;
 
-	
 	// Void Parameters
-
-	private static final String CLEAN_COMMENTS = "T";
 	
-	private static final char DELIMITER = ','; 	
+	private static char DELIMITER; 	
 
-	private static final char MAPPING_DELIMITER = ',';
-	
-	private static final List<String> EXPORT_TABLES = new ArrayList<String>(Arrays.asList("PatientDimension", "ConceptDimension", "ObservationFact", "I2B2"));
+	private static char MAPPING_DELIMITER;
 
 	// class variables will remain
 	public static int totalFiles = 0;
@@ -79,32 +77,93 @@ public class CSVNew extends JobType {
 	
 	private static final String ENTITY_PACKAGE = "etl.data.export.entities.i2b2.";
 	
-	// initializer
-	{
+	public CsvToI2B2TM(String str) throws Exception {
+		super(str);
+	}
+
+	
+	@Override
+	public void setVariables(JobProperties jobProperties) {
+		// Required variables
 		
-		Entity.ROOT_NODE = CSVNew.ROOT_NODE;
+		DATA_DIR = jobProperties.getProperty("datadir"); 
+		
+		MAPPING_FILE = jobProperties.getProperty("mappingfile");
+		
+		PATIENT_MAPPING_FILE = jobProperties.getProperty("patientmappingfile");
+		
+		// Variables with a default
+
+		WRITE_PROCESSING_DIR = jobProperties.containsKey("processingdir") ? jobProperties.getProperty("processingdir") : "./Processing/";
+		
+		WRITE_COMPLETED_DIR = jobProperties.containsKey("completeddir") ? jobProperties.getProperty("completeddir") : "./Completed/";
+		
+		WRITE_OPTIONS = jobProperties.containsKey("writeoptions") ? buildOpenOption( jobProperties.getProperty("writeoptions") ) : new OpenOption[] { WRITE, CREATE, APPEND };
+		
+		SKIP_MAPPER_HEADER = jobProperties.containsKey("skipmapperheader") ? jobProperties.getProperty("skipmapperheader") : "Y";
+		
+		SKIP_DATA_HEADER = jobProperties.containsKey("skipdataheader") ? jobProperties.getProperty("skipdataheader") : "Y";
+		
+		ROOT_NODE = jobProperties.containsKey("rootnode") ? jobProperties.getProperty("skipdataheader") : "";
+		
+		// Void Parameters
+		
+		DELIMITER = jobProperties.containsKey("datadelimiter") && jobProperties.getProperty("datadelimiter").toCharArray().length == 1 ? 
+				jobProperties.getProperty("datadelimiter").toCharArray()[0] : ','; 	
+
+		MAPPING_DELIMITER = jobProperties.containsKey("mappingdelimiter") && jobProperties.getProperty("mappingdelimiter").toCharArray().length == 1 ? 
+				jobProperties.getProperty("mappingdelimiter").toCharArray()[0] : ',';;
+		
+		// previously static initialization block
+		
+		Entity.ROOT_NODE = ROOT_NODE;
+		
+		DataType.ROOT_NODE = ROOT_NODE;
+		
+		DataType.DEFAULT_SOURCESYSTEM_CD = jobProperties.containsKey("sourcesystemcd") ? jobProperties.getProperty("sourcesystemcd") : "NOT GIVEN";
+		
+		EXPORT_TABLES = jobProperties.containsKey("exporttables") ? 
+				new ArrayList<String>(Arrays.asList(jobProperties.getProperty("exporttables") )) 
+				: new ArrayList<String>(Arrays.asList("PatientDimension", "ConceptDimension", "ObservationFact", "I2B2"));
 		
 	}
 	
-	public CSVNew(String str) throws Exception {
-		super(str);
-		// TODO Auto-generated constructor stub
+	private OpenOption[] buildOpenOption(String options) {
+		
+		OpenOption[] oarr = new OpenOption[options.split(",").length - 1];
+		
+		int x = 0;
+		
+		for(String option: options.split(",")) {
+			
+			if(option.equalsIgnoreCase("write")) oarr[x] = WRITE;
+			
+			if(option.equalsIgnoreCase("CREATE")) oarr[x] = CREATE;
+			
+			if(option.equalsIgnoreCase("APPEND")) oarr[x] = APPEND;
+			
+		}
+		
+		return oarr;
 	}
-
+			
+			
 	@Override
-	public void runJob() {
+	public void runJob(JobProperties jobProperties) {
+		
+		setVariables(jobProperties);
 		
 		// used to store entities that will be processed through this job
 		Set<Entity> entities = new HashSet<Entity>();
 	
-		// clean processing dir
+		// clean processing directory
 		try{
 		
 			DirUtils.removeAllFileFromDir(Paths.get(WRITE_PROCESSING_DIR));
 		
 		} catch (IOException e){
 			
-			System.err.println("Processing Dir could not be cleaned ");
+			//System.err.println("Processing Dir could not be cleaned ");
 			e.printStackTrace();
 		}
 		
@@ -132,7 +191,7 @@ public class CSVNew extends JobType {
 						
 			for(String key: fileNames){
 				
-				System.err.println("Files Processed: " + totalFiles);			
+				//System.err.println("Files Processed: " + totalFiles);			
 				this.totalFiles++;
 								
 					CSVReader dataReader;
@@ -141,28 +200,6 @@ public class CSVNew extends JobType {
 						dataReader = ds.processCSV(DATA_DIR + key, DELIMITER, skipDataHeader);
 					
 						List<String[]> dataList = dataReader.readAll();
-						
-					/*  This was a hack for cardia original load.  will delete after next load - td 1/31/18
-						if(CLEAN_COMMENTS.equalsIgnoreCase("T")){
-							
-							for(String[] strings:dataList){
-								
-								if(strings[0].isEmpty() || strings[0].substring(0, 1).matches("[^A-Za-z0-9]")){
-									
-									badRows.add(strings);
-									
-								} else {
-									
-									break;
-									
-								}
-									
-							}
-							
-						}
-						
-						dataList.removeAll(badRows);
-						*/
 
 						entities.addAll(processEntities(dataList, mappings,key));
 						
@@ -247,7 +284,7 @@ public class CSVNew extends JobType {
 		}
 		// iterate over entities to be generated
 	
-		System.out.println("Processing " + fileName + " with " + dataList.stream().count() + " lines");
+		//System.out.println("Processing " + fileName + " with " + dataList.stream().count() + " lines");
 		
 		long startTime = System.currentTimeMillis();
 		

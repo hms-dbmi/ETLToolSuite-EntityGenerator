@@ -70,19 +70,9 @@ public class Umls extends Objectarray {
 			
 			umls = new HashMap<String, Set<String>>();
 			
-		}
-		
-		if(umls != null && umls.size() == 0){
-			
 			if(options.containsKey("UMLSCODE")){
 				
 				umls = buildUmls(options.get("UMLSFILE"), options.get("UMLSCODE"));
-				
-				for(String key: umls.keySet()){
-					if(key.startsWith("MIM")){
-					//System.err.println(key + "=" + umls.get(key));
-					}
-				}
 				
 			} else if(options.containsKey("NODEREMOVE")) {
 				
@@ -95,7 +85,8 @@ public class Umls extends Objectarray {
 			}
 		} 	
 		
-		for(Entity entity: entities){			
+		for(Entity entity: entities){	
+						
 			if(map != null && map.containsKey(mapping.getKey()) && map.containsKey(relationalKey)){
 
 				List<Map<String, List<String>>> umlscodes = generateArray(map.get(mapping.getKey()));

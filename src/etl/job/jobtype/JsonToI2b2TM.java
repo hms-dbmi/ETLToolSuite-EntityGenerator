@@ -26,45 +26,38 @@ import etl.data.datatype.i2b2.Objectarray;
 import etl.data.export.Export;
 import etl.data.export.entities.Entity;
 import etl.data.export.i2b2.ExportI2B2;
+import etl.job.jobtype.properties.JobProperties;
 import etl.job.jsontoi2b2tm.entity.Mapping;
 import static java.nio.file.StandardOpenOption.*;
 
 public class JsonToI2b2TM extends JobType {
 	
-	// all variables will be passed arguments
-	//    private static final String FILE_NAME = "/Users/tom/Documents/udn/udn_patientdump_2017-12-06.json"; 
-	//private static final String FILE_NAME = "/Users/tom/Documents/udn_patientdump_2017-06-28.json";
-	//private static final String FILE_NAME = "/Users/tom/Documents/udn/2017-12-2.json";
-	private static final String FILE_NAME = "/Users/tom/Documents/udn/2018-01.json";
-
-	//private static final String FILE_NAME = "/Users/tom/Documents/1patient.json";
+	//required configs
+	private static String FILE_NAME; 
 	
-	private static final OpenOption[] WRITE_OPTIONS = new OpenOption[] { WRITE, CREATE, APPEND };
-	
-	private static final String WRITE_DESTINATION = "/Users/tom/Documents/udn/completed/";
-	
-	private static final String FILE_TYPE = "JSONFILE";
-		
-	private static final String MAPPING_FILE = "/Users/tom/Documents/udn/udn_mapping2.csv";
-	
-	private static final List<String> EXPORT_TABLES = new ArrayList<String>(Arrays.asList("ModifierDimension", "ObservationFact", "I2B2", "ConceptDimension"));
+	private static String WRITE_DESTINATION; 
 			
-	private static final char MAPPING_DELIMITER = ',';
+	private static String MAPPING_FILE; 
 	
-	private static final String RELATIONAL_KEY = ":fields:uuid";
+	// optional
+	private static char MAPPING_DELIMITER;
 	
-	private static final String OMISSION_KEY = ":fields:encoded_relation";
+	private static String RELATIONAL_KEY = ":fields:uuid";
 	
-	private static final String OMISSION_VALUE = "NOT NULL OR EMPTY";
-
+	private static String OMISSION_KEY = ":fields:encoded_relation";
+	
 	/// Internal Config
-	private static final String EXPORT_TYPE = "ExportI2B2";
+	private static String FILE_TYPE = "JSONFILE";
 	
-	private static final String EXPORT_PACKAGE = "etl.data.export.i2b2.";
+	private static OpenOption[] WRITE_OPTIONS = new OpenOption[] { WRITE, CREATE, APPEND };
 	
 	private static final String ENTITY_PACKAGE = "etl.data.export.entities.i2b2.";
 	
 	private static final String ARRAY_FORMAT = "JSONFILE";
+	
+	private static List<String> EXPORT_TABLES = 
+			new ArrayList<String>(Arrays.asList("ModifierDimension", "ObservationFact", "I2B2", 
+					"ConceptDimension"));
 	
 	int inc = 100;
 	
@@ -83,8 +76,11 @@ public class JsonToI2b2TM extends JobType {
 	 * 
 	 * Loads a datafile and processes it based on the mapping file.
 	 */
+	@SuppressWarnings("static-access")
 	@Override
-	public void runJob() {
+	public void runJob(JobProperties jobProperties) {
+		
+		setVariables(jobProperties);
 		
 		Objectarray.ARRAY_FORMAT = this.ARRAY_FORMAT;
 	
@@ -108,7 +104,8 @@ public class JsonToI2b2TM extends JobType {
 								
 				while(maxSize >= x){
 					
-					Map record = list.get(x);
+					Map<String, String> record = list.get(x);
+					
 					builtEnts.addAll(processEntities(mappingFile, record));	
 					
 					x++;
@@ -147,7 +144,8 @@ public class JsonToI2b2TM extends JobType {
 		}
 		
 	}
-
+	
+	// OMITS Records if omission key is given. 
 	private List<Entity> processEntities(List<Mapping> mappings, Map<String, String> map) throws InstantiationException, IllegalAccessException{
 
 		List<Entity> builtEnts = new ArrayList<Entity>();
@@ -163,6 +161,7 @@ public class JsonToI2b2TM extends JobType {
 				isOmitted = false;    
 			
 			}
+			
 		} else {
 			
 			isOmitted = false;
@@ -170,16 +169,13 @@ public class JsonToI2b2TM extends JobType {
 		}
 		
 		if(!isOmitted){
+			
 			for(Mapping mapping: mappings){
 	
 				if(map.containsKey(mapping.getKey())){
 					
 					try {
-						
-						//Export export = Export.initExportType(EXPORT_PACKAGE, EXPORT_TYPE);
-						//System.out.println(mapping.getDataType());
-						//export.generateTables(map, mapping, entities, RELATIONAL_KEY, OMISSION_KEY);
-						
+
 						DataType dt = DataType.initDataType(StringUtils.capitalize(mapping.getDataType()));
 						
 						if(!mapping.getDataType().equalsIgnoreCase("OMIT")){
@@ -226,13 +222,14 @@ public class JsonToI2b2TM extends JobType {
 		for(JsonNode node: nodes){
 
 			child = jds.processNodeToMap(node);
-			System.err.println(child);
+
 			parent.add(child);
 			x++;
 		}
 		return parent;
 	}	
 	
+	@SuppressWarnings("unused")
 	private Map<String,Map<String,String>> buildMap() throws Exception{
 		
 		JSONDataSource jds = new JSONDataSource(FILE_TYPE);
@@ -257,6 +254,28 @@ public class JsonToI2b2TM extends JobType {
 		
 		return parent;
 		
+	}
+
+	@Override
+	public void setVariables(JobProperties jobProperties) {
+		
+		//required
+		FILE_NAME = jobProperties.getProperty("filename"); ; 
+		
+		WRITE_DESTINATION = jobProperties.getProperty("writedestination"); 
+				
+		MAPPING_FILE = jobProperties.getProperty("mappingfile"); 
+		
+		//optional
+		MAPPING_DELIMITER = jobProperties.containsKey("mappingdelimiter") && jobProperties.getProperty("mappingdelimiter").toCharArray().length == 1 ? 
+				jobProperties.getProperty("mappingdelimiter").toCharArray()[0] : ',';
+		
+		RELATIONAL_KEY = jobProperties.containsKey("relationalkey") ? 
+				jobProperties.getProperty("relationalkey"): RELATIONAL_KEY;
+		
+		OMISSION_KEY = jobProperties.containsKey("omissionkey") ? 
+				jobProperties.getProperty("omissionkey"): OMISSION_KEY;
+				
 	}
 	
 }

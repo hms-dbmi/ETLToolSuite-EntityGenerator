@@ -96,13 +96,13 @@ public class JSONDataSource extends DataSource {
 		if(node == null){
 			return null;
 		}
-		//System.out.println(currKey + ":" + node);
+
 		if(node.isArray()){
 
 			map.put(currKey, node.toString());
 			
 			for(int x = 0 ; node.size() > x ; x++){
-				processNodeToMap(node.get(x), map, currKey);
+				processNodeToMap(node.get(x), map, currKey + x);
 			
 			}
 		
@@ -111,9 +111,7 @@ public class JSONDataSource extends DataSource {
 		Iterator<Entry<String,JsonNode>> iter = node.fields();
 		
 		if(node.isObject()){
-			
-			
-			
+
 			map.put(currKey,node.toString());
 		
 		}
@@ -127,7 +125,6 @@ public class JSONDataSource extends DataSource {
 				map.put(currKey + ":" + n.getKey(), n.getValue().asText());
 			} 
 			
-			//if(currKey.equals(":fields:phenotips:family_history")) System.out.println(currKey + " = " + n.getKey() + "=" + n.getValue());
 			processNodeToMap(n.getValue(),map, currKey + ":" + n.getKey());
 		}
 		
@@ -169,7 +166,7 @@ public class JSONDataSource extends DataSource {
 				list.add(keyVals);
 				
 			} else {
-				System.err.println(node + " is not an array");
+				//System.err.println(node + " is not an array");
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -251,11 +248,7 @@ public class JSONDataSource extends DataSource {
 				if(jn.isValueNode()) {
 					
 					
-					//System.out.println("here: " + m2 + " should be " + jn.asText());
-				} else {
-					
-					
-				}
+				} 
 		
 			}
 			
@@ -284,7 +277,6 @@ public class JSONDataSource extends DataSource {
 					
 					if(!jn.isNull()) m2.put(_field, strings);
 					
-					//System.out.println("here: " + m2 + " should be " + jn.asText());
 				} else {
 					
 					traverseTree(jn, list, _field);
@@ -314,16 +306,8 @@ public class JSONDataSource extends DataSource {
 				}
 				
 			});			
-		} /*else if(node.isValueNode()){
-			
-			List<String> strings = m2.containsKey(_field) ? (ArrayList<String>) m2.get(_field): new ArrayList<String>();
-			
-			strings.add(node.asText());
-			
-			if(!node.isNull()) m2.put(_field, strings);			
-			
-		}*/
-		//System.out.println("leaving on this node: " + node);
+		} 
+		
 		if(m2.size() > 0) list.add(m2);
 
 		return list;

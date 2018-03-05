@@ -105,7 +105,7 @@ public class ETLFileWriter {
 				try {
 					writer.close();
 				} catch (Exception e) {
-					System.err.println("writer failed to close");
+					//System.err.println("writer failed to close");
 					e.printStackTrace();
 				}
 			});

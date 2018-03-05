@@ -2,6 +2,7 @@ package etl.mapping;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,7 +32,7 @@ public class CsvToI2b2TMMapping extends etl.mapping.Mapping{
 	
 	@Override
 	public void buildMapping(String[] arr) throws IOException {
-		
+
 		this.fileName = arr[0];
 		this.categoryCode = arr[1];
 		this.columnNumber = arr[2];

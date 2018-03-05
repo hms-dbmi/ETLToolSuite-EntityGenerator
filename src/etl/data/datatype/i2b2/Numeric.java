@@ -18,9 +18,7 @@ import etl.mapping.CsvToI2b2TMMapping;
 public class Numeric extends DataType{
 
 	private static String DEFAULT_VALUETYPE = "N";
-	
-	private static String DEFAULT_SOURCESYSTEM_CD = "JSONtoI2B2etl";
-		
+			
 	public Numeric(String dataType) {
 		super(dataType);
 		// TODO Auto-generated constructor stub
@@ -151,8 +149,7 @@ public class Numeric extends DataType{
 				dataCell = data[new Integer(col) - 1];
 				
 			} else {
-				// data l
-				System.err.println("logger");
+				// logger
 				
 			}
 				if(dataCell != null && !dataCell.isEmpty()){			
@@ -261,9 +258,8 @@ public class Numeric extends DataType{
 					if(i2b2.isValid()) ents.add(i2b2);
 				}
 			} else {
-				// no data found in <file> row <blah>
+				// no data found in <file> row <blah> System.err.println("logger");
 
-				System.err.println("logger");
 				
 			}
 				

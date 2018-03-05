@@ -202,7 +202,7 @@ public class Text extends DataType {
 				
 			} else {
 				//data length too short for specified col
-				System.err.println("logger");
+				//System.err.println("logger");
 				
 			}
 			// if there is no data skip
@@ -312,7 +312,7 @@ public class Text extends DataType {
 				}
 			} else {
 				// no data found in <file> row <blah>
-				System.err.println("logger");
+				//System.err.println("logger");
 				
 			}
 			

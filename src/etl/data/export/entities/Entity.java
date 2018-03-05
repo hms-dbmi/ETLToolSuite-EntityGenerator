@@ -33,7 +33,7 @@ public abstract class Entity implements Cloneable{
 	
 	private enum VALID_TYPES{ PatientDimension, ObservationFact, ConceptDimension, I2B2, ModifierDimension };
 		
-	public static String ROOT_NODE = "";
+	public static String ROOT_NODE;
 	
 	private static final String ENTITY_PACKAGE = "etl.data.export.entities.i2b2.";
 	
@@ -234,7 +234,7 @@ public abstract class Entity implements Cloneable{
 
 		// iterate over entities to be generated
 	
-		System.out.println("Processing " + list.get(0).getFileName() + " with " + dataFile.stream().count() + " lines");
+		//System.out.println("Processing " + list.get(0).getFileName() + " with " + dataFile.stream().count() + " lines");
 		
 		long startTime = System.currentTimeMillis();
 		

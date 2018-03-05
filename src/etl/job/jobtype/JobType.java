@@ -1,9 +1,10 @@
 package etl.job.jobtype;
 
+import etl.job.jobtype.properties.JobProperties;
 
 public abstract class JobType {
 	
-	private enum VALID_TYPES{ JsonToI2b2TM, XmlToI2b2TM, CsvToI2b2TM, CSVNew, DemoJob};
+	private enum VALID_TYPES{ JsonToI2b2TM, XmlToI2b2TM, CsvToI2B2TM, DemoJob };
 	
 	private static final String JOB_TYPE_PACKAGE = "etl.job.jobtype.";
 	
@@ -75,6 +76,8 @@ public abstract class JobType {
 		return false;
 	}
 	
-	public abstract void runJob();
+	public abstract void runJob(JobProperties jobProperties);
+	
+	public abstract void setVariables(JobProperties jobProperties);
 	
 }
