@@ -76,5 +76,9 @@
         </java>
     </target>
   	
-  	<jar destfile="EntityGenerator.jar" basedir=""/>
+  	<jar destfile="EntityGenerator.jar" basedir="">
+		<manifest>
+			<attribute name="Main-Class" value="src/etl/drivers/TestDriver"/>
+		</manifest>
+  	</jar>
 </project>
