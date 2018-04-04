@@ -150,51 +150,7 @@ public class CsvToI2b2TMMapping extends etl.mapping.Mapping{
 		
 		return list;
 	}
-	/**
-	 * 
-	 * @param mappingReader
-	 * @return
-		
-	 */
-	@Deprecated
-	/**public Map<String,List<CsvToI2b2TMMapping>> processMapping(CSVReader mappingReader) {
-		
-		Map<String,List<CsvToI2b2TMMapping>> map = new HashMap<String,List<CsvToI2b2TMMapping>>();
-
-		try {
-			
-			for(String[] arr: mappingReader.readAll()){
-				
-				if(map.containsKey(arr[0])){
-					
-					List<CsvToI2b2TMMapping> list = map.get(arr[0]);
-					
-					this.buildMapping(arr);
-					
-					list.add(this);
-					
-					map.put(arr[0], list);
-					
-				} else {
-					
-					List<CsvToI2b2TMMapping> list = new ArrayList<CsvToI2b2TMMapping>();
-
-					this.buildMapping(arr);
-					
-					list.add(this);
-					
-					map.put(arr[0], list);
-				}
-				
-			}
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return map;
-	}
+	
 	/**
 	 * CSV Mapping will process a csv file this should be pretty reusalbe through out other jobs
 	 * send in a object Cast it to a csv reader and process the mapping file.

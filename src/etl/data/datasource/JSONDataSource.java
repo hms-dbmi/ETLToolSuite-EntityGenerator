@@ -92,17 +92,20 @@ public class JSONDataSource extends DataSource {
 	}
 	
 	private Map<String,String> processNodeToMap(JsonNode node, Map<String,String> map, String currKey) throws JsonProcessingException, IOException{
-
+		if(currKey.equalsIgnoreCase(":fields:phenotips:disorders")) {
+			@SuppressWarnings("unused")
+			int x = 0;
+		}
 		if(node == null){
 			return null;
 		}
-
+		
 		if(node.isArray()){
 
 			map.put(currKey, node.toString());
 			
 			for(int x = 0 ; node.size() > x ; x++){
-				processNodeToMap(node.get(x), map, currKey + x);
+				processNodeToMap(node.get(x), map, currKey);
 			
 			}
 		
@@ -111,7 +114,6 @@ public class JSONDataSource extends DataSource {
 		Iterator<Entry<String,JsonNode>> iter = node.fields();
 		
 		if(node.isObject()){
-
 			map.put(currKey,node.toString());
 		
 		}
@@ -119,10 +121,11 @@ public class JSONDataSource extends DataSource {
 		while(iter.hasNext()){
 			
 			Entry<String,JsonNode> n = iter.next();
-			if(!n.getValue().isNull()) {
-				
-				
+			
+			if(!n.getValue().isNull()) {	
+
 				map.put(currKey + ":" + n.getKey(), n.getValue().asText());
+			
 			} 
 			
 			processNodeToMap(n.getValue(),map, currKey + ":" + n.getKey());

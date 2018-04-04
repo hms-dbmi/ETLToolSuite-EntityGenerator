@@ -1,5 +1,6 @@
 package etl.data.datasource;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 
@@ -15,18 +16,15 @@ public class CSVDataSource extends DataSource {
 	
 	public au.com.bytecode.opencsv.CSVReader processCSV(String csvFile, char delimiter, int skipHeader) throws FileNotFoundException{
 		
-		long startTime = System.currentTimeMillis();
-		//CSVParser parser = new CSVParser(delimiter,'"','\0',CSVParser.DEFAULT_STRICT_QUOTES);
+		if(new File(csvFile).isFile()) {
+			
+			au.com.bytecode.opencsv.CSVReader csvreader = new CSVReader(new FileReader(csvFile), delimiter, '"','\0', skipHeader);
+			
+			return csvreader;
+		} else {
+			return null;
+		}
 		
-		au.com.bytecode.opencsv.CSVReader csvreader = new CSVReader(new FileReader(csvFile), delimiter, '"','\0', skipHeader);
-		
-		//au.com.bytecode.opencsv.CSVReader csvreader = new CSVReader (new FileReader(csvFile), 0, parser);
-		
-		long stopTime = System.currentTimeMillis();
-		long elapsedTime = stopTime - startTime;
-		//System.out.println("ProcessCSV Time: " + elapsedTime);
-
-		return csvreader;
 	}
 
 	@Override

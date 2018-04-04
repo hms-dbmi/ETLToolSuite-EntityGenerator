@@ -31,7 +31,7 @@ public abstract class Entity implements Cloneable{
 	// temp concept_cd id
 	public static int CONCEPT_CD_SEQ = 1;
 	
-	private enum VALID_TYPES{ PatientDimension, ObservationFact, ConceptDimension, I2B2, ModifierDimension };
+	private enum VALID_TYPES{ PatientDimension, ObservationFact, ConceptDimension, I2B2, ModifierDimension, ConceptCounts };
 		
 	public static String ROOT_NODE;
 	
@@ -323,7 +323,6 @@ public abstract class Entity implements Cloneable{
 	public static String buildConceptPath(List<String> pathList) {
 		String path = "\\";
 		for(String s: pathList){
-			
 			if(s != null && !s.isEmpty()){
 				
 				if(s.startsWith("\\")){

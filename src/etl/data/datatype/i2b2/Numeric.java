@@ -154,7 +154,7 @@ public class Numeric extends DataType{
 			}
 				if(dataCell != null && !dataCell.isEmpty()){			
 				if(entity instanceof ObservationFact){
-					
+										
 					String encounterNum = mapping.getVisitIdColumn().isEmpty() ? "-1" : data[new Integer(mapping.getVisitIdColumn()) -1];
 					String patientNum = mapping.getPatientIdColumn().isEmpty() ? "-1" : data[new Integer(mapping.getPatientIdColumn()) -1];
 					
@@ -191,7 +191,7 @@ public class Numeric extends DataType{
 					
 				} if(entity instanceof ConceptDimension){
 					
-					List<String> path = Arrays.asList(this.ROOT_NODE, mapping.getCategoryCode(), mapping.getDataLabel());
+					List<String> path = Arrays.asList( mapping.getCategoryCode(), mapping.getDataLabel());
 	
 					String conceptCd = mapping.getCategoryCode() + ":" + mapping.getDataLabel();
 					
@@ -220,7 +220,7 @@ public class Numeric extends DataType{
 					
 				} if(entity instanceof I2B2){
 	
-					List<String> path = Arrays.asList(this.ROOT_NODE, mapping.getCategoryCode(), mapping.getDataLabel());
+					List<String> path = Arrays.asList(mapping.getCategoryCode(), mapping.getDataLabel());
 					
 					String cHlevel = Entity.calculateHlevel(Entity.buildConceptPath(path)).toString();
 	

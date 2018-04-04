@@ -6,6 +6,7 @@ import java.lang.reflect.Array;
 import java.nio.file.OpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -25,6 +26,7 @@ import etl.data.datatype.DataType;
 import etl.data.datatype.i2b2.Objectarray;
 import etl.data.export.Export;
 import etl.data.export.entities.Entity;
+import etl.data.export.entities.i2b2.I2B2;
 import etl.data.export.i2b2.ExportI2B2;
 import etl.job.jobtype.properties.JobProperties;
 import etl.job.jsontoi2b2tm.entity.Mapping;
@@ -44,7 +46,18 @@ public class JsonToI2b2TM extends JobType {
 	
 	private static String RELATIONAL_KEY = ":fields:uuid";
 	
-	private static String OMISSION_KEY = ":fields:encoded_relation";
+	private static String OMISSION_KEY = ":fields:activestatus";
+	
+	private static String OMISSION_VALUE  = "A";
+	
+	private static Map<String,List<String>> OMISSIONS_MAP = new HashMap<String, List<String>>();
+	{
+		
+		OMISSIONS_MAP.put(":fields:activestatus", Arrays.asList("A"));
+		OMISSIONS_MAP.put(":fields:encoded_relation", Arrays.asList("",null));
+		
+	};
+	
 	
 	/// Internal Config
 	private static String FILE_TYPE = "JSONFILE";
@@ -118,8 +131,9 @@ public class JsonToI2b2TM extends JobType {
 				
 				System.out.println("File " + dataFile + " Does Not Exist!");
 			
-			}	
+			}
 			
+			builtEnts.addAll(thisFillTree(builtEnts));
 			// expand on exception handling
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -154,30 +168,34 @@ public class JsonToI2b2TM extends JobType {
 		
 		boolean isOmitted = true;
 		
-		if(map.containsKey(OMISSION_KEY)){
+		for(String omkey: OMISSIONS_MAP.keySet()) {
+			
+			if(map.get(omkey) != null) {
 
-			if( map.get(OMISSION_KEY) == null || map.get(OMISSION_KEY).isEmpty()){
-			
-				isOmitted = false;    
-			
+				String omissionVal = map.get(omkey);
+				
+				if(OMISSIONS_MAP.get(omkey).contains(omissionVal)) {
+					
+					isOmitted = false;
+					
+				} else {
+					
+					isOmitted = true;
+					// once isOmitted is proved to be true break and continue method
+					break;
+				}
+				
 			}
 			
-		} else {
-			
-			isOmitted = false;
-			
 		}
-		
+
 		if(!isOmitted){
 			
 			for(Mapping mapping: mappings){
-	
 				if(map.containsKey(mapping.getKey())){
-					
 					try {
 
 						DataType dt = DataType.initDataType(StringUtils.capitalize(mapping.getDataType()));
-						
 						if(!mapping.getDataType().equalsIgnoreCase("OMIT")){
 	
 							Set<Entity> newEnts = dt.generateTables(map, mapping, entities, RELATIONAL_KEY, OMISSION_KEY);
@@ -278,4 +296,23 @@ public class JsonToI2b2TM extends JobType {
 				
 	}
 	
+	private Collection<? extends Entity> thisFillTree(Set<Entity> entities) throws CloneNotSupportedException {
+		List<I2B2> i2b2 = new ArrayList<I2B2>();
+		// fill in tree
+		if(EXPORT_TABLES.contains("I2B2")){
+		
+			for(Entity entity: entities){
+				
+				if(entity instanceof I2B2){
+					
+					i2b2.add((I2B2) entity);
+					
+				}
+				
+			}
+			
+		}
+		
+		return I2B2.fillTree(i2b2);
+	}
 }

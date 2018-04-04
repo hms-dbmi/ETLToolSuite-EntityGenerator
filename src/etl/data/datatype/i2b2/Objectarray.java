@@ -17,7 +17,7 @@ import etl.mapping.CsvToI2b2TMMapping;
 
 public class Objectarray extends DataType {
 	
-	private enum VALID_ARRAYS{ UMLS, KEYVALUE, MODIFIER, AARRAY }
+	private enum VALID_ARRAYS{ UMLS, KEYVALUE, MODIFIER, AARRAY, VALUEARRAY }
 	
 	public static String ARRAY_FORMAT = "JSON";
 	

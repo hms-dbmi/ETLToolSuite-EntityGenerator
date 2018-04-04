@@ -4,6 +4,7 @@ import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.WRITE;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -104,7 +105,7 @@ public class CsvToI2B2TM extends JobType {
 		
 		SKIP_DATA_HEADER = jobProperties.containsKey("skipdataheader") ? jobProperties.getProperty("skipdataheader") : "Y";
 		
-		ROOT_NODE = jobProperties.containsKey("rootnode") ? jobProperties.getProperty("skipdataheader") : "";
+		ROOT_NODE = jobProperties.containsKey("rootnode") ? jobProperties.getProperty("rootnode") : "";
 		
 		// Void Parameters
 		
@@ -180,8 +181,14 @@ public class CsvToI2B2TM extends JobType {
 			CsvToI2b2TMMapping mappingClass = new CsvToI2b2TMMapping("CsvToI2b2TMMapping");
 			
 			List<CsvToI2b2TMMapping> mappings = mappingClass.processMapping(mappingReader);			
-
-			Map<String, List<PatientMapping>> patientMappings = PatientMapping.class.newInstance().processMapping(patientMappingReader);			
+			
+			Map<String, List<PatientMapping>> patientMappings = new HashMap<String, List<PatientMapping>>();
+			
+			if (patientMappingReader != null) {
+				
+				patientMappings = PatientMapping.class.newInstance().processMapping(patientMappingReader);			
+			
+			}
 			/*
 			 * iterate over keyset in mapping file
 			*	Each key represents the filename for mapping entries
@@ -197,12 +204,13 @@ public class CsvToI2B2TM extends JobType {
 					CSVReader dataReader;
 					try {
 						
-						dataReader = ds.processCSV(DATA_DIR + key, DELIMITER, skipDataHeader);
-					
-						List<String[]> dataList = dataReader.readAll();
-
-						entities.addAll(processEntities(dataList, mappings,key));
+						if(new File(DATA_DIR + key).canRead()) {
+							dataReader = ds.processCSV(DATA_DIR + key, DELIMITER, skipDataHeader);
 						
+							List<String[]> dataList = dataReader.readAll();
+
+							entities.addAll(processEntities(dataList, mappings,key));
+						}
 					} catch (FileNotFoundException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -276,7 +284,7 @@ public class CsvToI2B2TM extends JobType {
 		for(CsvToI2b2TMMapping mapping:mappings){
 
 			if(mapping.getFileName().equals(fileName)){
-				
+
 				list.add(mapping);
 				
 			}
@@ -289,8 +297,8 @@ public class CsvToI2B2TM extends JobType {
 		long startTime = System.currentTimeMillis();
 		
 		for(String[] data: dataList){
-			if(list.size() == data.length - 1){
-				
+
+			if(list.size() == data.length){
 				list.forEach(mapping -> {
 					
 					// If you need to build more entities add them here.  Logic should go into the entity's 
@@ -362,8 +370,6 @@ public class CsvToI2B2TM extends JobType {
 			
 		});
 		
-		
-		
 		csvReaders.forEach((fileName,reader) ->{
 			try{
 
@@ -380,8 +386,6 @@ public class CsvToI2B2TM extends JobType {
 								if(pm.getFileName().equals(fileName)){
 									try{
 										String patId = arr[ new Integer(pm.getPatId()) -1 ];
-										
-										
 										
 										if(patients.containsKey(patId)){
 											

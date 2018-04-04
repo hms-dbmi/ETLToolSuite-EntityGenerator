@@ -28,9 +28,7 @@ import etl.mapping.CsvToI2b2TMMapping;
 public class Text extends DataType {
 
 	private static String DEFAULT_VALUETYPE = "T";
-	
-	private static String DEFAULT_NVAL = "E";
-	
+		
 	
 	public Text(String dataType) {
 		super(dataType);
@@ -51,15 +49,14 @@ public class Text extends DataType {
 	
 	@SuppressWarnings("unchecked")
 	public Set<Entity> generateTables(Map map, Mapping mapping, List<Entity> entities, String relationalKey, String omissionKey) {
-
+		System.out.println("here");
 		Set<Entity> ents = new HashSet<Entity>();
 
 		Map<String, String> options = mapping.buildOptions(mapping);
 		
 		for(Entity entity: entities){			
-			
 			if(map != null && map.containsKey(mapping.getKey())){ // && map.containsKey(relationalKey) && map.get(mapping.getKey()) != null && !map.get(mapping.getKey()).toString().isEmpty()){
-		
+				
 				Map<String, String> valMap = options.containsKey("VALUEMAP") ? makeKVPair(options.get("VALUEMAP"),"\\|","="): new HashMap<String, String>();
 
 				try {
@@ -174,7 +171,6 @@ public class Text extends DataType {
 			}
 
 		}
-
 		return ents;
 	}
 	/**
@@ -186,7 +182,7 @@ public class Text extends DataType {
 	@Override
 	public Set<Entity> generateTables(String[] data,
 			CsvToI2b2TMMapping mapping, List<Entity> entities) throws Exception {
-		
+		System.out.println("here");
 		// will be returned
 		Set<Entity> ents = new HashSet<Entity>();
 		

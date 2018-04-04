@@ -2,6 +2,7 @@ package etl.data.export.entities.i2b2;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -390,7 +391,7 @@ public class I2B2 extends Entity {
 				+ "]";
 	}
 
-	public static Set<I2B2> fillTree(List<I2B2> nodes) throws CloneNotSupportedException{
+	public static Set<I2B2> fillTree(Collection<? extends I2B2> nodes) throws CloneNotSupportedException{
 		
 		Set<I2B2> set = new HashSet<I2B2>();
 		

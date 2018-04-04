@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. --><project basedir="." default="build" name="ETLToolSuite-EntityGenerator - Master">
+    <property environment="env"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.8"/>
+    <property name="source" value="1.8"/>
+    <path id="ETLToolSuite-EntityGenerator - Master.classpath">
+        <pathelement location="bin"/>
+        <pathelement location="resources/commons-lang-2.6.jar"/>
+        <pathelement location="resources/gson-2.3.1.jar"/>
+        <pathelement location="resources/guava-r05.jar"/>
+        <pathelement location="resources/jackson-annotations-2.8.8.jar"/>
+        <pathelement location="resources/jackson-core-2.8.8.jar"/>
+        <pathelement location="resources/jackson-databind-2.8.8.jar"/>
+        <pathelement location="resources/java-sizeof-0.0.3.jar"/>
+        <pathelement location="resources/javacsv-2.1.jar"/>
+        <pathelement location="resources/jdom-2.0.2.jar"/>
+        <pathelement location="resources/joda-time-2.1.jar"/>
+        <pathelement location="resources/json-20160810.jar"/>
+        <pathelement location="resources/json-simple.jar"/>
+        <pathelement location="resources/log4j-1.2.17.jar"/>
+        <pathelement location="resources/opencsv-2.3.jar"/>
+        <pathelement location="resources/reflections-0.9.8.jar"/>
+    </path>
+    <target name="init">
+        <mkdir dir="bin"/>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="src">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="resources">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+    <target depends="clean" name="cleanall"/>
+    <target depends="build-subprojects,build-project" name="build"/>
+    <target name="build-subprojects"/>
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
+            <src path="src"/>
+            <src path="resources"/>
+            <classpath refid="ETLToolSuite-EntityGenerator - Master.classpath"/>
+        </javac>
+    </target>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+    <target name="TestDriver (1)">
+        <java classname="etl.drivers.TestDriver" failonerror="true" fork="yes">
+            <jvmarg line="-Xms3g -Xmx10g"/>
+            <arg line="-jobtype JsonToI2b2TM -propertiesfile resources/DefaultJsonToI2b2TM.config"/>
+            <classpath refid="ETLToolSuite-EntityGenerator - Master.classpath"/>
+        </java>
+    </target>
+    <target name="TestDriver (2)">
+        <java classname="etl.drivers.TestDriver" failonerror="true" fork="yes">
+            <jvmarg line="-Xms3g -Xmx10g"/>
+            <arg line="-jobtype CsvToI2B2TM -propertiesfile resources/Jackson.config"/>
+            <classpath refid="ETLToolSuite-EntityGenerator - Master.classpath"/>
+        </java>
+    </target>
+    <target name="TestDriver">
+        <java classname="etl.drivers.TestDriver" failonerror="true" fork="yes">
+            <jvmarg line="-Xms3g -Xmx10g"/>
+            <arg line="-jobtype CsvToI2B2TM -propertiesfile resources/Jackson.config"/>
+            <classpath refid="ETLToolSuite-EntityGenerator - Master.classpath"/>
+        </java>
+    </target>
+  	
+  	<jar destfile="EntityGenerator.jar" basedir=""/>
+</project>
