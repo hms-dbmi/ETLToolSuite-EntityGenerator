@@ -15,7 +15,7 @@ public abstract class JobProperties extends Properties{
 	 */
 	private static final long serialVersionUID = 5987407489240934574L;
 
-	private enum VALID_TYPES{ CsvToI2B2TM, JsonToI2b2TM };
+	private enum VALID_TYPES{ CsvToI2B2TM, JsonToI2b2TM, JsonToI2b2TM2New };
 		
 	private static final String JOB_TYPE_PACKAGE = "etl.job.jobtype.properties.";
 	
@@ -40,19 +40,13 @@ public abstract class JobProperties extends Properties{
 		if(Files.exists(Paths.get(propertiesFile))) {
 
 			this.load(new FileInputStream(propertiesFile));
-
-			for(String required: REQUIRED_PROPERTIES) {
-				
-				requiredfields.add(required);
-				
-			}
+			requiredfields.addAll(REQUIRED_PROPERTIES);
+			
 			for(Object key: this.keySet()) {
 				
 				availableKeys.add(key.toString());
 				
 			}
-			
-			
 			
 		}
 		

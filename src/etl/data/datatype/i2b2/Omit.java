@@ -30,6 +30,12 @@ public class Omit extends DataType {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	@Override
+	public Set<Entity> generateTables(Mapping mapping, List<Entity> entities, List<Object> values,
+			List<Object> relationalValue) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 
 }

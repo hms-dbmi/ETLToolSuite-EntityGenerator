@@ -32,7 +32,7 @@ public class Mapping {
 		
 		Map<String, Mapping> mapping = new HashMap<String, Mapping>();
 				
-		CsvReader reader = new CsvReader("/Users/tom/Documents/udn_mapping.csv");
+		CsvReader reader = new CsvReader(filePath);
 
 		if(delimiter == ' '){
 			
@@ -73,7 +73,7 @@ public class Mapping {
 	}
 
 	
-	public List<Mapping> generateMappingList(String filePath, char delimiter) throws IOException{
+	public static List<Mapping> generateMappingList(String filePath, char delimiter) throws IOException{
 		List<Mapping> mapping = new ArrayList<Mapping>();
 				
 		CsvReader reader = new CsvReader(filePath);

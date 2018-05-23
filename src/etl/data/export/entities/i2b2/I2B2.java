@@ -391,9 +391,9 @@ public class I2B2 extends Entity {
 				+ "]";
 	}
 
-	public static Set<I2B2> fillTree(Collection<? extends I2B2> nodes) throws CloneNotSupportedException{
+	public static Set<Entity> fillTree(Collection<? extends I2B2> nodes) throws Exception{
 		
-		Set<I2B2> set = new HashSet<I2B2>();
+		Set<Entity> set = new HashSet<Entity>();
 		
 		for(I2B2 node: nodes){
 			
@@ -410,7 +410,7 @@ public class I2B2 extends Entity {
 				i2b2.setcToolTip(node.getcFullName().substring(0, StringUtils.ordinalIndexOf(node.getcFullName(), "\\", x) + 1 ));
 				
 				i2b2.setcHlevel(new Integer(x - 2).toString());
-				
+				i2b2.setcBaseCode(null);
 				i2b2.setcVisualAttributes("FA");
 				
 				i2b2.setcMetaDataXML("");
@@ -422,7 +422,12 @@ public class I2B2 extends Entity {
 				set.add(i2b2);
 				
 				x--;
-				
+				if(i2b2.getcHlevel().equals("0") && i2b2.getcTableName().equalsIgnoreCase("concept_dimension")) {
+					
+					TableAccess tableAccess = new TableAccess("TableAccess", i2b2);
+					
+					set.add(tableAccess);
+				}
 			}
 		}
 		

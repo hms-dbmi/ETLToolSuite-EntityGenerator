@@ -1,7 +1,13 @@
 package etl.data.export.entities.i2b2;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import etl.data.export.entities.Entity;
 import etl.mapping.CsvToI2b2TMMapping;
+import etl.mapping.PatientMapping;
 
 public class PatientDimension extends Entity {
 	private String patientNum;
@@ -29,6 +35,34 @@ public class PatientDimension extends Entity {
 		this.schema = "I2B2DEMODATA";
 
 		// TODO Auto-generated constructor stub
+	}
+
+	public PatientDimension(String string, LinkedHashMap record, Map<String, List<Object>> valueMap) throws Exception {
+		super(string);
+		this.schema = "I2B2DEMODATA";
+				
+		for(String fieldKey: valueMap.keySet()) {
+			this.patientNum = fieldKey.equalsIgnoreCase("patientNum") && !valueMap.get(fieldKey).isEmpty() ? valueMap.get(fieldKey).get(0).toString() : this.patientNum;
+			this.vitalStatusCD = fieldKey.equalsIgnoreCase("vitalStatusCD") && !valueMap.get(fieldKey).isEmpty() ? valueMap.get(fieldKey).get(0).toString() : this.vitalStatusCD;
+			this.birthDate = fieldKey.equalsIgnoreCase("birthDate")  && !valueMap.get(fieldKey).isEmpty() ? valueMap.get(fieldKey).get(0).toString() : this.birthDate;
+			this.deathDate = fieldKey.equalsIgnoreCase("deathDate")  && !valueMap.get(fieldKey).isEmpty() ? valueMap.get(fieldKey).get(0).toString() : this.deathDate;
+			this.sexCD = fieldKey.equalsIgnoreCase("sexCD") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.sexCD;
+			this.ageInYearsNum = fieldKey.equalsIgnoreCase("ageInYearsNum") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.ageInYearsNum;
+			this.languageCD = fieldKey.equalsIgnoreCase("languageCD") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.languageCD;
+			this.raceCD = fieldKey.equalsIgnoreCase("raceCD") && !valueMap.get(fieldKey).isEmpty() && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.raceCD;
+			this.maritalStatusCD = fieldKey.equalsIgnoreCase("maritalStatusCD") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.maritalStatusCD;
+			this.religionCD = fieldKey.equalsIgnoreCase("religionCD") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.religionCD;
+			this.zipCD = fieldKey.equalsIgnoreCase("zipCD") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.zipCD;
+			this.stateCityZipPath = fieldKey.equalsIgnoreCase("stateCityZipPath") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.stateCityZipPath;
+			this.updateDate = fieldKey.equalsIgnoreCase("updateDate") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.updateDate;
+			this.downloadDate = fieldKey.equalsIgnoreCase("downloadDate") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.downloadDate;
+			this.importDate = fieldKey.equalsIgnoreCase("importDate") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.importDate;
+			this.sourceSystemCD = fieldKey.equalsIgnoreCase("sourceSystemCD") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.sourceSystemCD;
+			this.uploadID = fieldKey.equalsIgnoreCase("uploadID") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.uploadID;
+			this.patientBlob = fieldKey.equalsIgnoreCase("patientBlob") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.patientBlob;
+			this.incomeCD = fieldKey.equalsIgnoreCase("incomeCD") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.incomeCD;
+
+		}
 	}
 
 	@Override
@@ -65,11 +99,11 @@ public class PatientDimension extends Entity {
 		return makeStringSafe(patientNum) + "," + makeStringSafe(vitalStatusCD) + "," 
 				+ makeStringSafe(birthDate) + "," + makeStringSafe(deathDate) + "," + makeStringSafe(sexCD) + "," 
 				+ makeStringSafe(ageInYearsNum) + "," + makeStringSafe(languageCD) + "," 
-				+ makeStringSafe(raceCD) + "," + makeStringSafe(maritalStatusCD) + "," + makeStringSafe(religionCD) 
-				+ "," + makeStringSafe(zipCD) + "," + makeStringSafe(stateCityZipPath) + "," 
+				+ makeStringSafe(raceCD) + "," + makeStringSafe(maritalStatusCD) + "," + makeStringSafe(religionCD) + "," 
+				+ makeStringSafe(zipCD) + "," + makeStringSafe(stateCityZipPath) + "," 
 				+ makeStringSafe(updateDate) + "," + makeStringSafe(downloadDate) + "," + makeStringSafe(importDate) + "," 
 				+ makeStringSafe(sourceSystemCD) + "," + makeStringSafe(uploadID) + "," 
-				+ makeStringSafe(patientBlob) + "," + makeStringSafe(incomeCD) + "";
+				+ makeStringSafe(patientBlob) + "," + makeStringSafe(incomeCD);
 	}
 
 	public String getPatientNum() {
@@ -390,5 +424,22 @@ public class PatientDimension extends Entity {
 		return true;
 	}
 
-
+	private List<PatientDimension> generatePatientDimension(List records, PatientMapping patientMapping) {
+		
+		List<PatientDimension> patients = new ArrayList<PatientDimension>();
+		
+		if(records != null) {
+			for(Object o: records) {
+				// downcast object to LinkedHashMap
+				LinkedHashMap<String, Object> m = (LinkedHashMap<String, Object>) o;
+				
+				
+				//patients.addAll(PatientMapping.processMapping(m, patientMapping));
+			}
+			
+			
+		}
+		
+		return patients;
+	}
 }

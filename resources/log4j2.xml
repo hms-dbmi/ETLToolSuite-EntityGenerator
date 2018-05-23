@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+        </Console>
+        <RollingFile name="all" fileName="/var/logs/all.log"
+        			filePattern="${log-path}/dating-trace-%d{yyyy-MM-dd}.log" immediateFlush="false">
+            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+	            <Policies>
+					<OnStartupTriggeringPolicy minSize="0"/>
+	            </Policies>
+        </RollingFile>
+        <RollingFile name="Errors" fileName="/var/logs/error.log"
+        			filePattern="${log-path}/error-%d{yyyy-MM-dd}.log" immediateFlush="false">
+            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+				<Policies>
+					<OnStartupTriggeringPolicy minSize="0"/>
+				</Policies>
+        </RollingFile>
+        <RollingFile name="Debug" fileName="/var/logs/debug.log"
+        			filePattern="${log-path}/debug-%d{yyyy-MM-dd}.log" immediateFlush="false">
+            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+				<Policies>
+					<OnStartupTriggeringPolicy minSize="0"/>
+				</Policies>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+    		<Logger name="etl.job.jobtype.JobType" level="all" additivity="false">
+  			<appender-ref ref="Errors" level="error"/>
+			<appender-ref ref="all" level="info"/>
+    		</Logger>
+        <Logger name="etl.job.jobtype.CsvToI2B2TM" level="all" additivity="false">
+        	    <appender-ref ref="Errors" level="error"/>
+        	    <appender-ref ref="all" level="info"/>
+        </Logger>
+        <Logger name="etl.job.jobtype.JsonToI2b2TM2New" level="all" additivity="false">
+        	    <appender-ref ref="Errors" level="error"/>
+        	    <appender-ref ref="all" level="info"/>
+  	   	    <appender-ref ref="Debug" level="debug"/>
+        </Logger>
+        <Root level="info" additivity="false">
+        		<appender-ref ref="Console" />
+        </Root>
+    </Loggers>
+</Configuration>

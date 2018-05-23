@@ -25,7 +25,24 @@ public class Objectarray extends DataType {
 		super(dataType);
 		// TODO Auto-generated constructor stub
 	}
+	@Override
+	public  Set<Entity> generateTables(Mapping mapping, List<Entity> entities, List<Object> values,
+			List<Object> relationalValues) throws Exception{
+		
+		Map<String, String> options = Mapping.class.newInstance().buildOptions(mapping.getOptions());
+		if(!isValidArrayType(options.get("TYPE"))) {
+			
+			throw new Exception();	
+		
+		}
+		
+		Objectarray oa = Objectarray.initDataType(options.get("TYPE"));
 
+		return oa.generateTables(mapping, entities, values, relationalValues);
+		
+	}
+	
+	@Deprecated
 	public Set<Entity> generateTables(Map map, Mapping mapping,
 			List<Entity> entities, String relationalKey, String omissionKey) throws InstantiationException, IllegalAccessException, Exception {
 
@@ -184,12 +201,13 @@ public class Objectarray extends DataType {
 		return set;
 	
 	}
-
 	@Override
-	public Set<Entity> generateTables(String[] data,
-			CsvToI2b2TMMapping mapping, List<Entity> entities) throws Exception {
+	public Set<Entity> generateTables(String[] data, CsvToI2b2TMMapping mapping, List<Entity> entities)
+			throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+
 
 }

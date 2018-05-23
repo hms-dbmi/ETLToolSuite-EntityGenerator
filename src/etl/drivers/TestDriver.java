@@ -10,7 +10,7 @@ public class TestDriver {
 	private static String PROPERTIES_FILE = "./Default.config";
 	
 	private static JobProperties JOB_PROPERTIES;
-		
+	
 	public static void main(String[] args) {
 		try {
 			
@@ -19,7 +19,7 @@ public class TestDriver {
 			JobType job = JobType.initJobType( JOB_TYPE );
 			
 			JOB_PROPERTIES = JobProperties.initJobPropType( JOB_TYPE );
-			
+
 			JOB_PROPERTIES = JOB_PROPERTIES.buildProperties( PROPERTIES_FILE );
 						
 			job.runJob( JOB_PROPERTIES );

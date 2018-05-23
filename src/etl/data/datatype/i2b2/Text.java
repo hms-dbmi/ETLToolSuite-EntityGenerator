@@ -49,7 +49,6 @@ public class Text extends DataType {
 	
 	@SuppressWarnings("unchecked")
 	public Set<Entity> generateTables(Map map, Mapping mapping, List<Entity> entities, String relationalKey, String omissionKey) {
-		System.out.println("here");
 		Set<Entity> ents = new HashSet<Entity>();
 
 		Map<String, String> options = mapping.buildOptions(mapping);
@@ -182,7 +181,6 @@ public class Text extends DataType {
 	@Override
 	public Set<Entity> generateTables(String[] data,
 			CsvToI2b2TMMapping mapping, List<Entity> entities) throws Exception {
-		System.out.println("here");
 		// will be returned
 		Set<Entity> ents = new HashSet<Entity>();
 		
@@ -203,7 +201,6 @@ public class Text extends DataType {
 			}
 			// if there is no data skip
 			if(dataCell != null && !dataCell.isEmpty()){
-			
 				if(entity instanceof ObservationFact){
 					
 					String encounterNum = mapping.getVisitIdColumn().isEmpty() ? "-1" : data[new Integer(mapping.getVisitIdColumn()) -1];
@@ -316,6 +313,123 @@ public class Text extends DataType {
 		
 		return ents;
 	}
+	@Override
+	public Set<Entity> generateTables(Mapping mapping, List<Entity> entities, List<Object> values,
+			List<Object> relationalValues) throws Exception {
+		
+		if(mapping == null || entities == null || entities.isEmpty() || values == null || values.isEmpty()) {
+			
+			return new HashSet<Entity>();
+			
+		}
+		
+		Set<Entity> ents = new HashSet<Entity>();
+		
+		Map<String, String> options = mapping.buildOptions(mapping);
+		
+		Map<String, String> valMap = options.containsKey("VALUEMAP") ? makeKVPair(options.get("VALUEMAP"),"\\|","="): new HashMap<String, String>();
+		
+		for(Entity entity: entities){
+			
+			for(Object relationalValue: relationalValues) {
+				for(Object v: values) {
+					if( v == null || v instanceof Map) {
+						continue;
+					}
+					String value = v.toString();
+					if(value != null){						
+				
+						if(options.containsKey("REGEXEDIT") && value instanceof String){
+							value = value.replaceAll(options.get("REGEXEDIT"), "");
+							
+						}
+						
+						if(valMap.containsKey(value)){
+							
+							value = valMap.get(value);
+							
+						}
+						
+						if(entity instanceof ObservationFact){
+							
+							ObservationFact of = new ObservationFact("ObservationFact");
+							
+							of.setPatientNum(relationalValue.toString());
+							
+							of.setEncounterNum(relationalValue + mapping.getKey());
+							
+							of.setConceptCd(mapping.getKey() + ':' + value);
+							
+							of.setValtypeCd(DEFAULT_VALUETYPE);
+													
+							of.setTvalChar(value);
+							
+							of.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
+							
+							ents.add(of);
+													
+						} else if(entity instanceof ConceptDimension){
+					
+							ConceptDimension cd = new ConceptDimension("ConceptDimension");
+													
+							cd.setConceptCd(mapping.getKey() + ':' + value);
+							
+							List<String> pathList = new ArrayList<>(Arrays.asList(mapping.getRootNode(), mapping.getSupPath(), value));
+							
+							cd.setConceptPath(Entity.buildConceptPath(pathList));
+							
+							cd.setNameChar(value);
+							
+							cd.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
+							
+							ents.add(cd);
+							
+						} else if(entity instanceof I2B2){
+							
+							I2B2 i2b2 = new I2B2("I2B2");
+							
+							List<String> pathList = new ArrayList<>(Arrays.asList(mapping.getRootNode(), mapping.getSupPath(), value));
+							
+							i2b2.setcHlevel(Entity.calculateHlevel(Entity.buildConceptPath(pathList)).toString());
+							
+							i2b2.setcFullName(Entity.buildConceptPath(pathList));
+							
+							i2b2.setcName(value);
+							
+							i2b2.setcBaseCode(mapping.getKey());
+							
+							i2b2.setcVisualAttributes("LA");
+							
+							i2b2.setcFactTableColumn("CONCEPT_CD");
+							
+							i2b2.setcTableName("CONCEPT_DIMENSION");
+							
+							i2b2.setcColumnName("CONCEPT_PATH");
+							
+							i2b2.setcColumnDataType("T");
+							
+							i2b2.setcOperator("LIKE");
+							
+							i2b2.setcDimCode(Entity.buildConceptPath(pathList));
+							
+							i2b2.setcToolTip(Entity.buildConceptPath(pathList));
+							
+							i2b2.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
+							
+							i2b2.setmAppliedPath("@");
+							
+							ents.add(i2b2);
+							
+						}
+										
+					}
+				}
+			}
+		}
+		return ents;
+	}
+
+	
 
 	
 }

@@ -3,10 +3,12 @@ package etl.mapping;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import au.com.bytecode.opencsv.CSVReader;
+import etl.data.export.entities.i2b2.PatientDimension;
 
 public class PatientMapping extends etl.mapping.Mapping{
 	private String fileName;
@@ -75,52 +77,60 @@ public class PatientMapping extends etl.mapping.Mapping{
 		this.raceCol = raceCol;
 	}
 
-	public Map<String, List<PatientMapping>> processMapping(
-			CSVReader mappingReader) {
+	public static Map<String, List<PatientMapping>> processMapping(
+			CSVReader mappingReader) throws IOException {
 		Map<String,List<PatientMapping>> map = new HashMap<String,List<PatientMapping>>();
-		
 
-		try {
+		for(String[] arr: mappingReader.readAll()){
 			
-			for(String[] arr: mappingReader.readAll()){
+			if(map.containsKey(arr[0])){
 				
-				if(map.containsKey(arr[0])){
-					
-					List<PatientMapping> list = map.get(arr[0]);
+				List<PatientMapping> list = map.get(arr[0]);
 
-					list.add(new PatientMapping(arr));
-					
-					map.put(arr[0], list);
-					
-				} else {
-					
-					List<PatientMapping> list = new ArrayList<PatientMapping>();
-
-					list.add(new PatientMapping(arr));
-					
-					map.put(arr[0], list);
-				}
+				list.add(new PatientMapping(arr));
 				
+				map.put(arr[0], list);
+				
+			} else {
+				
+				List<PatientMapping> list = new ArrayList<PatientMapping>();
+
+				list.add(new PatientMapping(arr));
+				
+				map.put(arr[0], list);
 			}
 			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
+			
+
 		
 		return map;
+	}
+	public static List<PatientDimension> processMapping(LinkedHashMap<String, Object> m, CSVReader mappingReader) throws IOException{
+		
+		List<PatientDimension> list = new ArrayList<PatientDimension>();
+		
+		Map<String, List<PatientMapping>> mappings = processMapping(mappingReader);
+		
+		for(String key: mappings.keySet()) {
+			
+		}
+		
+		return list;
+		
+	};
+	
+
+	@Override
+	public void buildMapping(String[] arr) throws IOException {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
 	public Map<String, List<Mapping>> processMapping(Object... args) {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	@Override
-	public void buildMapping(String[] arr) throws IOException {
-		// TODO Auto-generated method stub
-		
 	}
 	
 	

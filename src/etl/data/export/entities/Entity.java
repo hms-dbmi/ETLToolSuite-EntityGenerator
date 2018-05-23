@@ -31,7 +31,7 @@ public abstract class Entity implements Cloneable{
 	// temp concept_cd id
 	public static int CONCEPT_CD_SEQ = 1;
 	
-	private enum VALID_TYPES{ PatientDimension, ObservationFact, ConceptDimension, I2B2, ModifierDimension, ConceptCounts };
+	private enum VALID_TYPES{ PatientTrial, PatientDimension, ObservationFact, ConceptDimension, I2B2, ModifierDimension, ConceptCounts, ObjectMapping , TableAccess};
 		
 	public static String ROOT_NODE;
 	
@@ -60,7 +60,8 @@ public abstract class Entity implements Cloneable{
 		}
 		
 		return list;
-	}		
+	}
+	
 	public Entity(String str) throws Exception{
 
 		if(isValidType(str)){
@@ -366,4 +367,6 @@ public abstract class Entity implements Cloneable{
 		Set<String> obj = new HashSet<String>();
 		
 	}
+	
+	
 }

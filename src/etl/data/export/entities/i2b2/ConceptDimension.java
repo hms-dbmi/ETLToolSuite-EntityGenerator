@@ -15,10 +15,10 @@ import etl.mapping.CsvToI2b2TMMapping;
 public class ConceptDimension extends Entity{
 	private String conceptCd;
 	private String conceptPath;
+	private String downloadDate;
 	private String nameChar;
 	private String conceptBlob;
 	private String updateDate;
-	private String downloadDate;
 	private String importDate;
 	private String sourceSystemCd;
 	private String uploadId;

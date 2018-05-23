@@ -7,11 +7,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import etl.data.export.entities.Entity;
+import etl.job.jobtype.JsonToI2b2TM2New;
 import etl.job.jsontoi2b2tm.entity.Mapping;
 import etl.mapping.CsvToI2b2TMMapping;
 
 public abstract class DataType {
+	
+	protected static final Logger logger = LogManager.getLogger(DataType.class);
 	
 	private enum VALID_TYPES{ TEXT, OMIT, NUMERIC, MODIFIER, OBJECTARRAY, GENETIC }
 
@@ -127,7 +133,6 @@ public abstract class DataType {
 	
 	// Utility method make a generic kv pair from denormalized string.
 	public Map<String,String> makeKVPair(String str, String delimiter, String kvdelimiter){
-		
 		Map<String, String> map = new HashMap<String, String>();
 		for(String str2: str.split(delimiter)){
 		
@@ -147,5 +152,8 @@ public abstract class DataType {
 
 	public abstract Set<Entity> generateTables(String[] data,
 			CsvToI2b2TMMapping mapping, List<Entity> entities) throws Exception;
+
+	public abstract Set<Entity> generateTables(Mapping mapping, List<Entity> entities, List<Object> values,
+			List<Object> relationalValue) throws Exception;
 	
 }

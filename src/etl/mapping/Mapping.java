@@ -8,7 +8,7 @@ import java.util.Map;
 import au.com.bytecode.opencsv.CSVReader;
 
 public abstract class Mapping {
-	private enum VALID_TYPES{ CsvToI2b2TMMapping, PatientMapping };
+	private enum VALID_TYPES{ CsvToI2b2TMMapping, PatientMapping, PatientMapping2 };
 	
 	private static String MAPPING_TYPE_PACKAGE = "etl.mapping.";
 

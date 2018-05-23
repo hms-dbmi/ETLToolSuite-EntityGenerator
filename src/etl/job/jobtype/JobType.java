@@ -1,13 +1,21 @@
 package etl.job.jobtype;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Properties;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import etl.job.jobtype.properties.JobProperties;
 
 public abstract class JobType {
 	
-	private enum VALID_TYPES{ JsonToI2b2TM, XmlToI2b2TM, CsvToI2B2TM, DemoJob };
+	private enum VALID_TYPES{ JsonToI2b2TM, JsonToI2b2TM2New, XmlToI2b2TM, CsvToI2B2TM, DemoJob };
 	
 	private static final String JOB_TYPE_PACKAGE = "etl.job.jobtype.";
-	
+		
 	public JobType(String str) throws Exception{
 		
 		if(isValidType(str)){

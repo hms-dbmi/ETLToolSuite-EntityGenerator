@@ -1,11 +1,19 @@
 package etl.data.datatype.i2b2;
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
 
 import etl.data.datatype.DataType;
 import etl.data.export.entities.Entity;
@@ -23,9 +31,8 @@ public class Numeric extends DataType{
 		super(dataType);
 		// TODO Auto-generated constructor stub
 	}
-
+	@Deprecated
 	@SuppressWarnings("unchecked")
-	@Override
 	public Set<Entity> generateTables(Map map, Mapping mapping, List<Entity> entities,
 			String relationalKey, String omissionKey) {
 		
@@ -33,92 +40,92 @@ public class Numeric extends DataType{
 		
 		for(Entity entity: entities){			
 											
-				if(map != null && map.containsKey(mapping.getKey()) && map.containsKey(relationalKey)){
-					try {
-				
-						if(entity instanceof ObservationFact){
-														
-							ObservationFact of = new ObservationFact("ObservationFact");
-														
-							of.setPatientNum(map.get(relationalKey).toString());
-							
-							of.setEncounterNum(map.get(relationalKey) + mapping.getKey());
-							
-							of.setConceptCd(mapping.getKey());
-							
-							of.setValtypeCd("N");
-							
-							of.setValueFlagCd("@");
-							
-							of.setNvalNum(map.get(mapping.getKey()).toString());
-							
-							of.setTvalChar("E");
-							
-							of.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
+			if(map != null && map.containsKey(mapping.getKey()) && map.containsKey(relationalKey)){
+				try {
+			
+					if(entity instanceof ObservationFact){
+													
+						ObservationFact of = new ObservationFact("ObservationFact");
+													
+						of.setPatientNum(map.get(relationalKey).toString());
+						
+						of.setEncounterNum(map.get(relationalKey) + mapping.getKey());
+						
+						of.setConceptCd(mapping.getKey());
+						
+						of.setValtypeCd("N");
+						
+						of.setValueFlagCd("@");
+						
+						of.setNvalNum(map.get(mapping.getKey()).toString());
+						
+						of.setTvalChar("E");
+						
+						of.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
 
-							if(of.isValid()) ents.add(of);
-								
-	
-						} else if(entity instanceof ConceptDimension){
-					
-							ConceptDimension cd =  new ConceptDimension("ConceptDimension");
+						if(of.isValid()) ents.add(of);
 							
-							cd.setConceptCd(mapping.getKey());
-							
-							List<String> pathList = new ArrayList<>(Arrays.asList( Entity.ROOT_NODE, mapping.getRootNode(), mapping.getSupPath()));
-							
-							cd.setConceptPath(Entity.buildConceptPath(pathList));
-							
-							cd.setNameChar(mapping.getSupPath().toString());
-							
-							cd.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
-							
-							if(cd.isValid()) ents.add(cd);
-							
-						} else if(entity instanceof I2B2){
-							
-							I2B2 i2b2 = new I2B2("I2B2");
-							
-							List<String> pathList = new ArrayList<>(Arrays.asList( Entity.ROOT_NODE, mapping.getRootNode(), mapping.getSupPath()));
-							
-							i2b2.setcHlevel(Entity.calculateHlevel(Entity.buildConceptPath(pathList)).toString());
-							
-							i2b2.setcFullName(Entity.buildConceptPath(pathList));
-							
-							i2b2.setcName(mapping.getSupPath().toString());
-							
-							i2b2.setcBaseCode(mapping.getKey());
-							
-							i2b2.setcVisualAttributes("LA");
-							
-							i2b2.setcFactTableColumn("CONCEPT_CD");
-							
-							i2b2.setcTableName("CONCEPT_DIMENSION");
-							
-							i2b2.setcColumnName("CONCEPT_PATH");
-							
-							i2b2.setcColumnDataType("T");
-							
-							i2b2.setcOperator("LIKE");
-							
-							i2b2.setcMetaDataXML(C_METADATAXML);
-							
-							i2b2.setcDimCode(Entity.buildConceptPath(pathList));
-							
-							i2b2.setcToolTip(Entity.buildConceptPath(pathList));
-							
-							i2b2.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
-							
-							i2b2.setmAppliedPath("@");
-							
-							if(i2b2.isValid()) ents.add(i2b2);
-							
-						}
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+
+					} else if(entity instanceof ConceptDimension){
+				
+						ConceptDimension cd =  new ConceptDimension("ConceptDimension");
+						
+						cd.setConceptCd(mapping.getKey());
+						
+						List<String> pathList = new ArrayList<>(Arrays.asList( Entity.ROOT_NODE, mapping.getRootNode(), mapping.getSupPath()));
+						
+						cd.setConceptPath(Entity.buildConceptPath(pathList));
+						
+						cd.setNameChar(mapping.getSupPath().toString());
+						
+						cd.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
+						
+						if(cd.isValid()) ents.add(cd);
+						
+					} else if(entity instanceof I2B2){
+						
+						I2B2 i2b2 = new I2B2("I2B2");
+						
+						List<String> pathList = new ArrayList<>(Arrays.asList( Entity.ROOT_NODE, mapping.getRootNode(), mapping.getSupPath()));
+						
+						i2b2.setcHlevel(Entity.calculateHlevel(Entity.buildConceptPath(pathList)).toString());
+						
+						i2b2.setcFullName(Entity.buildConceptPath(pathList));
+						
+						i2b2.setcName(mapping.getSupPath().toString());
+						
+						i2b2.setcBaseCode(mapping.getKey());
+						
+						i2b2.setcVisualAttributes("LA");
+						
+						i2b2.setcFactTableColumn("CONCEPT_CD");
+						
+						i2b2.setcTableName("CONCEPT_DIMENSION");
+						
+						i2b2.setcColumnName("CONCEPT_PATH");
+						
+						i2b2.setcColumnDataType("T");
+						
+						i2b2.setcOperator("LIKE");
+						
+						i2b2.setcMetaDataXML(C_METADATAXML);
+						
+						i2b2.setcDimCode(Entity.buildConceptPath(pathList));
+						
+						i2b2.setcToolTip(Entity.buildConceptPath(pathList));
+						
+						i2b2.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
+						
+						i2b2.setmAppliedPath("@");
+						
+						if(i2b2.isValid()) ents.add(i2b2);
+						
 					}
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
+			}
 
 		}
 	
@@ -267,6 +274,227 @@ public class Numeric extends DataType{
 		
 		return ents;
 	}
+	private List<Object> findValueByKey(Map record, String[] key) throws Exception {
+		
+		Map record2 = new LinkedHashMap(record);
+		
+		Iterator<String> iter = new ArrayList(Arrays.asList(key)).iterator();
+		while(iter.hasNext()) {
+			
+			String currKey = iter.next();
+			
+			if(record2.containsKey(currKey)){
+				
+				Object obj = record2.get(currKey);
+				
+				if(obj == null) {
 
+					return new ArrayList<Object>();
+					
+				}
+				if(obj instanceof Map) {
+					
+					record2 = new LinkedHashMap((LinkedHashMap)obj);
+					
+					// if last key return a the hashmap of values to be processed by a datatype
+					if(!iter.hasNext()) {
+						
+						List<Object> l = new ArrayList<Object>();
+						
+						l.add(record2);
+						
+						return l;
+					
+					}
+				
+				} else if ( obj instanceof String || obj instanceof Boolean ) {
+
+					return new ArrayList(Arrays.asList(obj));
+					
+				} else if ( obj instanceof List ) {
+					
+					List<Object> l = new ArrayList<Object>();
+					
+					for(Object o: (List) obj) {
+						
+						if(o instanceof Map) {
+							
+							record2 = new LinkedHashMap((LinkedHashMap) o);
+							
+							l.add(record2);
+							
+						} else {
+							return (ArrayList) obj;
+							
+						}
+						
+					}
+
+					return l;
+						
+				} else if ( obj != null) {
+					
+					System.out.println(obj.getClass());
+					
+				}
+				/*
+				try {
+
+					DataType dt = DataType.initDataType(StringUtils.capitalize(mapping.getDataType()));
+					if(!mapping.getDataType().equalsIgnoreCase("OMIT")){
+
+						Set<Entity> newEnts = dt.generateTables(record, mapping, entities, RELATIONAL_KEY, OMISSION_KEY);
+
+						if(newEnts != null && newEnts.size() > 0){
+						
+							builtEnts.addAll(newEnts);
+						
+						}
+						
+					}
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				
+				}							
+				*/
+			} else {
+				
+				//throw new Exception("Bad Key used to find value: " + currKey);
+				
+			}
+			
+		}
+		
+		return null;
+	}
+	
+	@Override
+	public Set<Entity> generateTables(Mapping mapping, List<Entity> entities, List<Object> values,
+			List<Object> relationalValues) throws Exception {
+		
+
+		if(mapping == null || entities == null || entities.isEmpty() || values == null || values.isEmpty()) {
+			
+			return new HashSet<Entity>();
+			
+		}		
+		Set<Entity> ents = new HashSet<Entity>();
+		
+		Map<String, String> options = mapping.buildOptions(mapping);
+		
+		Map<String, String> valMap = options.containsKey("VALUEMAP") ? makeKVPair(options.get("VALUEMAP"),"\\|","="): new HashMap<String, String>();
+		
+		for(Entity entity: entities){
+		
+			for(Object relationalValue: relationalValues) {
+		
+				for(Object v: values) {
+
+					if( v == null) {
+						continue;
+					}
+					String value = v.toString();
+				
+					//if(!StringUtils.isNumeric(value)) continue;
+				
+				
+					if(options.containsKey("REGEXEDIT") && value instanceof String){
+						value = value.replaceAll(options.get("REGEXEDIT"), "");
+						
+					}
+					
+					if(valMap.containsKey(value)){
+						
+						value = valMap.get(value);
+						
+					}
+					
+					if(entity instanceof ObservationFact){
+						
+						ObservationFact of = new ObservationFact("ObservationFact");
+													
+						of.setPatientNum(relationalValue.toString());
+						
+						of.setEncounterNum(relationalValue.toString() + mapping.getKey());
+						
+						of.setConceptCd(mapping.getKey());
+						
+						of.setValtypeCd("N");
+						
+						of.setValueFlagCd("@");
+						
+						of.setNvalNum(value);
+						
+						of.setTvalChar("E");
+						
+						of.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
+
+						if(of.isValid()) ents.add(of);
+							
+
+					} else if(entity instanceof ConceptDimension){
+				
+						ConceptDimension cd =  new ConceptDimension("ConceptDimension");
+						
+						cd.setConceptCd(mapping.getKey());
+						
+						List<String> pathList = new ArrayList<>(Arrays.asList( Entity.ROOT_NODE, mapping.getRootNode(), mapping.getSupPath()));
+						
+						cd.setConceptPath(Entity.buildConceptPath(pathList));
+						
+						cd.setNameChar(mapping.getSupPath().toString());
+						
+						cd.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
+						
+						if(cd.isValid()) ents.add(cd);
+						
+					} else if(entity instanceof I2B2){
+						
+						I2B2 i2b2 = new I2B2("I2B2");
+						
+						List<String> pathList = new ArrayList<>(Arrays.asList( Entity.ROOT_NODE, mapping.getRootNode(), mapping.getSupPath()));
+						
+						i2b2.setcHlevel(Entity.calculateHlevel(Entity.buildConceptPath(pathList)).toString());
+						
+						i2b2.setcFullName(Entity.buildConceptPath(pathList));
+						
+						i2b2.setcName(mapping.getSupPath().toString());
+						
+						i2b2.setcBaseCode(mapping.getKey());
+						
+						i2b2.setcVisualAttributes("LA");
+						
+						i2b2.setcFactTableColumn("CONCEPT_CD");
+						
+						i2b2.setcTableName("CONCEPT_DIMENSION");
+						
+						i2b2.setcColumnName("CONCEPT_PATH");
+						
+						i2b2.setcColumnDataType("T");
+						
+						i2b2.setcOperator("LIKE");
+						
+						i2b2.setcMetaDataXML(C_METADATAXML);
+						
+						i2b2.setcDimCode(Entity.buildConceptPath(pathList));
+						
+						i2b2.setcToolTip(Entity.buildConceptPath(pathList));
+						
+						i2b2.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
+						
+						i2b2.setmAppliedPath("@");
+						
+						if(i2b2.isValid()) ents.add(i2b2);
+						
+					}
+									
+				}
+			}
+		}
+		
+		return ents;
+	}
 
 }
