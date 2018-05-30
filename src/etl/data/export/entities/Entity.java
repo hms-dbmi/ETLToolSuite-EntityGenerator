@@ -368,5 +368,20 @@ public abstract class Entity implements Cloneable{
 		
 	}
 	
+	public Map<String,String> makeKVPair(String str, String delimiter, String kvdelimiter){
+		Map<String, String> map = new HashMap<String, String>();
+		for(String str2: str.split(delimiter)){
+		
+			String[] split = str2.split(kvdelimiter);
+			
+			if(split.length == 2){
+				
+				map.put(split[0], split[1]);
+			
+			}			
+		}
+				
+		return map;
 	
+	}
 }

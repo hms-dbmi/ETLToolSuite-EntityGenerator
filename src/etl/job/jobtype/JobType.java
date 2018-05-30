@@ -3,6 +3,8 @@ package etl.job.jobtype;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.logging.log4j.LogManager;
@@ -12,7 +14,7 @@ import etl.job.jobtype.properties.JobProperties;
 
 public abstract class JobType {
 	
-	private enum VALID_TYPES{ JsonToI2b2TM, JsonToI2b2TM2New, XmlToI2b2TM, CsvToI2B2TM, DemoJob };
+	private enum VALID_TYPES{ JsonToI2b2TM, JsonToI2b2TM2New, XmlToI2b2TM, CSVToI2b2TM2New2, DemoJob };
 	
 	private static final String JOB_TYPE_PACKAGE = "etl.job.jobtype.";
 		
@@ -86,6 +88,22 @@ public abstract class JobType {
 	
 	public abstract void runJob(JobProperties jobProperties);
 	
-	public abstract void setVariables(JobProperties jobProperties);
+	public abstract void setVariables(JobProperties jobProperties) throws ClassNotFoundException;
 	
+	public Map<String,String> makeKVPair(String str, String delimiter, String kvdelimiter){
+		Map<String, String> map = new HashMap<String, String>();
+		for(String str2: str.split(delimiter)){
+		
+			String[] split = str2.split(kvdelimiter);
+			
+			if(split.length == 2){
+				
+				map.put(split[0], split[1]);
+			
+			}			
+		}
+				
+		return map;
+	
+	}
 }

@@ -220,5 +220,11 @@ public class PatientMapping2 {
 		return mapping;
 		
 	}
+
+	@Override
+	public String toString() {
+		return "PatientMapping2 [patientKey=" + patientKey + ", patientColumn=" + patientColumn + ", options=" + options
+				+ "]";
+	}
 	
 }

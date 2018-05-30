@@ -36,31 +36,45 @@ public class PatientDimension extends Entity {
 
 		// TODO Auto-generated constructor stub
 	}
-
+	
+	private boolean containsValues(Map<String, List<Object>> valueMap, String fieldKey) {
+		if(valueMap.get(fieldKey) == null) {
+			return false;
+		} else if(valueMap.get(fieldKey).isEmpty()) {
+			return false;
+		} else if(valueMap.get(fieldKey).get(0) == null) {
+			return false;
+		} else {
+			return true;
+		}
+		
+	}
+	
 	public PatientDimension(String string, LinkedHashMap record, Map<String, List<Object>> valueMap) throws Exception {
 		super(string);
 		this.schema = "I2B2DEMODATA";
 				
 		for(String fieldKey: valueMap.keySet()) {
-			this.patientNum = fieldKey.equalsIgnoreCase("patientNum") && !valueMap.get(fieldKey).isEmpty() ? valueMap.get(fieldKey).get(0).toString() : this.patientNum;
-			this.vitalStatusCD = fieldKey.equalsIgnoreCase("vitalStatusCD") && !valueMap.get(fieldKey).isEmpty() ? valueMap.get(fieldKey).get(0).toString() : this.vitalStatusCD;
-			this.birthDate = fieldKey.equalsIgnoreCase("birthDate")  && !valueMap.get(fieldKey).isEmpty() ? valueMap.get(fieldKey).get(0).toString() : this.birthDate;
-			this.deathDate = fieldKey.equalsIgnoreCase("deathDate")  && !valueMap.get(fieldKey).isEmpty() ? valueMap.get(fieldKey).get(0).toString() : this.deathDate;
-			this.sexCD = fieldKey.equalsIgnoreCase("sexCD") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.sexCD;
-			this.ageInYearsNum = fieldKey.equalsIgnoreCase("ageInYearsNum") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.ageInYearsNum;
-			this.languageCD = fieldKey.equalsIgnoreCase("languageCD") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.languageCD;
-			this.raceCD = fieldKey.equalsIgnoreCase("raceCD") && !valueMap.get(fieldKey).isEmpty() && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.raceCD;
-			this.maritalStatusCD = fieldKey.equalsIgnoreCase("maritalStatusCD") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.maritalStatusCD;
-			this.religionCD = fieldKey.equalsIgnoreCase("religionCD") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.religionCD;
-			this.zipCD = fieldKey.equalsIgnoreCase("zipCD") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.zipCD;
-			this.stateCityZipPath = fieldKey.equalsIgnoreCase("stateCityZipPath") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.stateCityZipPath;
-			this.updateDate = fieldKey.equalsIgnoreCase("updateDate") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.updateDate;
-			this.downloadDate = fieldKey.equalsIgnoreCase("downloadDate") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.downloadDate;
-			this.importDate = fieldKey.equalsIgnoreCase("importDate") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.importDate;
-			this.sourceSystemCD = fieldKey.equalsIgnoreCase("sourceSystemCD") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.sourceSystemCD;
-			this.uploadID = fieldKey.equalsIgnoreCase("uploadID") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.uploadID;
-			this.patientBlob = fieldKey.equalsIgnoreCase("patientBlob") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.patientBlob;
-			this.incomeCD = fieldKey.equalsIgnoreCase("incomeCD") && !valueMap.get(fieldKey).isEmpty()  ? valueMap.get(fieldKey).get(0).toString() : this.incomeCD;
+			
+			this.patientNum = fieldKey.equalsIgnoreCase("patientNum") && containsValues(valueMap,fieldKey) ? valueMap.get(fieldKey).get(0).toString() : this.patientNum;
+			this.vitalStatusCD = fieldKey.equalsIgnoreCase("vitalStatusCD") && containsValues(valueMap,fieldKey) ? valueMap.get(fieldKey).get(0).toString() : this.vitalStatusCD;
+			this.birthDate = fieldKey.equalsIgnoreCase("birthDate")  && containsValues(valueMap,fieldKey) ? valueMap.get(fieldKey).get(0).toString() : this.birthDate;
+			this.deathDate = fieldKey.equalsIgnoreCase("deathDate")  && containsValues(valueMap,fieldKey) ? valueMap.get(fieldKey).get(0).toString() : this.deathDate;
+			this.sexCD = fieldKey.equalsIgnoreCase("sexCD") && containsValues(valueMap,fieldKey)  ? valueMap.get(fieldKey).get(0).toString() : this.sexCD;
+			this.ageInYearsNum = fieldKey.equalsIgnoreCase("ageInYearsNum") && containsValues(valueMap,fieldKey)  ? valueMap.get(fieldKey).get(0).toString() : this.ageInYearsNum;
+			this.languageCD = fieldKey.equalsIgnoreCase("languageCD") && containsValues(valueMap,fieldKey)  ? valueMap.get(fieldKey).get(0).toString() : this.languageCD;
+			this.raceCD = fieldKey.equalsIgnoreCase("raceCD") && containsValues(valueMap,fieldKey) && containsValues(valueMap,fieldKey)  ? valueMap.get(fieldKey).get(0).toString() : this.raceCD;
+			this.maritalStatusCD = fieldKey.equalsIgnoreCase("maritalStatusCD") && containsValues(valueMap,fieldKey)  ? valueMap.get(fieldKey).get(0).toString() : this.maritalStatusCD;
+			this.religionCD = fieldKey.equalsIgnoreCase("religionCD") && containsValues(valueMap,fieldKey)  ? valueMap.get(fieldKey).get(0).toString() : this.religionCD;
+			this.zipCD = fieldKey.equalsIgnoreCase("zipCD") && containsValues(valueMap,fieldKey)  ? valueMap.get(fieldKey).get(0).toString() : this.zipCD;
+			this.stateCityZipPath = fieldKey.equalsIgnoreCase("stateCityZipPath") && containsValues(valueMap,fieldKey)  ? valueMap.get(fieldKey).get(0).toString() : this.stateCityZipPath;
+			this.updateDate = fieldKey.equalsIgnoreCase("updateDate") && containsValues(valueMap,fieldKey)  ? valueMap.get(fieldKey).get(0).toString() : this.updateDate;
+			this.downloadDate = fieldKey.equalsIgnoreCase("downloadDate") && containsValues(valueMap,fieldKey)  ? valueMap.get(fieldKey).get(0).toString() : this.downloadDate;
+			this.importDate = fieldKey.equalsIgnoreCase("importDate") && containsValues(valueMap,fieldKey)  ? valueMap.get(fieldKey).get(0).toString() : this.importDate;
+			this.sourceSystemCD = fieldKey.equalsIgnoreCase("sourceSystemCD") && containsValues(valueMap,fieldKey)  ? valueMap.get(fieldKey).get(0).toString() : this.sourceSystemCD;
+			this.uploadID = fieldKey.equalsIgnoreCase("uploadID") && containsValues(valueMap,fieldKey)  ? valueMap.get(fieldKey).get(0).toString() : this.uploadID;
+			this.patientBlob = fieldKey.equalsIgnoreCase("patientBlob") && containsValues(valueMap,fieldKey)  ? valueMap.get(fieldKey).get(0).toString() : this.patientBlob;
+			this.incomeCD = fieldKey.equalsIgnoreCase("incomeCD") && containsValues(valueMap,fieldKey)  ? valueMap.get(fieldKey).get(0).toString() : this.incomeCD;
 
 		}
 	}

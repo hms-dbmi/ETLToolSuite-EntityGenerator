@@ -103,7 +103,7 @@ public class Modifier extends Objectarray {
 	
 										List<String> pathList = new ArrayList<>(Arrays.asList(options.get("ROOTNODE")));
 										
-										i2b2.setcHlevel(Entity.calculateHlevel(Entity.buildConceptPath(pathList) + 1).toString());
+										i2b2.setcHlevel(new Integer(Entity.calculateHlevel(Entity.buildConceptPath(pathList)) + 1).toString());
 										
 										i2b2.setcFullName(Entity.buildConceptPath(pathList));
 										
@@ -182,7 +182,7 @@ public class Modifier extends Objectarray {
 	
 									List<String> pathList = new ArrayList<>(Arrays.asList(options.get("ROOTNODE"), label));
 
-									i2b2.setcHlevel(Entity.calculateHlevel(Entity.buildConceptPath(pathList) + 2).toString());
+									i2b2.setcHlevel(new Integer(Entity.calculateHlevel(Entity.buildConceptPath(pathList)) + 1).toString());
 									
 									i2b2.setcFullName(Entity.buildConceptPath(pathList));
 									

@@ -46,7 +46,7 @@ public class Text extends DataType {
 	 * Build Constructors in each Entity that build object based on datatype passed.  
 	 * - Tom D. 30/12/18
 	 */
-	
+	@Deprecated
 	@SuppressWarnings("unchecked")
 	public Set<Entity> generateTables(Map map, Mapping mapping, List<Entity> entities, String relationalKey, String omissionKey) {
 		Set<Entity> ents = new HashSet<Entity>();
@@ -178,6 +178,7 @@ public class Text extends DataType {
 	 * Expecting a single 1 to 1 relationship
 	 * @throws Exception 
 	 */
+	@Deprecated
 	@Override
 	public Set<Entity> generateTables(String[] data,
 			CsvToI2b2TMMapping mapping, List<Entity> entities) throws Exception {

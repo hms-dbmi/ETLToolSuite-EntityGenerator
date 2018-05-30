@@ -7,7 +7,7 @@ public class TestDriver {
 	
 	private static String JOB_TYPE = "";
 	
-	private static String PROPERTIES_FILE = "./Default.config";
+	private static String PROPERTIES_FILE = "resources/Default.config";
 	
 	private static JobProperties JOB_PROPERTIES;
 	
@@ -39,7 +39,7 @@ public class TestDriver {
 				
 				JOB_TYPE = checkPassedArgs(arg, args);
 				
-			} if (arg.equalsIgnoreCase( "-propertiesfile" )) {
+			} else if (arg.equalsIgnoreCase( "-propertiesfile" )) {
 
 				PROPERTIES_FILE = checkPassedArgs(arg, args);
 				
