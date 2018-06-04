@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import etl.job.jobtype.JobType;
 
 public abstract class DataSource {
-	private enum VALID_TYPES{ FILE, JSONFILE, JSON, XMLFILE, CSVFILE, CsvDataSource, JSONDataSource2 };
+	private enum VALID_TYPES{ FILE, JSONFILE, JSON, XMLFILE, CSVFILE, CSVDataSource, CsvDataSource, JSONDataSource2 };
 	
 	private static final String DATASOURCE_TYPE_PACKAGE = "etl.data.datasource.";
 	
