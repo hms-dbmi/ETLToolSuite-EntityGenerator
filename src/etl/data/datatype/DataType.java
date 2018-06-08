@@ -11,7 +11,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import etl.data.export.entities.Entity;
-import etl.job.jobtype.JsonToI2b2TM2New;
 import etl.job.jsontoi2b2tm.entity.Mapping;
 import etl.mapping.CsvToI2b2TMMapping;
 

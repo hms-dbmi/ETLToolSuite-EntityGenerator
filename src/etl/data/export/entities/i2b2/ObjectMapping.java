@@ -15,7 +15,6 @@ import org.apache.logging.log4j.Logger;
 
 import etl.data.export.entities.Entity;
 import etl.data.export.entities.i2b2.utils.ColumnSequencer;
-import etl.job.jobtype.JsonToI2b2TM2New;
 import etl.mapping.CsvToI2b2TMMapping;
 
 public class ObjectMapping extends Entity {

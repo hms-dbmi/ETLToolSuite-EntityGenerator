@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.Multiset.Entry;
-import com.sun.xml.internal.ws.util.StringUtils;
 
 import etl.data.export.entities.Entity;
 import etl.data.export.entities.i2b2.utils.ConceptCountsBuilder;

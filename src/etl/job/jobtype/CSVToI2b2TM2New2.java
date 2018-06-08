@@ -33,8 +33,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import etl.data.datasource.CSVDataSource2;
 import etl.data.datasource.JSONDataSource;
-import etl.data.datasource.JSONDataSource2;
-import etl.data.datasource.entities.Record;
 import etl.data.datasource.entities.json.udn.UDN;
 import etl.data.datatype.DataType;
 import etl.data.datatype.i2b2.Objectarray;
@@ -93,6 +91,8 @@ public class CSVToI2b2TM2New2 extends JobType {
 	int x = 0;
 	
 	int maxSize;
+
+	private boolean IS_DIR;
 	
 	public CSVToI2b2TM2New2(String str) throws Exception {
 		super(str);
@@ -119,25 +119,25 @@ public class CSVToI2b2TM2New2 extends JobType {
 			setVariables(jobProperties);
 
 			// needs to handle multiple files 
-			File dataFile = new File(FILE_NAME);
+			
+			
+			File data = new File(FILE_NAME);
 			
 			List<Mapping> mappingFile = Mapping.class.newInstance().generateMappingList(MAPPING_FILE, MAPPING_DELIMITER);
 
 			List<PatientMapping2> patientMappingFile = new ArrayList<>(); //PatientMapping2.class.newInstance().generateMappingList(PATIENT_MAPPING_FILE, MAPPING_DELIMITER);
 			
-			if(dataFile.exists()){
+			if(data.exists()){
 				// Read datafile into a List of LinkedHashMaps.
 				// List should be objects that will be used for up and down casting through out the job process.
 				// Using casting will allow the application to be very dynamic while also being type safe.
 				
-				List list = buildRecordList();
-
+				List list = buildRecordList(data, mappingFile);
 				logger.info("generating tables");
-								
 				for(Object o: list){
-				
+					
 					if( o instanceof LinkedHashMap ) {
-						
+
 						builtEnts.addAll(processEntities(mappingFile,( LinkedHashMap ) o));	
 						
 						for(Entity entity: processPatientEntities(patientMappingFile,( LinkedHashMap ) o)) {
@@ -163,13 +163,13 @@ public class CSVToI2b2TM2New2 extends JobType {
 				logger.info("finished generating tables");
 
 			} else {
-				logger.error("File " + dataFile + " Does Not Exist!");
+				logger.error("File " + data + " Does Not Exist!");
 			}
 			//builtEnts.addAll(thisFillTree(builtEnts));
 			
 			
 			// for testint seqeunces move this to a global variable and generate it from properties once working;
-			
+			/*
 			logger.info("Generating sequences");
 			
 			List<ColumnSequencer> sequencers = new ArrayList<ColumnSequencer>();
@@ -180,24 +180,27 @@ public class CSVToI2b2TM2New2 extends JobType {
 			sequencers.add(new ColumnSequencer(Arrays.asList("PatientDimension","ObservationFact","PatientTrial"), "patientNum", "ID", "I2B2", 1, 1));
 			
 			Set<ObjectMapping> oms = new HashSet<ObjectMapping>();
-			
+			logger.info("Applying sequences");
+
 			for(ColumnSequencer seq: sequencers ) {
 				
 				oms.addAll(seq.generateSeqeunce(builtEnts));
 				
 			}
 			
-			
 			builtEnts.addAll(oms);
-
+*/
 		} catch (Exception e) {
 		
 			logger.catching(Level.ERROR,e);
 			
 		} 
 		try {
+			logger.info("Building files to write");
+
 			Map<Path, List<String>> paths = Export.buildFilestoWrite(builtEnts, WRITE_DESTINATION, OUTPUT_FILE_EXTENSION);
 			
+			logger.info("writing files");
 			Export.writeToFile(paths, WRITE_OPTIONS);
 			
 		} catch (IOException e1) {
@@ -437,8 +440,6 @@ public class CSVToI2b2TM2New2 extends JobType {
 		
 		boolean isOmitted = isOmitted(record);
 		
-		@SuppressWarnings("unused")
-		List<Object> relationalValue = findValueByKey(record,RELATIONAL_KEY.split(":"));
 		/*
 		for(String omkeyfull: OMISSIONS_MAP.keySet()) {
 			
@@ -452,11 +453,33 @@ public class CSVToI2b2TM2New2 extends JobType {
 		if(!isOmitted){
 			
 			for(Mapping mapping: mappings){
+				List<Object> relationalValue = new ArrayList<Object>();
+
+				if(!IS_DIR) {
+					relationalValue = findValueByKey(record,RELATIONAL_KEY.split(":"));
+				} else {
+					
+					
+					String[] array = new String[mapping.getKey().split(":").length - 1];
+					array[0] = mapping.getKey().split(":")[0] + ":" + RELATIONAL_KEY;
+					relationalValue = findValueByKey(record,array);
+				}
 				
 				DataType dt = DataType.initDataType(StringUtils.capitalize(mapping.getDataType()));
 				
 				if(!mapping.getDataType().equalsIgnoreCase("OMIT")){
-					List<Object> values = findValueByKey2(record, new ArrayList(Arrays.asList(mapping.getKey().split(":"))));
+					List<Object> values = new ArrayList<Object>();
+					
+					if(!IS_DIR) {
+						values = findValueByKey2(record, new ArrayList(Arrays.asList(mapping.getKey().split(":"))));
+					} else {
+						
+						
+						String[] array = new String[mapping.getKey().split(":").length - 1];
+						array[0] = mapping.getKey();
+						values = findValueByKey2(record,new ArrayList(Arrays.asList(array)));
+					}
+					
 					Map<String,String> options = mapping.buildOptions(mapping);
 					
 					if(!options.isEmpty()) {
@@ -501,7 +524,7 @@ public class CSVToI2b2TM2New2 extends JobType {
 									if(endDateExclusive != null) {
 										
 										Period period = Period.between(endDateExclusive, startDateInclusive );
-										System.out.println(period.getYears());
+
 										values.remove(x);
 										if(diffIn.equalsIgnoreCase("years")) {
 											values.add(x, period.getYears());
@@ -683,10 +706,28 @@ public class CSVToI2b2TM2New2 extends JobType {
 		
 	}
 
-	private List buildRecordList() throws Exception{
+	private List buildRecordList(File file,List<Mapping> mappings) throws Exception{
+		if(file.isFile()) {
+			return CSVDataSource2.buildObjectMap(file, DATASOURCE_FORMAT);
+		} else if ( file.isDirectory() ) {
+			IS_DIR = true;
+			List records = new ArrayList();
+			
+			for(Mapping mapping: mappings) {
+				
+				String fileName = mapping.getKey().split(":")[0] + ".csv";
+				File fileToRead = new File( FILE_NAME + fileName);
+				if(fileToRead.exists()) {
+				
+					records.addAll(CSVDataSource2.buildObjectMap(mapping.getKey().split(":")[0], fileToRead, DATASOURCE_FORMAT));
+			
+				}
+			}
+			return records;
+		} else {
+			return new ArrayList();
+		}
 		
-		return CSVDataSource2.buildObjectMap(new File(FILE_NAME), DATASOURCE_FORMAT);
-
 	}	
 	
 	@SuppressWarnings("unused")
@@ -735,6 +776,8 @@ public class CSVToI2b2TM2New2 extends JobType {
 				jobProperties.getProperty("relationalkey"): RELATIONAL_KEY;
 		
 		Entity.SOURCESYSTEM_CD = jobProperties.getProperty("sourcesystemcd");
+		
+		CSVDataSource2.SKIP_HEADER = jobProperties.getProperty("skipdataheader").equalsIgnoreCase("Y") ? 1:0;  
 		
 		DATASOURCE_FORMAT = jobProperties.containsKey("datasourceformat") ? Class.forName(jobProperties.getProperty("datasourceformat")): null;
 	}

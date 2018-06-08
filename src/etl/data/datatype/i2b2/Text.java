@@ -376,9 +376,7 @@ public class Text extends DataType {
 							cd.setConceptCd(mapping.getKey() + ':' + value);
 							
 							List<String> pathList = new ArrayList<>(Arrays.asList(mapping.getRootNode(), mapping.getSupPath(), value));
-							
 							cd.setConceptPath(Entity.buildConceptPath(pathList));
-							
 							cd.setNameChar(value);
 							
 							cd.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);

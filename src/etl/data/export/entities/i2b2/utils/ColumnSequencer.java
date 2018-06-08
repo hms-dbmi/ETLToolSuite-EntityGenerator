@@ -30,19 +30,15 @@ public class ColumnSequencer {
 				field.setAccessible(true);
 				Object sourceId = field.get(entity);
 				
-				String index = new Integer(findSeqId(sourceId.toString())).toString();
-
-				
+				int index = findSeqId(sourceId.toString());
 					
-				field.set(entity, index);
+				field.set(entity, new Integer(index).toString());
 				ObjectMapping om = new ObjectMapping("ObjectMapping");
 				
-				om.setMappedId(index);
+				om.setMappedId(new Integer(index).toString());
 				om.setSourceId(sourceId.toString());
 				om.setSourceName(this.columnType + ":" + this.entityColumn + ":" + this.mappedName);
 				objectMappings.add(om);
-			
-				
 				
 				field.setAccessible(false);
 			}

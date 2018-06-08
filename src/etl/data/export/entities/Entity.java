@@ -323,7 +323,7 @@ public abstract class Entity implements Cloneable{
 	
 	public static String buildConceptPath(List<String> pathList) {
 		String path = "\\";
-		for(String s: pathList){
+		for(String s: pathList){ 
 			if(s != null && !s.isEmpty()){
 				
 				if(s.startsWith("\\")){
@@ -332,7 +332,7 @@ public abstract class Entity implements Cloneable{
 					
 				} if ( s.endsWith("\\")){
 					
-					s= s.substring(0, s.lastIndexOf("\\") - 1);
+					s= s.substring(0, s.lastIndexOf("\\") - 0);
 					
 				}
 				
