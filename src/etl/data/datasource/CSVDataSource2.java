@@ -57,7 +57,7 @@ public class CSVDataSource2 extends DataSource {
 	public static <T> List buildObjectMap(String string, Object obj, Class<T> dATASOURCE_FORMAT) throws IOException {
 		if(obj instanceof File){
 			
-			au.com.bytecode.opencsv.CSVReader reader = new CSVReader(new FileReader((File) obj), DELIMITER, QUOTE_CHAR,ESCAPE_CHAR, SKIP_HEADER);
+			au.com.bytecode.opencsv.CSVReader reader = new CSVReader(new FileReader((File) obj), DELIMITER, QUOTE_CHAR,ESCAPE_CHAR, 1);
 			
 			return buildObjectMapper(string, reader);
 			//System.out.println(objectMapper.readValue((File) obj, Class.forName(_class)));

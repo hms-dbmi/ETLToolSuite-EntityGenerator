@@ -1,7 +1,9 @@
 package etl.job.jobtype;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,11 +12,13 @@ import java.util.Properties;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import au.com.bytecode.opencsv.CSVReader;
 import etl.job.jobtype.properties.JobProperties;
 
 public abstract class JobType {
-	
-	private enum VALID_TYPES{ JsonToI2b2TM, JsonToI2b2TM2New, XmlToI2b2TM, CSVToI2b2TM2New2, DemoJob };
+	protected final Logger logger = LogManager.getLogger(getClass());
+
+	private enum VALID_TYPES{ DataPreview, JsonToI2b2TM, JsonToI2b2TM2New, XmlToI2b2TM, CSVToI2b2TM2New2, DemoJob };
 	
 	private static final String JOB_TYPE_PACKAGE = "etl.job.jobtype.";
 		
@@ -29,7 +33,27 @@ public abstract class JobType {
 		};
 		
 	}
-	
+	protected static Map<String, Map<String, String>> generateDataDict(String dictFile) throws IOException {
+		Map<String, Map<String, String>> returnmap = new HashMap<String, Map<String, String>>();
+		
+		File fileToRead = new File( dictFile);
+		
+		au.com.bytecode.opencsv.CSVReader reader = new CSVReader(new FileReader((File) fileToRead), ',', '"','\0', 1);
+		
+		for(String[] rec: reader.readAll()) {
+			if(returnmap.containsKey(rec[0])) {
+				Map<String,String> dictMap = returnmap.get(rec[0]);
+				dictMap.put(rec[1], rec[2]);
+				returnmap.put(rec[0], dictMap);
+			} else {
+				Map<String,String> dictMap = new HashMap<String,String>();
+				dictMap.put(rec[1], rec[2]);
+				returnmap.put(rec[0], dictMap);
+			}
+		};
+		
+		return returnmap;
+	}
 	@SuppressWarnings("finally")
 	public static JobType initJobType(String jobType){
 		JobType newInstance = null;

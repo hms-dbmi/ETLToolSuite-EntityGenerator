@@ -58,9 +58,7 @@ public abstract class Export implements ExportInterface {
 		if(entities != null) {
 			for(Entity entity: entities) {
 				Path destPath = Paths.get(writeDir + entity.getClass().getSimpleName() + outputExt);
-				if(entity.toCsv().equals(
-						"`80`,`76`,`209`,,,,`T`,`c.2900C>T `,,,,,,,,,,,,,,`81`,`77`,`210`,,,,`T`,`rejected`,,,,,,,,,,,,,," 
-						)) System.out.println(entity.toCsv());;
+				
 				if(!map.containsKey(destPath)) {
 					
 					List<String> list = new ArrayList<String>();

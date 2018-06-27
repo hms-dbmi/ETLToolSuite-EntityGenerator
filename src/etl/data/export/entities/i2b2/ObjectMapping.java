@@ -227,4 +227,42 @@ public class ObjectMapping extends Entity {
 		return index;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((mappedId == null) ? 0 : mappedId.hashCode());
+		result = prime * result + ((sourceId == null) ? 0 : sourceId.hashCode());
+		result = prime * result + ((sourceName == null) ? 0 : sourceName.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ObjectMapping other = (ObjectMapping) obj;
+		if (mappedId == null) {
+			if (other.mappedId != null)
+				return false;
+		} else if (!mappedId.equals(other.mappedId))
+			return false;
+		if (sourceId == null) {
+			if (other.sourceId != null)
+				return false;
+		} else if (!sourceId.equals(other.sourceId))
+			return false;
+		if (sourceName == null) {
+			if (other.sourceName != null)
+				return false;
+		} else if (!sourceName.equals(other.sourceName))
+			return false;
+
+		return true;
+	}
+
 }

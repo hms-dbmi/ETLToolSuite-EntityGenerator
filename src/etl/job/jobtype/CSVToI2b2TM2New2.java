@@ -1,6 +1,7 @@
 package etl.job.jobtype;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.nio.file.OpenOption;
@@ -28,9 +29,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.csvreader.CsvReader;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import au.com.bytecode.opencsv.CSVReader;
 import etl.data.datasource.CSVDataSource2;
 import etl.data.datasource.JSONDataSource;
 import etl.data.datasource.entities.json.udn.UDN;
@@ -52,7 +56,6 @@ import etl.job.jsontoi2b2tm.entity.PatientMapping2;
 import static java.nio.file.StandardOpenOption.*;
 
 public class CSVToI2b2TM2New2 extends JobType {
-	private static final Logger logger = LogManager.getLogger(CSVToI2b2TM2New2.class);
 	
 	//required configs
 	private static String FILE_NAME; 
@@ -64,6 +67,10 @@ public class CSVToI2b2TM2New2 extends JobType {
 	private static String PATIENT_MAPPING_FILE;
 	// optional
 	private static char MAPPING_DELIMITER;
+	
+	private static char MAPPING_QUOTED_STRING = 0;
+
+	private static boolean MAPPING_SKIP_HEADER;
 	
 	private static String RELATIONAL_KEY = "0";
 			
@@ -81,6 +88,9 @@ public class CSVToI2b2TM2New2 extends JobType {
 	private static final String ARRAY_FORMAT = "JSONFILE";
 
 	private static final String OUTPUT_FILE_EXTENSION = ".csv";
+
+
+	private static File DICT_FILE = null;
 	
 	private static List<String> EXPORT_TABLES = 
 			new ArrayList<String>(Arrays.asList("ModifierDimension", "ObservationFact", "I2B2", 
@@ -123,23 +133,34 @@ public class CSVToI2b2TM2New2 extends JobType {
 			
 			File data = new File(FILE_NAME);
 			
-			List<Mapping> mappingFile = Mapping.class.newInstance().generateMappingList(MAPPING_FILE, MAPPING_DELIMITER);
+			List<Mapping> mappingFile = Mapping.class.newInstance().generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
 
-			List<PatientMapping2> patientMappingFile = new ArrayList<>(); //PatientMapping2.class.newInstance().generateMappingList(PATIENT_MAPPING_FILE, MAPPING_DELIMITER);
+			List<PatientMapping2> patientMappingFile = PatientMapping2.class.newInstance().generateMappingList(PATIENT_MAPPING_FILE, MAPPING_DELIMITER);
 			
+			Map<String,Map<String,String>> datadic = DICT_FILE.exists() ? generateDataDict(DICT_FILE): new HashMap<String,Map<String,String>>();
+
 			if(data.exists()){
 				// Read datafile into a List of LinkedHashMaps.
 				// List should be objects that will be used for up and down casting through out the job process.
 				// Using casting will allow the application to be very dynamic while also being type safe.
 				
-				List list = buildRecordList(data, mappingFile);
+				List list = buildRecordList(data, mappingFile, datadic);
+				
+				Map<String, Map<String,String>> patientList = buildPatientRecordList(data,patientMappingFile, datadic);
+				
+				for(String key: patientList.keySet()) {
+					
+					builtEnts.addAll(processPatientEntities(patientList.get(key)));
+					
+				}
+				
 				logger.info("generating tables");
 				for(Object o: list){
 					
 					if( o instanceof LinkedHashMap ) {
 
 						builtEnts.addAll(processEntities(mappingFile,( LinkedHashMap ) o));	
-						
+						/*
 						for(Entity entity: processPatientEntities(patientMappingFile,( LinkedHashMap ) o)) {
 							if(entity instanceof PatientDimension) {
 								if(((PatientDimension) entity).isValid()) {
@@ -149,14 +170,13 @@ public class CSVToI2b2TM2New2 extends JobType {
 								}
 							}
 						}
-
+	*/
 					}
 				}
 				
 				list = null;
 				logger.info("Filling in Tree");
 				builtEnts.addAll(thisFillTree(builtEnts));
-
 				
 				logger.info("Generating ConceptCounts");
 				builtEnts.addAll(ConceptCounts.generateCounts2(builtEnts));
@@ -169,13 +189,13 @@ public class CSVToI2b2TM2New2 extends JobType {
 			
 			
 			// for testint seqeunces move this to a global variable and generate it from properties once working;
-			/*
+			
 			logger.info("Generating sequences");
 			
 			List<ColumnSequencer> sequencers = new ArrayList<ColumnSequencer>();
 			sequencers.add(new ColumnSequencer(Arrays.asList("ConceptDimension","ObservationFact"), "conceptCd", "CONCEPTCD", "I2B2", 1, 1));
 
-			sequencers.add(new ColumnSequencer(Arrays.asList("ObservationFact"), "encounterNum", "ENCNUM", "I2B2", 1, 1));
+			//sequencers.add(new ColumnSequencer(Arrays.asList("ObservationFact"), "encounterNum", "ENCNUM", "I2B2", 1, 1));
 			
 			sequencers.add(new ColumnSequencer(Arrays.asList("PatientDimension","ObservationFact","PatientTrial"), "patientNum", "ID", "I2B2", 1, 1));
 			
@@ -183,13 +203,14 @@ public class CSVToI2b2TM2New2 extends JobType {
 			logger.info("Applying sequences");
 
 			for(ColumnSequencer seq: sequencers ) {
-				
+				logger.info("Performing sequence: " + seq.entityColumn + " for e ( " + seq.entityNames + " )" );
 				oms.addAll(seq.generateSeqeunce(builtEnts));
-				
+				logger.info("Sequencing completed " + seq.entityColumn + " for e ( " + seq.entityNames + " )" );
+
 			}
 			
 			builtEnts.addAll(oms);
-*/
+
 		} catch (Exception e) {
 		
 			logger.catching(Level.ERROR,e);
@@ -210,6 +231,216 @@ public class CSVToI2b2TM2New2 extends JobType {
 
 	}
 	
+	private Collection<? extends Entity> processPatientEntities(Map<String, String> map) throws Exception {
+		List<Entity> entities = new ArrayList<Entity>();
+		PatientDimension pd = new PatientDimension("PatientDimension",map);
+		//pt = new PatientTrial("PatientTrial", map);
+		
+		entities.add(pd);
+		//entities.add(pt);
+		return entities;
+	}
+
+	private Map buildPatientRecordList(File file, List<PatientMapping2> mappings,
+			Map<String, Map<String, String>> dataDict) throws JsonParseException, JsonMappingException, ClassNotFoundException, IOException {
+		
+		Map<String, String> patientMap = PatientMapping2.toMap(mappings);
+		
+		List<String> fileNames = PatientMapping2.getFileNames(mappings);	
+		
+		Map<String, Map<String, String>> patients = new LinkedHashMap<String,Map<String,String>>();
+		if(file.isFile()) {
+			return new HashMap();//CSVDataSource2.buildObjectMap(file, DATASOURCE_FORMAT);
+		} else if ( file.isDirectory() ) {
+			
+			if(!patientMap.containsKey("PatientNum")) {
+				return new HashMap();
+			}
+			
+			String patientNumFile = patientMap.get("PatientNum").split(":")[0];
+			
+			String sexCdFile = patientMap.get("sexCD").split(":")[0];
+			String sexCdPatCol = "0";
+			
+			String ageInYearsNumFile = patientMap.get("ageInYearsNum").split(":")[0];
+			String ageInYearsNumPatCol = "0";
+			
+			String raceCDFile = patientMap.get("raceCD").split(":")[0];
+			String raceCDPatCol = "0";		
+			
+			
+			List recs = CSVDataSource2.buildObjectMap(patientNumFile, new File( FILE_NAME + patientNumFile + ".csv"), DATASOURCE_FORMAT);
+			
+			for(Object rec: recs) {
+				if(rec instanceof LinkedHashMap) {
+					
+					LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
+						
+					List<Object> values = defRec.get( patientMap.get("PatientNum"));
+					
+					for(Object valueObj:values) {
+						Map<String, String> newPat = new HashMap<String,String>();
+
+						newPat.put("patientNum", valueObj.toString());
+						
+						patients.put(valueObj.toString(), newPat);
+					}
+				
+				}
+			}
+			recs = CSVDataSource2.buildObjectMap(sexCdFile, new File( FILE_NAME + sexCdFile + ".csv"), DATASOURCE_FORMAT);
+
+			for(Object rec: recs) {
+				if(rec instanceof LinkedHashMap) {
+					
+					LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
+						
+					List<Object> values = defRec.get( patientMap.get("sexCD"));
+					
+					Map<String,String> dict = dataDict.containsKey(sexCdFile) ? dataDict.get(sexCdFile): new HashMap<String,String>();
+
+					for(Object valueObj:values) {
+						Map<String, String> newPat = patients.get(defRec.get(sexCdFile + ':' + sexCdPatCol).get(0));
+
+						valueObj = dict.containsKey(valueObj.toString()) ? dict.get(valueObj).toString(): valueObj;
+						
+						newPat.put("sexCD", valueObj.toString());
+						
+						patients.put(defRec.get(sexCdFile + ':' + sexCdPatCol).get(0).toString(), newPat);
+					}
+				}
+			}
+			
+			recs = CSVDataSource2.buildObjectMap(ageInYearsNumFile, new File( FILE_NAME + ageInYearsNumFile + ".csv"), DATASOURCE_FORMAT);
+
+			for(Object rec: recs) {
+				if(rec instanceof LinkedHashMap) {
+					
+					LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
+						
+					List<Object> values = defRec.get( patientMap.get("ageInYearsNum"));
+					
+					Map<String,String> dict = dataDict.containsKey(ageInYearsNumFile) ? dataDict.get(ageInYearsNumFile): new HashMap<String,String>();
+					if(!values.isEmpty()) {
+						for(Object valueObj:values) {
+							Map<String, String> newPat = patients.get(defRec.get(ageInYearsNumFile + ':' + ageInYearsNumPatCol).get(0));
+	
+							valueObj = dict.containsKey(valueObj.toString()) ? dict.get(valueObj).toString(): valueObj;
+							
+							newPat.put("ageInYearsNum", valueObj.toString());
+							
+							patients.put(defRec.get(ageInYearsNumFile + ':' + ageInYearsNumPatCol).get(0).toString(), newPat);
+						}
+					}
+				}
+			}			
+			recs = CSVDataSource2.buildObjectMap(raceCDFile, new File( FILE_NAME + raceCDFile + ".csv"), DATASOURCE_FORMAT);
+
+			for(Object rec: recs) {
+				if(rec instanceof LinkedHashMap) {
+					
+					LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
+						
+					List<Object> values = defRec.get( patientMap.get("raceCD"));
+					
+					Map<String,String> dict = dataDict.containsKey(raceCDFile) ? dataDict.get(raceCDFile): new HashMap<String,String>();
+
+					for(Object valueObj:values) {
+						Map<String, String> newPat = patients.get(defRec.get(raceCDFile + ':' + raceCDPatCol).get(0));
+
+						valueObj = dict.containsKey(valueObj.toString()) ? dict.get(valueObj).toString(): valueObj;
+						
+						newPat.put("raceCD", valueObj.toString());
+						
+						patients.put(defRec.get(raceCDFile + ':' + raceCDPatCol).get(0).toString(), newPat);
+					}
+				}
+			}			
+		
+		} else {
+			return new HashMap();
+		}
+		//return fileNames;
+		return patients;
+
+	}
+
+	private List buildRecordList(File file, List<Mapping> mappings, Map<String, Map<String,String>> dataDict) throws Exception{
+		if(file.isFile()) {
+			return CSVDataSource2.buildObjectMap(file, DATASOURCE_FORMAT);
+		} else if ( file.isDirectory() ) {
+			IS_DIR = true;
+			List records = new ArrayList();
+			
+			for(Mapping mapping: mappings) {
+				Map<String,String> dict = dataDict.containsKey(mapping.getKey().split(":")[0]) ? dataDict.get(mapping.getKey().split(":")[0]): new HashMap<String,String>();
+	
+				String fileName = mapping.getKey().split(":")[0] + ".csv";
+				File fileToRead = new File( FILE_NAME + fileName);
+				if(fileToRead.exists()) {
+				
+					List recs = CSVDataSource2.buildObjectMap(mapping.getKey().split(":")[0], fileToRead, DATASOURCE_FORMAT);
+					
+					//if(!dataDict.isEmpty()) {
+						
+						for(Object rec:recs) {
+							if(rec instanceof LinkedHashMap) {
+								
+								LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
+								
+								for(String key:defRec.keySet()) {
+									
+									List<Object> values = defRec.get(key);
+									List<Object> newValues = new ArrayList<Object>();
+									
+									for(Object valueObj:values) {
+										String value = valueObj.toString().replaceAll("[*|\\\\\\/<\\?%>\":]", "");
+										
+										if(dict.containsKey(value)) {
+											newValues.add(dict.get(value));
+										} else {
+											newValues.add(value);
+										}
+										
+									}
+									defRec.put(key, newValues);
+								}
+								records.add(defRec);
+							}
+							
+						}
+					//} else {
+					//	records.addAll(recs);
+					//}
+				}
+			}
+			return records;
+		} else {
+			return new ArrayList();
+		}
+		
+	}
+
+	private Map<String, Map<String, String>> generateDataDict(File fileToRead) throws IOException {
+		Map<String, Map<String, String>> returnmap = new HashMap<String, Map<String, String>>();
+		
+		au.com.bytecode.opencsv.CSVReader reader = new CSVReader(new FileReader((File) fileToRead), ',', '"','\0', 1);
+		
+		for(String[] rec: reader.readAll()) {
+			if(returnmap.containsKey(rec[0])) {
+				Map<String,String> dictMap = returnmap.get(rec[0]);
+				dictMap.put(rec[1], rec[2]);
+				returnmap.put(rec[0], dictMap);
+			} else {
+				Map<String,String> dictMap = new HashMap<String,String>();
+				dictMap.put(rec[1], rec[2]);
+				returnmap.put(rec[0], dictMap);
+			}
+		};
+		
+		return returnmap;
+	}
+
 	private boolean iterateOmkeys(List<String> omkeys, Map map) {
 		
 		for(String omkey:omkeys) {
@@ -361,7 +592,6 @@ public class CSVToI2b2TM2New2 extends JobType {
 	private List<Object> findValueByKey(Map record, String[] key) throws Exception {
 		
 		Map record2 = new LinkedHashMap(record);
-		
 		Iterator<String> iter = new ArrayList(Arrays.asList(key)).iterator();
 		while(iter.hasNext()) {
 			
@@ -459,10 +689,10 @@ public class CSVToI2b2TM2New2 extends JobType {
 					relationalValue = findValueByKey(record,RELATIONAL_KEY.split(":"));
 				} else {
 					
-					
 					String[] array = new String[mapping.getKey().split(":").length - 1];
 					array[0] = mapping.getKey().split(":")[0] + ":" + RELATIONAL_KEY;
 					relationalValue = findValueByKey(record,array);
+
 				}
 				
 				DataType dt = DataType.initDataType(StringUtils.capitalize(mapping.getDataType()));
@@ -609,7 +839,7 @@ public class CSVToI2b2TM2New2 extends JobType {
 			Map<String,List<Object>> valueMap = new HashMap<String,List<Object>>();
 			for(PatientMapping2 mapping: mappings){
 				
-				List<Object> values = (ArrayList<Object>) findValueByKey(new LinkedHashMap(record), mapping.getPatientKey().split(":"));
+				List<Object> values = (ArrayList<Object>) findValueByKey2(new LinkedHashMap(record), new ArrayList(Arrays.asList(mapping.getPatientKey())));
 				Map<String, String> options = mapping.buildOptions(mapping);
 				
 				if(!options.isEmpty()) {
@@ -706,30 +936,6 @@ public class CSVToI2b2TM2New2 extends JobType {
 		
 	}
 
-	private List buildRecordList(File file,List<Mapping> mappings) throws Exception{
-		if(file.isFile()) {
-			return CSVDataSource2.buildObjectMap(file, DATASOURCE_FORMAT);
-		} else if ( file.isDirectory() ) {
-			IS_DIR = true;
-			List records = new ArrayList();
-			
-			for(Mapping mapping: mappings) {
-				
-				String fileName = mapping.getKey().split(":")[0] + ".csv";
-				File fileToRead = new File( FILE_NAME + fileName);
-				if(fileToRead.exists()) {
-				
-					records.addAll(CSVDataSource2.buildObjectMap(mapping.getKey().split(":")[0], fileToRead, DATASOURCE_FORMAT));
-			
-				}
-			}
-			return records;
-		} else {
-			return new ArrayList();
-		}
-		
-	}	
-	
 	@SuppressWarnings("unused")
 	private Map<String,Map<String,String>> buildMap() throws Exception{
 		
@@ -780,6 +986,16 @@ public class CSVToI2b2TM2New2 extends JobType {
 		CSVDataSource2.SKIP_HEADER = jobProperties.getProperty("skipdataheader").equalsIgnoreCase("Y") ? 1:0;  
 		
 		DATASOURCE_FORMAT = jobProperties.containsKey("datasourceformat") ? Class.forName(jobProperties.getProperty("datasourceformat")): null;
+	
+		DICT_FILE = jobProperties.containsKey("dictfile") ? 
+				new File(jobProperties.getProperty("dictfile")): new File("");
+	
+		MAPPING_QUOTED_STRING = jobProperties.containsKey("mappingquotedstring") ? 
+				jobProperties.getProperty("mappingquotedstring").charAt(0): '"';
+				
+		MAPPING_SKIP_HEADER = jobProperties.containsKey("mappingquotedstring") &&
+				jobProperties.getProperty("mappingquotedstring").substring(0, 1).equalsIgnoreCase("Y") ? true: false;
+				
 	}
 	
 	private Collection<? extends Entity> thisFillTree(Set<Entity> entities) throws Exception {

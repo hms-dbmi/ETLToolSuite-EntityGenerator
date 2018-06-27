@@ -79,6 +79,14 @@ public class PatientDimension extends Entity {
 		}
 	}
 
+	public PatientDimension(String string, Map<String, String> map) throws Exception {
+		super(string);
+		this.patientNum = map.get("patientNum");
+		this.sexCD = map.get("sexCD");
+		this.ageInYearsNum = map.get("ageInYearsNum");
+		this.raceCD = map.get("raceCD");
+	}
+
 	@Override
 	public void buildEntity(String str, CsvToI2b2TMMapping mapping,
 			String[] data) {

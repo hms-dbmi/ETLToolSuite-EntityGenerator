@@ -31,108 +31,13 @@ public class Numeric extends DataType{
 		super(dataType);
 		// TODO Auto-generated constructor stub
 	}
-	@Deprecated
-	@SuppressWarnings("unchecked")
-	public Set<Entity> generateTables(Map map, Mapping mapping, List<Entity> entities,
-			String relationalKey, String omissionKey) {
+
+	private String getLastNode(String string) {
+		String[] split = string.split("\\\\");
+
+		return split[split.length - 1];
 		
-		Set<Entity> ents = new HashSet<Entity>();
-		
-		for(Entity entity: entities){			
-											
-			if(map != null && map.containsKey(mapping.getKey()) && map.containsKey(relationalKey)){
-				try {
-			
-					if(entity instanceof ObservationFact){
-													
-						ObservationFact of = new ObservationFact("ObservationFact");
-													
-						of.setPatientNum(map.get(relationalKey).toString());
-						
-						of.setEncounterNum(map.get(relationalKey) + mapping.getKey());
-						
-						of.setConceptCd(mapping.getKey());
-						
-						of.setValtypeCd("N");
-						
-						of.setValueFlagCd("@");
-						
-						of.setNvalNum(map.get(mapping.getKey()).toString());
-						
-						of.setTvalChar("E");
-						
-						of.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
-
-						if(of.isValid()) ents.add(of);
-							
-
-					} else if(entity instanceof ConceptDimension){
-				
-						ConceptDimension cd =  new ConceptDimension("ConceptDimension");
-						
-						cd.setConceptCd(mapping.getKey());
-						
-						List<String> pathList = new ArrayList<>(Arrays.asList( Entity.ROOT_NODE, mapping.getRootNode(), mapping.getSupPath()));
-						
-						cd.setConceptPath(Entity.buildConceptPath(pathList));
-						
-						cd.setNameChar(mapping.getSupPath().toString());
-						
-						cd.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
-						
-						if(cd.isValid()) ents.add(cd);
-						
-					} else if(entity instanceof I2B2){
-						
-						I2B2 i2b2 = new I2B2("I2B2");
-						
-						List<String> pathList = new ArrayList<>(Arrays.asList( Entity.ROOT_NODE, mapping.getRootNode(), mapping.getSupPath()));
-						
-						i2b2.setcHlevel(Entity.calculateHlevel(Entity.buildConceptPath(pathList)).toString());
-						
-						i2b2.setcFullName(Entity.buildConceptPath(pathList));
-						
-						i2b2.setcName(mapping.getSupPath().toString());
-						
-						i2b2.setcBaseCode(mapping.getKey());
-						
-						i2b2.setcVisualAttributes("LA");
-						
-						i2b2.setcFactTableColumn("CONCEPT_CD");
-						
-						i2b2.setcTableName("CONCEPT_DIMENSION");
-						
-						i2b2.setcColumnName("CONCEPT_PATH");
-						
-						i2b2.setcColumnDataType("T");
-						
-						i2b2.setcOperator("LIKE");
-						
-						i2b2.setcMetaDataXML(C_METADATAXML);
-						
-						i2b2.setcDimCode(Entity.buildConceptPath(pathList));
-						
-						i2b2.setcToolTip(Entity.buildConceptPath(pathList));
-						
-						i2b2.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
-						
-						i2b2.setmAppliedPath("@");
-						
-						if(i2b2.isValid()) ents.add(i2b2);
-						
-					}
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-
-		}
-	
-		return ents;
 	}
-
-
 	/**
 	 * Method for CSV Job see main comment above
 	 * 
@@ -444,7 +349,7 @@ public class Numeric extends DataType{
 						
 						cd.setConceptPath(Entity.buildConceptPath(pathList));
 						
-						cd.setNameChar(mapping.getSupPath().toString());
+						cd.setNameChar(getLastNode(cd.getConceptPath()));
 						
 						cd.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
 						
@@ -460,7 +365,7 @@ public class Numeric extends DataType{
 						
 						i2b2.setcFullName(Entity.buildConceptPath(pathList));
 						
-						i2b2.setcName(mapping.getSupPath().toString());
+						i2b2.setcName(getLastNode(i2b2.getcFullName()));
 						
 						i2b2.setcBaseCode(mapping.getKey());
 						
@@ -495,6 +400,13 @@ public class Numeric extends DataType{
 		}
 		
 		return ents;
+	}
+
+	@Override
+	public Set<Entity> generateTables(Map map, Mapping mapping, List<Entity> entities, String relationalKey,
+			String omissionKey) throws InstantiationException, IllegalAccessException, Exception {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

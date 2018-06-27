@@ -2,11 +2,16 @@ package etl.data.export.entities.i2b2.utils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import etl.data.export.entities.Entity;
+import etl.data.export.entities.i2b2.ConceptDimension;
 import etl.data.export.entities.i2b2.ObjectMapping;
 
 public class ColumnSequencer {
@@ -18,10 +23,29 @@ public class ColumnSequencer {
 	public int interval = 1;
 	public int currSequence;
 	public ArrayList<String> values = new ArrayList<String>();
+	private Map<String,Integer> sequenced = new HashMap<String,Integer>(); 
+	
 	
 	public Set<ObjectMapping> generateSeqeunce(Set<Entity> builtEnts) throws Exception{
 		 //List<String> seq = new ArrayList<String>();
 		Set<ObjectMapping> objectMappings = new HashSet<ObjectMapping>();
+		/*
+		ConcurrentMap<String, List<Entity>> ents = builtEnts.parallelStream().collect(Collectors.groupingByConcurrent(Entity::getEntityType));
+		
+		Set<String> distinctValues = builtEnts.stream().filter(e -> e.getEntityType().equals("ConceptDimension")).map(ConceptDimension::getConceptCd);;
+		
+		//Set<String> distinctValues = new HashSet<String>();
+		
+		if(ents.containsKey("ConceptDimension")) {
+			
+			for(Entity ent:ents.get("ConceptDimension")) {
+				
+				ConceptDimension cd = (ConceptDimension) ent;
+				
+				distinctValues.add(cd.getConceptCd());
+			}
+			
+		}*/
 		
 		for(Entity entity: builtEnts) {
 			if(entityNames.indexOf(entity.getClass().getSimpleName()) != -1) {
@@ -46,10 +70,26 @@ public class ColumnSequencer {
 		return objectMappings;
 	}
 	
-	public int findSeqId(String searchfield) {
+	public Integer findSeqId(String searchfield) {
 		
-		int index;
+		Integer index;
+		
+		if(!this.sequenced.containsKey(searchfield)) {
+			
+			index = this.currSequence;
+			
+			this.sequenced.put(searchfield, index);
+			
+			this.currSequence = this.currSequence + this.interval;
+			
+		} else {
+			
+			index = this.sequenced.get(searchfield);
+			
+		}
+		
 		//System.out.println(this.values.indexOf(searchfield));
+		/*
 		if(this.values.indexOf(searchfield) < 0) {
 
 			index = this.currSequence;
@@ -59,7 +99,7 @@ public class ColumnSequencer {
 
 		} else {
 			index = this.values.indexOf(searchfield) + startSequence;
-		}
+		}*/
 		return index;
 		
 	}

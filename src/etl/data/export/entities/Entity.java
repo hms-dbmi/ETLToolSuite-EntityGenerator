@@ -29,6 +29,17 @@ import etl.mapping.PatientMapping;
 
 public abstract class Entity implements Cloneable{
 	// temp concept_cd id
+	
+	private String entityType = ""; 
+	
+	public String getEntityType() {
+		return entityType;
+	}
+
+	public void setEntityType(String entityType) {
+		this.entityType = entityType;
+	}
+
 	public static int CONCEPT_CD_SEQ = 1;
 	
 	private enum VALID_TYPES{ PatientTrial, PatientDimension, ObservationFact, ConceptDimension, I2B2, ModifierDimension, ConceptCounts, ObjectMapping , TableAccess};
@@ -65,6 +76,8 @@ public abstract class Entity implements Cloneable{
 	public Entity(String str) throws Exception{
 
 		if(isValidType(str)){
+			setEntityType(str);
+			
 		} else {
 		
 			throw new Exception();

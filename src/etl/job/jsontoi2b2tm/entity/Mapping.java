@@ -12,6 +12,8 @@ import java.util.Set;
 
 import com.csvreader.CsvReader;
 
+import etl.data.export.entities.Entity;
+
 public class Mapping {
 	
 	public static String OPTIONS_DELIMITER = ";";
@@ -73,22 +75,17 @@ public class Mapping {
 	}
 
 	
-	public static List<Mapping> generateMappingList(String filePath, char delimiter) throws IOException{
+	public static List<Mapping> generateMappingList(String filePath, boolean skipheader, char delimiter,char quotedString) throws IOException{
 		List<Mapping> mapping = new ArrayList<Mapping>();
 				
 		CsvReader reader = new CsvReader(filePath);
 		
-		if(delimiter == ' '){
-			
-			delimiter = ',';
-			
-		}
-		
 		reader.setDelimiter(delimiter);
-		
+		reader.setTextQualifier(quotedString);
 		// skip header
-		reader.readHeaders();
-		
+		if(skipheader) {
+			reader.readHeaders();
+		}	
 		while(reader.readRecord()){
 			// Check if delimiter exists if so set default.
 			if(reader.getValues().length == Mapping.class.getDeclaredFields().length - 2){
@@ -115,6 +112,16 @@ public class Mapping {
 		
 	}
 
+	public static Set<String> keySet(List<Mapping> mappings){
+		Set<String> set = new HashSet<String>();
+		
+		for(Mapping mapping:mappings) {
+			if(set.contains(mapping.getKey())) System.err.println(mapping.getKey());
+			set.add(mapping.getKey());
+		}
+		return set;
+	}
+	
 	public Set<String> keySet(Map<String, Mapping> mapping){
 		Set<String> keySet = new HashSet<String>();
 		
@@ -255,5 +262,21 @@ public class Mapping {
 				+ "]";
 	}
 	
+	public String toCSV() {
+		return makeStringSafe(key) + ',' + makeStringSafe(rootNode) + ','
+				+ makeStringSafe(supPath) + ',' + makeStringSafe(dataType) + ',' + makeStringSafe(options);
+	}
 	
+	public String makeStringSafe(String string){
+		
+		if(string != null && !string.isEmpty()){
+			if(string != null && !string.isEmpty() && string.substring(0, 1).equals("`")){
+				return string.replaceAll("\\s{2,}", " ");
+			} else {
+				return '`' + string.replaceAll("\\s{2,}", " ") + '`';
+			}
+		}
+		// return empty string not null
+		return ""; 
+	}
 }

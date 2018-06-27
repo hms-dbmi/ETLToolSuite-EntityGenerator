@@ -226,5 +226,24 @@ public class PatientMapping2 {
 		return "PatientMapping2 [patientKey=" + patientKey + ", patientColumn=" + patientColumn + ", options=" + options
 				+ "]";
 	}
+
+	public static Map<String, String> toMap(List<PatientMapping2> list) {
+		Map map = new HashMap();
+		for(PatientMapping2 pm2: list) {
+			map.put( pm2.getPatientColumn(), pm2.getPatientKey());
+		}
+		return map;
+	}
+
+	public static List<String> getFileNames(List<PatientMapping2> mappings) {
+		java.util.List l = new ArrayList();
+		for(PatientMapping2 pm2: mappings) {
+			if(pm2.getPatientColumn().equalsIgnoreCase("patientnum")) {
+				l.add(0, pm2.getPatientKey().split(":")[0]);
+			}
+			l.add(pm2.getPatientKey().split(":")[0]);
+		}
+		return l;
+	}
 	
 }
