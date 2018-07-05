@@ -127,10 +127,7 @@ public class CSVToI2b2TM2New2 extends JobType {
 		
 		try {		
 			setVariables(jobProperties);
-
-			// needs to handle multiple files 
-			
-			
+		
 			File data = new File(FILE_NAME);
 			
 			List<Mapping> mappingFile = Mapping.class.newInstance().generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
@@ -160,17 +157,7 @@ public class CSVToI2b2TM2New2 extends JobType {
 					if( o instanceof LinkedHashMap ) {
 
 						builtEnts.addAll(processEntities(mappingFile,( LinkedHashMap ) o));	
-						/*
-						for(Entity entity: processPatientEntities(patientMappingFile,( LinkedHashMap ) o)) {
-							if(entity instanceof PatientDimension) {
-								if(((PatientDimension) entity).isValid()) {
-							
-									builtEnts.addAll(processPatientEntities(patientMappingFile,( LinkedHashMap ) o));
-								
-								}
-							}
-						}
-	*/
+
 					}
 				}
 				
