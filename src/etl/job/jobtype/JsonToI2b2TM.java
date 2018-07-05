@@ -67,6 +67,10 @@ public class JsonToI2b2TM extends JobType {
 	private static final String ENTITY_PACKAGE = "etl.data.export.entities.i2b2.";
 	
 	private static final String ARRAY_FORMAT = "JSONFILE";
+
+	private static final boolean MAPPING_SKIP_HEADER = false;
+
+	private static final char MAPPING_QUOTED_STRING = 0;
 	
 	private static List<String> EXPORT_TABLES = 
 			new ArrayList<String>(Arrays.asList("ModifierDimension", "ObservationFact", "I2B2", 
@@ -103,7 +107,7 @@ public class JsonToI2b2TM extends JobType {
 						
 			File dataFile = new File(FILE_NAME);
 			
-			List<Mapping> mappingFile = Mapping.class.newInstance().generateMappingList(MAPPING_FILE, MAPPING_DELIMITER);
+			List<Mapping> mappingFile = Mapping.class.newInstance().generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
 
 			if(dataFile.exists()){
 				// Read datafile								
@@ -296,7 +300,7 @@ public class JsonToI2b2TM extends JobType {
 				
 	}
 	
-	private Collection<? extends Entity> thisFillTree(Set<Entity> entities) throws CloneNotSupportedException {
+	private Collection<? extends Entity> thisFillTree(Set<Entity> entities) throws Exception {
 		List<I2B2> i2b2 = new ArrayList<I2B2>();
 		// fill in tree
 		if(EXPORT_TABLES.contains("I2B2")){
