@@ -22,8 +22,9 @@
         <pathelement location="resources/joda-time-2.1.jar"/>
         <pathelement location="resources/json-20160810.jar"/>
         <pathelement location="resources/json-simple.jar"/>
-        <pathelement location="resources/log4j-1.2.17.jar"/>
-        <pathelement location="resources/opencsv-2.3.jar"/>
+        <pathelement location="resources/log4j-api-2.11.0.jar"/>
+        <pathelement location="resources/log4j-core-2.11.0.jar"/>
+    		<pathelement location="resources/opencsv-2.3.jar"/>
         <pathelement location="resources/reflections-0.9.8.jar"/>
     </path>
     <target name="init">
@@ -76,7 +77,7 @@
         </java>
     </target>
   	
-  	<jar destfile="EntityGenerator.jar" basedir="">
+  	<jar destfile="EntityGenerator.jar" basedir="./build/" update="no">
 		<manifest>
 			<attribute name="Main-Class" value="src.etl.drivers.TestDriver"/>
 		</manifest>
