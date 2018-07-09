@@ -7,7 +7,7 @@ public class TestDriver {
 	
 	private static String JOB_TYPE = "";
 	
-	private static String PROPERTIES_FILE = "resources/Default.config";
+	private static String PROPERTIES_FILE = "resources/ETLDefault.config";
 	
 	private static JobProperties JOB_PROPERTIES;
 	
