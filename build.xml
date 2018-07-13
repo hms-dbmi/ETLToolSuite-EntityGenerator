@@ -12,16 +12,7 @@
 
     <target name="init">
         <mkdir dir="bin"/>
-        <copy includeemptydirs="false" todir="bin">
-            <fileset dir="src">
-                <exclude name="**/*.java"/>
-            </fileset>
-        </copy>
-        <copy includeemptydirs="false" todir="bin">
-            <fileset dir="resources">
-                <exclude name="**/*.java"/>
-            </fileset>
-        </copy>
+
     </target>
     <path id="classpath">
         <pathelement location="bin"/>
