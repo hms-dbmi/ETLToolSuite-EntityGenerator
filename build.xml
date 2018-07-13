@@ -10,7 +10,7 @@
     <property name="target" value="1.8"/>
     <property name="source" value="1.8"/>
     <path id="classpath">
-        <pathelement location="bin"/>
+        <pathelement location="${basedir}/bin"/>
         <pathelement location="resources/commons-lang-2.6.jar"/>
         <pathelement location="resources/gson-2.3.1.jar"/>
         <pathelement location="resources/guava-r05.jar"/>
@@ -55,7 +55,7 @@
             <classpath refid="classpath"/>
         </javac>
     </target>
-  	<jar destfile="EntityGenerator.jar" basedir="bin">
+  	<jar destfile="EntityGenerator.jar" basedir="${basedir}/bin">
 		<manifest>
 			<attribute name="Main-Class" value="etl.drivers.TestDriver"/>
 		</manifest>
