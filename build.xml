@@ -59,7 +59,7 @@
 		<manifest>
 			<attribute name="Main-Class" value="etl.drivers.TestDriver"/>
 		</manifest>
-  	    <fileset dir="bin" includes="**/*.class" />
-  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+  	    <fileset dir="${basedir}/bin" includes="**/*.class" />
+  	    <zipgroupfileset dir="${basedir}/bin" includes="**/*.jar" />
   	</jar>
 </project>
