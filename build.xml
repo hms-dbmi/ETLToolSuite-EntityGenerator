@@ -10,7 +10,7 @@
     <property name="target" value="1.8"/>
     <property name="source" value="1.8"/>
     <path id="classpath">
-        <pathelement location="${basedir}/bin"/>
+        <pathelement location="bin"/>
         <pathelement location="resources/commons-lang-2.6.jar"/>
         <pathelement location="resources/gson-2.3.1.jar"/>
         <pathelement location="resources/guava-r05.jar"/>
@@ -29,7 +29,7 @@
         <pathelement location="resources/reflections-0.9.8.jar"/>
     </path>
     <target name="init">
-        <mkdir dir="${basedir}/bin"/>
+        <mkdir dir="bin"/>
         <copy includeemptydirs="false" todir="bin">
             <fileset dir="src">
                 <exclude name="**/*.java"/>
@@ -55,11 +55,11 @@
             <classpath refid="classpath"/>
         </javac>
     </target>
-  	<jar destfile="EntityGenerator.jar" basedir="${basedir}/bin">
+  	<jar destfile="EntityGenerator.jar" basedir="bin">
 		<manifest>
 			<attribute name="Main-Class" value="etl.drivers.TestDriver"/>
 		</manifest>
-  	    <fileset dir="${basedir}/bin" includes="**/*.class" />
-  	    <zipgroupfileset dir="${basedir}/bin" includes="**/*.jar" />
+  	    <fileset dir="bin" includes="**/*.class" />
+  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
   	</jar>
 </project>
