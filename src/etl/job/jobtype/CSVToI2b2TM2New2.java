@@ -173,13 +173,12 @@ public class CSVToI2b2TM2New2 extends JobType {
 				logger.error("File " + data + " Does Not Exist!");
 			}
 			//builtEnts.addAll(thisFillTree(builtEnts));
-			
-			
 			// for testint seqeunces move this to a global variable and generate it from properties once working;
 			
 			logger.info("Generating sequences");
 			
 			List<ColumnSequencer> sequencers = new ArrayList<ColumnSequencer>();
+			
 			sequencers.add(new ColumnSequencer(Arrays.asList("ConceptDimension","ObservationFact"), "conceptCd", "CONCEPTCD", "I2B2", 1, 1));
 
 			//sequencers.add(new ColumnSequencer(Arrays.asList("ObservationFact"), "encounterNum", "ENCNUM", "I2B2", 1, 1));

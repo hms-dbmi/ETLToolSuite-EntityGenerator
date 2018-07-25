@@ -42,7 +42,7 @@ public abstract class Entity implements Cloneable{
 
 	public static int CONCEPT_CD_SEQ = 1;
 	
-	private enum VALID_TYPES{ PatientTrial, PatientDimension, ObservationFact, ConceptDimension, I2B2, ModifierDimension, ConceptCounts, ObjectMapping , TableAccess};
+	private enum VALID_TYPES{ PatientTrial, PatientDimension, ObservationFact, ConceptDimension, I2B2, ModifierDimension, ConceptCounts, ObjectMapping, PatientMapping, TableAccess};
 		
 	public static String ROOT_NODE;
 	
