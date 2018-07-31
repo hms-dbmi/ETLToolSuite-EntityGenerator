@@ -32,15 +32,12 @@ public class TestDriver {
 	}
 
 	private static void processArguments(String[] args) throws Exception {
-		
 		for(String arg: args) {
-			
 			if(arg.equalsIgnoreCase( "-jobtype" )){
 				
 				JOB_TYPE = checkPassedArgs(arg, args);
 				
 			} else if (arg.equalsIgnoreCase( "-propertiesfile" )) {
-
 				PROPERTIES_FILE = checkPassedArgs(arg, args);
 				
 			}

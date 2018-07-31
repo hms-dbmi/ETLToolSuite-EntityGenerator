@@ -70,7 +70,7 @@ public class JsonToI2b2TM extends JobType {
 
 	private static final boolean MAPPING_SKIP_HEADER = false;
 
-	private static final char MAPPING_QUOTED_STRING = 0;
+	private static final char MAPPING_QUOTED_STRING = '"';
 	
 	private static List<String> EXPORT_TABLES = 
 			new ArrayList<String>(Arrays.asList("ModifierDimension", "ObservationFact", "I2B2", 
@@ -124,7 +124,6 @@ public class JsonToI2b2TM extends JobType {
 					Map<String, String> record = list.get(x);
 					
 					builtEnts.addAll(processEntities(mappingFile, record));	
-					
 					x++;
 					
 				}
@@ -192,14 +191,15 @@ public class JsonToI2b2TM extends JobType {
 			}
 			
 		}
-
 		if(!isOmitted){
 			
 			for(Mapping mapping: mappings){
+				String s = mapping.getKey();
 				if(map.containsKey(mapping.getKey())){
 					try {
 
 						DataType dt = DataType.initDataType(StringUtils.capitalize(mapping.getDataType()));
+												
 						if(!mapping.getDataType().equalsIgnoreCase("OMIT")){
 	
 							Set<Entity> newEnts = dt.generateTables(map, mapping, entities, RELATIONAL_KEY, OMISSION_KEY);
@@ -248,6 +248,7 @@ public class JsonToI2b2TM extends JobType {
 			parent.add(child);
 			x++;
 		}
+
 		return parent;
 	}	
 	

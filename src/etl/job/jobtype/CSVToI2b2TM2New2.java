@@ -353,7 +353,9 @@ public class CSVToI2b2TM2New2 extends JobType {
 
 	private List buildRecordList(File file, List<Mapping> mappings, Map<String, Map<String,String>> dataDict) throws Exception{
 		if(file.isFile()) {
+			
 			return CSVDataSource2.buildObjectMap(file, DATASOURCE_FORMAT);
+			
 		} else if ( file.isDirectory() ) {
 			IS_DIR = true;
 			List records = new ArrayList();
