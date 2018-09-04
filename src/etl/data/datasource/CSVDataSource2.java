@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -135,6 +138,13 @@ public class CSVDataSource2 extends DataSource {
 		} else {
 			return null;
 		}
+		
+	}
+	
+	public com.opencsv.CSVReader processCSV(String csvFile) throws IOException{
+        Reader reader = Files.newBufferedReader(Paths.get(csvFile));
+		com.opencsv.CSVReader csvReader = new com.opencsv.CSVReader(reader);
+		return csvReader;
 		
 	}
 

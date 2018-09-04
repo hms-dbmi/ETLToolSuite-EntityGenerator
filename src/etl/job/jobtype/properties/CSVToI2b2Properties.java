@@ -10,7 +10,7 @@ import java.util.Enumeration;
 import java.util.List;
 
 
-public class CsvToI2B2TMProperties extends JobProperties {
+public class CSVToI2b2Properties extends JobProperties {
 	
 	/**
 	 * 
@@ -18,18 +18,13 @@ public class CsvToI2B2TMProperties extends JobProperties {
 	private static final long serialVersionUID = -4659771078919212075L;
 	{
 	}
-	public CsvToI2B2TMProperties(String str) throws Exception {
+	public CSVToI2b2Properties(String str) throws Exception {
 		super(str);
 		
 		this.REQUIRED_PROPERTIES = Arrays.asList
 				(
 					new String[] { 
 							
-							"datadir", 
-							"processingdir", 
-							"completeddir", 
-							"mappingfile", 
-							"patientmappingfile"
 							
 					}
 				);

@@ -18,7 +18,7 @@ import etl.job.jobtype.properties.JobProperties;
 public abstract class JobType {
 	protected final Logger logger = LogManager.getLogger(getClass());
 
-	private enum VALID_TYPES{ DataPreview, JsonToI2b2TM, JsonToI2b2TM2New, XmlToI2b2TM, CSVToI2b2TM2New2, DemoJob };
+	private enum VALID_TYPES{ DataPreview, JsonToI2b2TM, JsonToI2b2TM2New, XmlToI2b2TM, CSVToI2b2, CSVToI2b2TM2New2, DemoJob };
 	
 	private static final String JOB_TYPE_PACKAGE = "etl.job.jobtype.";
 		

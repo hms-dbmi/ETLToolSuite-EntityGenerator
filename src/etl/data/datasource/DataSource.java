@@ -1,11 +1,12 @@
 package etl.data.datasource;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import etl.job.jobtype.JobType;
 
 public abstract class DataSource {
-	private enum VALID_TYPES{ FILE, JSONFILE, JSON, XMLFILE, CSVFILE, CSVDataSource, CsvDataSource, JSONDataSource2 };
+	private enum VALID_TYPES{ FILE, JSONFILE, JSON, XMLFILE, CSVFILE, CSVDataSource, CSVDataSource3, CsvDataSource, JSONDataSource2 };
 	
 	private static final String DATASOURCE_TYPE_PACKAGE = "etl.data.datasource.";
 	
@@ -74,5 +75,5 @@ public abstract class DataSource {
 		return false;
 	}
 	
-	public abstract Object processData(String ... arguments) throws FileNotFoundException;
+	public abstract Object processData(String ... arguments) throws FileNotFoundException, IOException;
 }

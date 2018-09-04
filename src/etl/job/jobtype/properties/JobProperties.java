@@ -15,7 +15,7 @@ public abstract class JobProperties extends Properties{
 	 */
 	private static final long serialVersionUID = 5987407489240934574L;
 
-	private enum VALID_TYPES{ CSVToI2b2TM2New2, JsonToI2b2TM, JsonToI2b2TM2New };
+	private enum VALID_TYPES{ CSVToI2b2, CSVToI2b2TM2New2, JsonToI2b2TM, JsonToI2b2TM2New };
 		
 	private static final String JOB_TYPE_PACKAGE = "etl.job.jobtype.properties.";
 	

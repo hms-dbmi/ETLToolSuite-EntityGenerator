@@ -337,6 +337,9 @@ public class Text extends DataType {
 					if( v == null || v instanceof Map) {
 						continue;
 					}
+					
+					v = (v != null ) ? v.toString().replaceAll("[*|\\\\\\/<\\?%>\":]", ""): null;			
+					
 					String value = v.toString();
 					if(value != null){						
 				

@@ -157,10 +157,10 @@ public class ConceptCounts extends Entity {
 			
 			nodescount.setConceptPath(key);
 			
-			int endIndex = org.apache.commons.lang.StringUtils.ordinalIndexOf(
+			int endIndex = org.apache.commons.lang3.StringUtils.ordinalIndexOf(
 						key, 
 						"\\", 
-						org.apache.commons.lang.StringUtils.countMatches(key, "\\") - 1
+						org.apache.commons.lang3.StringUtils.countMatches(key, "\\") - 1
 					) + 1;
 			
 			nodescount.setParentConceptPath(key.substring(0, endIndex));
@@ -187,11 +187,11 @@ public class ConceptCounts extends Entity {
 			
 		}
 		
-		int nodecount = org.apache.commons.lang.StringUtils.countMatches(key, "\\") - 1;
+		int nodecount = org.apache.commons.lang3.StringUtils.countMatches(key, "\\") - 1;
 		
 		if(nodecount != 1) {
 			
-			int index = org.apache.commons.lang.StringUtils.ordinalIndexOf(key, "\\", nodecount);
+			int index = org.apache.commons.lang3.StringUtils.ordinalIndexOf(key, "\\", nodecount);
 			
 			String node = key.substring(0, index + 1);
 
@@ -254,9 +254,9 @@ public class ConceptCounts extends Entity {
 				
 				String node = i2b2.getcFullName();
 				
-				int slashes = org.apache.commons.lang.StringUtils.countMatches(node, "\\") - 1;
+				int slashes = org.apache.commons.lang3.StringUtils.countMatches(node, "\\") - 1;
 				
-				int endIndex = org.apache.commons.lang.StringUtils.ordinalIndexOf(node,"\\", slashes) + 1;
+				int endIndex = org.apache.commons.lang3.StringUtils.ordinalIndexOf(node,"\\", slashes) + 1;
 				
 				String parentNode = i2b2.getcFullName().substring(0, endIndex);
 				

@@ -58,7 +58,7 @@ public class Umls extends Objectarray {
 		}
 		// Initialize UMLS
 
-		if(!UMLS_FILE.equals(options.get("UMLSFILE"))){
+		if(!UMLS_FILE.equals(options.get("UMLSFILE")) || umls.isEmpty()){
 		
 			UMLS_FILE = options.get("UMLSFILE");
 			
@@ -77,10 +77,22 @@ public class Umls extends Objectarray {
 				umls = buildUmls(options.get("UMLSFILE"));
 
 			}
+			
+			for(String key: umls.keySet()) {
+				Set<String> dumb = umls.get(key);
+				Set<String> dumb2 = new HashSet<String>();
+				for(String u: dumb) {
+					
+					u = u.replaceAll("[*|\\/<\\?%>\":]", "");
+					dumb2.add(u);
+				}
+				umls.put(key, dumb2);
+				
+			}
 		} 	
 		
 		String umlsField = options.get("UMLSFIELD");
-		
+	
 		Map<String, String> valMap = options.containsKey("VALUEMAP") ? makeKVPair(options.get("VALUEMAP"),"\\|","="): new HashMap<String, String>();
 		
 		Map<String, String> labels = options.containsKey("PATHPREFIXLABEL") ? makeKVPair(options.get("PATHPREFIXLABEL"),"\\|","="): new HashMap<String, String>();
@@ -99,7 +111,7 @@ public class Umls extends Objectarray {
 			
 			Map<String,Object> vmap = (HashMap<String,Object>) v;
 			
-			String pathPrefix = labels.get(vmap.get(options.get("PATHPREFIXFIELD")).toString());
+			String pathPrefix = vmap.containsKey(options.get("PATHPREFIXFIELD")) ? labels.get(vmap.get(options.get("PATHPREFIXFIELD")).toString()): "";
 			
 			if(vmap.containsKey(umlsField)) {
 
@@ -107,8 +119,10 @@ public class Umls extends Objectarray {
 				
 				val = valMap.containsKey(val) ? valMap.get(val): val;
 				
-				Set<String> umlsPaths = umls.get((vmap.get(umlsField)));
+				val = (val != null ) ? val.toString().replaceAll("[*|\\\\\\/<\\?%>\":]", ""): null;			
 				
+				Set<String> umlsPaths = umls.get((vmap.get(umlsField)));
+												
 				if(umlsPaths == null) continue;
 				
 				for(String umlsPath: umlsPaths) {

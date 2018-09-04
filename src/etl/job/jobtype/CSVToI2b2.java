@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.Period;
@@ -36,6 +37,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import au.com.bytecode.opencsv.CSVReader;
 import etl.data.datasource.CSVDataSource2;
+import etl.data.datasource.CSVDataSource3;
 import etl.data.datasource.JSONDataSource;
 import etl.data.datasource.entities.json.udn.UDN;
 import etl.data.datatype.DataType;
@@ -55,7 +57,7 @@ import etl.job.jsontoi2b2tm.entity.PatientMapping2;
 
 import static java.nio.file.StandardOpenOption.*;
 
-public class CSVToI2b2TM2New2 extends JobType {
+public class CSVToI2b2 extends JobType {
 	
 	//required configs
 	private static String FILE_NAME; 
@@ -76,13 +78,12 @@ public class CSVToI2b2TM2New2 extends JobType {
 			
 	private static Map<String,List<String>> OMISSIONS_MAP = new HashMap<String, List<String>>();
 
-	List<ColumnSequencer> sequencers = new ArrayList<ColumnSequencer>();
 	
 	public static Class DATASOURCE_FORMAT;
 	/// Internal Config
 	private static String FILE_TYPE = "JSONFILE";
 	
-	private static OpenOption[] WRITE_OPTIONS = new OpenOption[] { WRITE, CREATE, APPEND };
+	private static OpenOption[] WRITE_OPTIONS = new OpenOption[] { WRITE, CREATE, TRUNCATE_EXISTING };
 	
 	private static final String ENTITY_PACKAGE = "etl.data.export.entities.i2b2.";
 	
@@ -105,7 +106,7 @@ public class CSVToI2b2TM2New2 extends JobType {
 
 	private boolean IS_DIR;
 	
-	public CSVToI2b2TM2New2(String str) throws Exception {
+	public CSVToI2b2(String str) throws Exception {
 		super(str);
 		// TODO Auto-generated constructor stub
 	}
@@ -142,9 +143,35 @@ public class CSVToI2b2TM2New2 extends JobType {
 				// Read datafile into a List of LinkedHashMaps.
 				// List should be objects that will be used for up and down casting through out the job process.
 				// Using casting will allow the application to be very dynamic while also being type safe.
-				System.out.println("building records");
-				List list = buildRecordList(data, mappingFile, datadic);
+				//System.out.println("building records");
+				//List list = buildRecordList(data, mappingFile, datadic);
+				System.out.println("generating tables");
+
+				com.opencsv.CSVReader reader = CSVDataSource3.processCSV(FILE_NAME); 
 				
+				Path path = Paths.get(FILE_NAME);
+
+				String[] arr = reader.readNext();
+				int recs = 1;
+				
+				while(arr != null) {
+
+					Map map = new LinkedHashMap<>();
+					Integer col = 0;	
+					
+					for(String str:arr) {
+						map.put(path.getFileName() + ":" + col.toString(), Arrays.asList(str));
+						col++;
+					}
+					//list.add(map);
+					
+					builtEnts.addAll(processEntities(mappingFile,( LinkedHashMap ) map));	
+					
+					arr = reader.readNext();
+					recs++;
+					
+				}		
+				/*
 				Map<String, Map<String,String>> patientList = buildPatientRecordList(data,patientMappingFile, datadic);
 				
 				for(String key: patientList.keySet()) {
@@ -152,8 +179,8 @@ public class CSVToI2b2TM2New2 extends JobType {
 					builtEnts.addAll(processPatientEntities(patientList.get(key)));
 					
 				}
-				System.out.println("generating tables");
 				logger.info("generating tables");
+				
 				for(Object o: list){
 					
 					if( o instanceof LinkedHashMap ) {
@@ -164,7 +191,7 @@ public class CSVToI2b2TM2New2 extends JobType {
 				}
 				
 				list = null;
-				
+				*/
 				System.out.println("fill in tree");
 				logger.info("Filling in Tree");
 				builtEnts.addAll(thisFillTree(builtEnts));
@@ -188,9 +215,9 @@ public class CSVToI2b2TM2New2 extends JobType {
 			
 			List<ColumnSequencer> sequencers = new ArrayList<ColumnSequencer>();
 			
-			sequencers.add(new ColumnSequencer(Arrays.asList("ConceptDimension","ObservationFact"), "conceptCd", "CONCEPTCD", "I2B2", 1, 1));
+			sequencers.add(new ColumnSequencer(Arrays.asList("ConceptDimension","ObservationFact"), "conceptCd", "CONCEPTCD", "I2B2", 1000000, 1));
 
-			sequencers.add(new ColumnSequencer(Arrays.asList("ObservationFact"), "encounterNum", "ENCNUM", "I2B2", 1, 1));
+			sequencers.add(new ColumnSequencer(Arrays.asList("ObservationFact"), "encounterNum", "ENCNUM", "I2B2", 1000000, 1));
 			sequencers.add(new ColumnSequencer(Arrays.asList("ObservationFact"), "instanceNum", "INSTNUM", "I2B2", 1, 1));
 
 			//sequencers.add(new ColumnSequencer(Arrays.asList("PatientDimension","ObservationFact","PatientTrial"), "patientNum", "ID", "I2B2", 1000000, 1));
@@ -370,20 +397,18 @@ System.out.println("writing files");
 			IS_DIR = true;
 			List records = new ArrayList();
 			Set<String> files = new HashSet<String>();
-			
 			for(Mapping mapping: mappings) {
 				files.add(mapping.getKey().split(":")[0]);
 			}
-			System.out.println(files.size());
-			for(String f: files) {
-				Map<String,String> dict = dataDict.containsKey(f) ? dataDict.get(f): new HashMap<String,String>();
+			for(String fileName:files){
+				Map<String,String> dict = dataDict.containsKey(fileName) ? dataDict.get(fileName): new HashMap<String,String>();
 	
-				String fileName = f;
 				File fileToRead = new File( FILE_NAME + fileName);
 				if(fileToRead.exists()) {
-				
-					List recs = CSVDataSource2.buildObjectMap(f, fileToRead, DATASOURCE_FORMAT);
 					
+					//List recs = CSVDataSource2.buildObjectMap(mapping.getKey().split(":")[0], fileToRead, DATASOURCE_FORMAT);
+					CSVDataSource3 ds = new CSVDataSource3("CSVDataSource3");
+					List recs = ds.processData(FILE_NAME + fileName);
 					//if(!dataDict.isEmpty()) {
 						
 						for(Object rec:recs) {
@@ -689,10 +714,14 @@ System.out.println("writing files");
 				List<Object> relationalValue = new ArrayList<Object>();
 
 				if(!IS_DIR) {
-					relationalValue = findValueByKey(record,RELATIONAL_KEY.split(":"));
+					String[] array = new String[mapping.getKey().split(":").length - 1];
+					
+					array[0] = mapping.getKey().split(":")[0] + ":" + RELATIONAL_KEY;
+					relationalValue = findValueByKey(record,array);
 				} else {
 					
 					String[] array = new String[mapping.getKey().split(":").length - 1];
+					
 					array[0] = mapping.getKey().split(":")[0] + ":" + RELATIONAL_KEY;
 					relationalValue = findValueByKey(record,array);
 
@@ -704,7 +733,9 @@ System.out.println("writing files");
 					List<Object> values = new ArrayList<Object>();
 					
 					if(!IS_DIR) {
-						values = findValueByKey2(record, new ArrayList(Arrays.asList(mapping.getKey().split(":"))));
+						String[] array = new String[mapping.getKey().split(":").length - 1];
+						array[0] = mapping.getKey();
+						values = findValueByKey2(record,new ArrayList(Arrays.asList(array)));
 					} else {
 						
 						
@@ -998,27 +1029,9 @@ System.out.println("writing files");
 				
 		MAPPING_SKIP_HEADER = jobProperties.containsKey("mappingquotedstring") &&
 				jobProperties.getProperty("mappingquotedstring").substring(0, 1).equalsIgnoreCase("Y") ? true: false;
-		
-		sequencers = jobProperties.containsKey("sequencers") ? buildSequences(jobProperties.getProperty("sequencers")): sequencers;
-	
+				
 	}
 	
-	
-	
-	private List<ColumnSequencer> buildSequences(String sequences) {
-		String[] seqsSplit = sequences.split("\\],\\[");
-		//("ObservationFact"),"encounterNum","ENCNUM","I2B2",1,1
-		List<ColumnSequencer> list = new ArrayList<ColumnSequencer>();
-		for(String s:seqsSplit) {
-			String[] inner = s.split("\\),");
-			String[] tables = inner[0].replaceFirst("\\[\\(", "").split(",");
-			String[] configs = inner[1].split(",");
-			ColumnSequencer cs = new ColumnSequencer(Arrays.asList(tables), configs[0], configs[1], configs[2], new Integer(configs[3]), new Integer(configs[4].replaceAll("\\]","")));
-		}
-		
-		return list;
-	}
-
 	private Collection<? extends Entity> thisFillTree(Set<Entity> entities) throws Exception {
 		List<I2B2> i2b2 = new ArrayList<I2B2>();
 		// fill in tree

@@ -86,6 +86,9 @@ public class Modifier extends Objectarray {
 						for(Object val:vals) {
 							
 							if(val == null) continue; //System.out.println(label + ':' + val);
+							
+							val = (val != null ) ? val.toString().replaceAll("[*|\\\\\\/<\\?%>\":]", ""): null;			
+							
 							String value = val.toString();
 							
 							boolean isNumeric = value.matches("[-+]?\\d*\\.?\\d+") ? true : false; 

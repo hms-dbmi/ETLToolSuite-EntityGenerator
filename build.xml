@@ -4,7 +4,7 @@
               To include a user specific buildfile here, simply create one in the same
               directory with the processing instruction <?eclipse.ant.import?>
               as the first entry and export the buildfile again. -->
-<project basedir="." default="build">
+<project name="EntityGenerator" basedir="." default="build">
     <property environment="env"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.8"/>
@@ -55,7 +55,7 @@
             <classpath refid="classpath"/>
         </javac>
     </target>
-  	<jar destfile="EntityGenerator.jar" basedir="bin">
+  	<jar destfile="EntityGenerator.jar">
 		<manifest>
 			<attribute name="Main-Class" value="etl.drivers.TestDriver"/>
 		</manifest>

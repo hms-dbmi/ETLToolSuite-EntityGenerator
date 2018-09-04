@@ -45,7 +45,8 @@ public class Keyvalue extends Objectarray {
 		Set<String> omissions = options.containsKey("OMIT") ? mapping.buildOptions(options.get("OMIT"), "\\|"): new HashSet<String>();
 		
 		String encKey = options.containsKey("ENCKEY") ? options.get("ENCKEY"): "";
-		
+		String[] encKeys = encKey.split("-");
+
 		if(values == null) return new HashSet<Entity>();
 		
 			for(Object v: values) {
@@ -58,8 +59,12 @@ public class Keyvalue extends Objectarray {
 				
 				Map<String,Object> vmap = (HashMap<String,Object>) v;
 		
-				Object encounter = vmap.containsKey(encKey) ? vmap.get(encKey): "";
+				String enc = new String();
+				for(String ek: encKeys) {
+					enc = vmap.containsKey(ek) ? enc + vmap.get(ek): enc;
+				}
 				
+				Object encounter = enc;
 				for(Object relationalvalue: relationalValues) {
 					
 					for(String label: labels.keySet()) {
@@ -76,6 +81,8 @@ public class Keyvalue extends Objectarray {
 								
 								String value = val.toString();
 								
+								value = (value != null ) ? value.toString().replaceAll("[*|\\\\\\/<\\?%>\":]", ""): null;			
+
 								boolean isNumeric = options.containsKey("NUMERICS") && options.get("NUMERICS").equalsIgnoreCase("true") 
 										&& value.matches("[-+]?\\d*\\.?\\d+") ? true : false; 
 								
@@ -288,6 +295,9 @@ public class Keyvalue extends Objectarray {
 									
 									boolean isNumeric = options.containsKey("NUMERICS") && options.get("NUMERICS").equalsIgnoreCase("true") 
 											&& value.matches("[-+]?\\d*\\.?\\d+") ? true : false; 
+									
+									value = (value != null ) ? value.toString().replaceAll("[*|\\\\\\/<\\?%>\":]", ""): null;			
+
 									
 									for(Entity entity: entities){
 									

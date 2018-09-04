@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import etl.data.datatype.DataType;
 import etl.data.export.entities.Entity;
@@ -323,6 +323,8 @@ public class Numeric extends DataType{
 						of.setPatientNum(relationalValue.toString());
 						
 						of.setEncounterNum(relationalValue.toString() + mapping.getKey());
+						
+						of.setInstanceNum(relationalValue.toString() + mapping.getKey() + value);
 						
 						of.setConceptCd(mapping.getKey());
 						

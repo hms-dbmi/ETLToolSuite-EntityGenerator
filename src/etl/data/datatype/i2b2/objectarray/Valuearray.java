@@ -78,6 +78,8 @@ public class Valuearray extends Objectarray {
 					
 					for(String value:values) {
 						
+						value = (value != null ) ? value.toString().replaceAll("[*|\\\\\\/<\\?%>\":]", ""): null;
+						
 						for(Entity entity: entities) {
 						
 							if(entity instanceof ObservationFact){
