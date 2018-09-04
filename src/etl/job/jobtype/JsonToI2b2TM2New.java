@@ -47,7 +47,6 @@ import etl.data.export.i2b2.ExportI2B2;
 import etl.job.jobtype.properties.JobProperties;
 import etl.job.jsontoi2b2tm.entity.Mapping;
 import etl.job.jsontoi2b2tm.entity.PatientMapping2;
-import sun.awt.SunHints.Value;
 
 import static java.nio.file.StandardOpenOption.*;
 
