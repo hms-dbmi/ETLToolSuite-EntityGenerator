@@ -236,7 +236,7 @@ public class CSVToI2b2TM extends JobType {
 				// Read datafile into a List of LinkedHashMaps.
 				// List should be objects that will be used for up and down casting through out the job process.
 				// Using casting will allow the application to be very dynamic while also being type safe.
-				List list = buildRecordList(data, mappingFile, datadic);
+				List recs = buildRecordList(data, mappingFile, datadic);
 				
 				Map<String, Map<String,String>> patientList = buildPatientRecordList(data,patientMappingFile, datadic);
 				
@@ -246,16 +246,16 @@ public class CSVToI2b2TM extends JobType {
 					
 				}
 				logger.info("generating tables");
-				for(Object o: list){
+				for(Object o: recs){
 					
 					if( o instanceof LinkedHashMap ) {
-
+						
 						builtEnts.addAll(processEntities(mappingFile,( LinkedHashMap ) o));	
 
 					}
 				}
 				
-				list = null;
+				recs = null;
 				
 				logger.info("Filling in Tree");
 				builtEnts.addAll(thisFillTree(builtEnts));
@@ -924,7 +924,9 @@ public class CSVToI2b2TM extends JobType {
 							}
 						}
 					}
-					
+					if(values == null) throw new Exception("Following Mapping does not exist in the datafile: \n"
+							+ mapping.toCSV() + "\n" +
+							" be sure that the column and file exist.");
 					Set<Entity> newEnts = dt.generateTables(mapping, entities, values, relationalValue);
 					
 					if(newEnts != null && newEnts.size() > 0){
