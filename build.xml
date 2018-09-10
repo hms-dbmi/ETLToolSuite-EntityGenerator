@@ -10,7 +10,7 @@
     <property name="target" value="1.8"/>
     <property name="source" value="1.8"/>
     <path id="classpath">
-        <pathelement location="bin"/>
+        <pathelement location="src"/>
         <pathelement location="resources/commons-lang3-3.8.jar"/>
         <pathelement location="resources/commons-lang-2.6.jar"/>
         <pathelement location="resources/gson-2.3.1.jar"/>
