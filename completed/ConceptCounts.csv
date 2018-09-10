@@ -436,3 +436,295 @@
 `\SAMPLE_ID\GSM332930\`,`\SAMPLE_ID\`,1
 `\SAMPLE_ID\GSM332952\`,`\SAMPLE_ID\`,1
 `\OMIT\GFP_Flu+IL1b_donor4\`,`\OMIT\`,1
+`\OMIT\GFP_Flu+E+I_donor3\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332946\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_Flu_donor3\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332958\`,`\SAMPLE_ID\`,1
+`\Cell Phenotype\GFP Expressing (Control)\`,`\Cell Phenotype\`,4
+`\OMIT\GFP_EGF_donor3\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332934\`,`\SAMPLE_ID\`,1
+`\Cell Phenotype\`,`\`,8
+`\Sample Source\`,`\`,8
+`\SAMPLE_ID\GSM332922\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu+IL1b_donor2\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332944\`,`\SAMPLE_ID\`,1
+`\SUBJ_ID\Donor_G_2\`,`\SUBJ_ID\`,1
+`\Stimulant\`,`\`,8
+`\OMIT\PKI_IL1b_donor2\`,`\OMIT\`,1
+`\OMIT\PKI_Flu+EGF_donor4\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332926\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_EGF_donor4\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332948\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_Flu+IL1b_donor3\`,`\OMIT\`,1
+`\OMIT\PKI_E+I_donor2\`,`\OMIT\`,1
+`\OMIT\8h EGF\`,`\OMIT\`,8
+`\Sample Source\Trachea\`,`\Sample Source\`,8
+`\SUBJ_ID\`,`\`,8
+`\OMIT\PKI_basal_donor3\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332956\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332914\`,`\SAMPLE_ID\`,1
+`\SUBJ_ID\Donor_G_4\`,`\SUBJ_ID\`,1
+`\OMIT\basal\`,`\OMIT\`,8
+`\SAMPLE_ID\GSM332936\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu_donor4\`,`\OMIT\`,1
+`\OMIT\PKI_basal_donor1\`,`\OMIT\`,1
+`\OMIT\GFP_E+I_donor1\`,`\OMIT\`,1
+`\Cell Phenotype\PKI-GFP Expressing\`,`\Cell Phenotype\`,4
+`\OMIT\PKI_Flu+E+I_donor2\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332924\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_IL1b_donor3\`,`\OMIT\`,1
+`\OMIT\GFP_E+I_donor2\`,`\OMIT\`,1
+`\SUBJ_ID\Donor_PKI_3\`,`\SUBJ_ID\`,1
+`\Cell Culture Pretreatment\`,`\`,8
+`\SAMPLE_ID\GSM332953\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332928\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_EGF_donor2\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332965\`,`\SAMPLE_ID\`,1
+`\Tissue\`,`\`,8
+`\SAMPLE_ID\GSM332916\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu_donor3\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332938\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_E+I_donor4\`,`\OMIT\`,1
+`\OMIT\PKI_Flu+EGF_donor2\`,`\OMIT\`,1
+`\OMIT\PKI_E+I_donor3\`,`\OMIT\`,1
+`\OMIT\GFP_basal_donor3\`,`\OMIT\`,1
+`\OMIT\GFP_EGF_donor1\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332961\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\`,`\`,8
+`\OMIT\GFP_Flu+IL1b_donor3\`,`\OMIT\`,1
+`\OMIT\PKI_IL1b_donor4\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332943\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_basal_donor1\`,`\OMIT\`,1
+`\OMIT\`,`\`,8
+`\SAMPLE_ID\GSM332931\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332951\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu+EGF_donor3\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332963\`,`\SAMPLE_ID\`,1
+`\SUBJ_ID\Donor_PKI_1\`,`\SUBJ_ID\`,1
+`\SAMPLE_ID\GSM332941\`,`\SAMPLE_ID\`,1
+`\Cell Culture Pretreatment\Fluticasone\`,`\Cell Culture Pretreatment\`,6
+`\SAMPLE_ID\GSM332918\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332923\`,`\SAMPLE_ID\`,1
+`\Stimulant\IL-1b\`,`\Stimulant\`,6
+`\OMIT\GFP_EGF_donor4\`,`\OMIT\`,1
+`\SUBJ_ID\Donor_G_3\`,`\SUBJ_ID\`,1
+`\OMIT\PKI_Flu_donor2\`,`\OMIT\`,1
+`\Tissue\Smooth muscle\`,`\Tissue\`,8
+`\OMIT\8h EGF+IL-1b\`,`\OMIT\`,8
+`\SAMPLE_ID\GSM332945\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332959\`,`\SAMPLE_ID\`,1
+`\Timepoint\`,`\`,8
+`\SAMPLE_ID\GSM332960\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_Flu+IL1b_donor4\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332933\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332921\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_EGF_donor2\`,`\OMIT\`,1
+`\OMIT\GFP_Flu+E+I_donor2\`,`\OMIT\`,1
+`\Stimulant\EGF\`,`\Stimulant\`,8
+`\SAMPLE_ID\GSM332955\`,`\SAMPLE_ID\`,1
+`\OMIT\30 min Flu pretx and 8h EGF+IL-1b\`,`\OMIT\`,6
+`\SAMPLE_ID\GSM332937\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332925\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_Flu+E+I_donor3\`,`\OMIT\`,1
+`\OMIT\PKI_EGF_donor3\`,`\OMIT\`,1
+`\OMIT\GFP_IL1b_donor4\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332913\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332947\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu+E+I_donor4\`,`\OMIT\`,1
+`\OMIT\PKI_E+I_donor1\`,`\OMIT\`,1
+`\Cell Culture Pretreatment\No treatment\`,`\Cell Culture Pretreatment\`,8
+`\OMIT\30 min Flu pretx and 8h IL-1b\`,`\OMIT\`,6
+`\OMIT\PKI_basal_donor2\`,`\OMIT\`,1
+`\OMIT\30 min Flu pretx\`,`\OMIT\`,6
+`\SAMPLE_ID\GSM332957\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_Flu_donor4\`,`\OMIT\`,1
+`\OMIT\PKI_Flu+IL1b_donor2\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332935\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332917\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332964\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332940\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu+EGF_donor4\`,`\OMIT\`,1
+`\OMIT\GFP_IL1b_donor2\`,`\OMIT\`,1
+`\OMIT\GFP_basal_donor4\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332939\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_E+I_donor3\`,`\OMIT\`,1
+`\SUBJ_ID\Donor_PKI_2\`,`\SUBJ_ID\`,1
+`\OMIT\30 min Flu pretx and 8h EGF\`,`\OMIT\`,6
+`\SAMPLE_ID\GSM332927\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_basal_donor4\`,`\OMIT\`,1
+`\OMIT\PKI_E+I_donor4\`,`\OMIT\`,1
+`\OMIT\GFP_basal_donor2\`,`\OMIT\`,1
+`\OMIT\PKI_Flu+E+I_donor4\`,`\OMIT\`,1
+`\SUBJ_ID\Donor_PKI_4\`,`\SUBJ_ID\`,1
+`\OMIT\PKI_Flu+EGF_donor3\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332954\`,`\SAMPLE_ID\`,1
+`\Timepoint\8 hours\`,`\Timepoint\`,8
+`\Timepoint\Baseline\`,`\Timepoint\`,8
+`\OMIT\PKI_EGF_donor1\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332915\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332966\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332949\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu+EGF_donor2\`,`\OMIT\`,1
+`\STUDY_ID\`,`\`,8
+`\OMIT\GFP_Flu_donor2\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332932\`,`\SAMPLE_ID\`,1
+`\Stimulant\EGF and IL-1b\`,`\Stimulant\`,8
+`\SAMPLE_ID\GSM332950\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_IL1b_donor3\`,`\OMIT\`,1
+`\OMIT\8h IL-1b\`,`\OMIT\`,6
+`\SAMPLE_ID\GSM332919\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332962\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332920\`,`\SAMPLE_ID\`,1
+`\SUBJ_ID\Donor_G_1\`,`\SUBJ_ID\`,1
+`\Stimulant\None\`,`\Stimulant\`,8
+`\SAMPLE_ID\GSM332942\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332929\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332930\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332952\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu+IL1b_donor4\`,`\OMIT\`,1
+`\OMIT\GFP_Flu+E+I_donor3\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332946\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_Flu_donor3\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332958\`,`\SAMPLE_ID\`,1
+`\Cell Phenotype\GFP Expressing (Control)\`,`\Cell Phenotype\`,4
+`\OMIT\GFP_EGF_donor3\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332934\`,`\SAMPLE_ID\`,1
+`\Cell Phenotype\`,`\`,8
+`\Sample Source\`,`\`,8
+`\SAMPLE_ID\GSM332922\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu+IL1b_donor2\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332944\`,`\SAMPLE_ID\`,1
+`\SUBJ_ID\Donor_G_2\`,`\SUBJ_ID\`,1
+`\Stimulant\`,`\`,8
+`\OMIT\PKI_IL1b_donor2\`,`\OMIT\`,1
+`\OMIT\PKI_Flu+EGF_donor4\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332926\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_EGF_donor4\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332948\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_Flu+IL1b_donor3\`,`\OMIT\`,1
+`\OMIT\PKI_E+I_donor2\`,`\OMIT\`,1
+`\OMIT\8h EGF\`,`\OMIT\`,8
+`\Sample Source\Trachea\`,`\Sample Source\`,8
+`\SUBJ_ID\`,`\`,8
+`\OMIT\PKI_basal_donor3\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332956\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332914\`,`\SAMPLE_ID\`,1
+`\SUBJ_ID\Donor_G_4\`,`\SUBJ_ID\`,1
+`\OMIT\basal\`,`\OMIT\`,8
+`\SAMPLE_ID\GSM332936\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu_donor4\`,`\OMIT\`,1
+`\OMIT\PKI_basal_donor1\`,`\OMIT\`,1
+`\OMIT\GFP_E+I_donor1\`,`\OMIT\`,1
+`\Cell Phenotype\PKI-GFP Expressing\`,`\Cell Phenotype\`,4
+`\OMIT\PKI_Flu+E+I_donor2\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332924\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_IL1b_donor3\`,`\OMIT\`,1
+`\OMIT\GFP_E+I_donor2\`,`\OMIT\`,1
+`\SUBJ_ID\Donor_PKI_3\`,`\SUBJ_ID\`,1
+`\Cell Culture Pretreatment\`,`\`,8
+`\SAMPLE_ID\GSM332953\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332928\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_EGF_donor2\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332965\`,`\SAMPLE_ID\`,1
+`\Tissue\`,`\`,8
+`\SAMPLE_ID\GSM332916\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu_donor3\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332938\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_E+I_donor4\`,`\OMIT\`,1
+`\OMIT\PKI_Flu+EGF_donor2\`,`\OMIT\`,1
+`\OMIT\PKI_E+I_donor3\`,`\OMIT\`,1
+`\OMIT\GFP_basal_donor3\`,`\OMIT\`,1
+`\OMIT\GFP_EGF_donor1\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332961\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\`,`\`,8
+`\OMIT\GFP_Flu+IL1b_donor3\`,`\OMIT\`,1
+`\OMIT\PKI_IL1b_donor4\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332943\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_basal_donor1\`,`\OMIT\`,1
+`\OMIT\`,`\`,8
+`\SAMPLE_ID\GSM332931\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332951\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu+EGF_donor3\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332963\`,`\SAMPLE_ID\`,1
+`\SUBJ_ID\Donor_PKI_1\`,`\SUBJ_ID\`,1
+`\SAMPLE_ID\GSM332941\`,`\SAMPLE_ID\`,1
+`\Cell Culture Pretreatment\Fluticasone\`,`\Cell Culture Pretreatment\`,6
+`\SAMPLE_ID\GSM332918\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332923\`,`\SAMPLE_ID\`,1
+`\Stimulant\IL-1b\`,`\Stimulant\`,6
+`\OMIT\GFP_EGF_donor4\`,`\OMIT\`,1
+`\SUBJ_ID\Donor_G_3\`,`\SUBJ_ID\`,1
+`\OMIT\PKI_Flu_donor2\`,`\OMIT\`,1
+`\Tissue\Smooth muscle\`,`\Tissue\`,8
+`\OMIT\8h EGF+IL-1b\`,`\OMIT\`,8
+`\SAMPLE_ID\GSM332945\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332959\`,`\SAMPLE_ID\`,1
+`\Timepoint\`,`\`,8
+`\SAMPLE_ID\GSM332960\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_Flu+IL1b_donor4\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332933\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332921\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_EGF_donor2\`,`\OMIT\`,1
+`\OMIT\GFP_Flu+E+I_donor2\`,`\OMIT\`,1
+`\Stimulant\EGF\`,`\Stimulant\`,8
+`\SAMPLE_ID\GSM332955\`,`\SAMPLE_ID\`,1
+`\OMIT\30 min Flu pretx and 8h EGF+IL-1b\`,`\OMIT\`,6
+`\SAMPLE_ID\GSM332937\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332925\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_Flu+E+I_donor3\`,`\OMIT\`,1
+`\OMIT\PKI_EGF_donor3\`,`\OMIT\`,1
+`\OMIT\GFP_IL1b_donor4\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332913\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332947\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu+E+I_donor4\`,`\OMIT\`,1
+`\OMIT\PKI_E+I_donor1\`,`\OMIT\`,1
+`\Cell Culture Pretreatment\No treatment\`,`\Cell Culture Pretreatment\`,8
+`\OMIT\30 min Flu pretx and 8h IL-1b\`,`\OMIT\`,6
+`\OMIT\PKI_basal_donor2\`,`\OMIT\`,1
+`\OMIT\30 min Flu pretx\`,`\OMIT\`,6
+`\SAMPLE_ID\GSM332957\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_Flu_donor4\`,`\OMIT\`,1
+`\OMIT\PKI_Flu+IL1b_donor2\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332935\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332917\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332964\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332940\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu+EGF_donor4\`,`\OMIT\`,1
+`\OMIT\GFP_IL1b_donor2\`,`\OMIT\`,1
+`\OMIT\GFP_basal_donor4\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332939\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_E+I_donor3\`,`\OMIT\`,1
+`\SUBJ_ID\Donor_PKI_2\`,`\SUBJ_ID\`,1
+`\OMIT\30 min Flu pretx and 8h EGF\`,`\OMIT\`,6
+`\SAMPLE_ID\GSM332927\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_basal_donor4\`,`\OMIT\`,1
+`\OMIT\PKI_E+I_donor4\`,`\OMIT\`,1
+`\OMIT\GFP_basal_donor2\`,`\OMIT\`,1
+`\OMIT\PKI_Flu+E+I_donor4\`,`\OMIT\`,1
+`\SUBJ_ID\Donor_PKI_4\`,`\SUBJ_ID\`,1
+`\OMIT\PKI_Flu+EGF_donor3\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332954\`,`\SAMPLE_ID\`,1
+`\Timepoint\8 hours\`,`\Timepoint\`,8
+`\Timepoint\Baseline\`,`\Timepoint\`,8
+`\OMIT\PKI_EGF_donor1\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332915\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332966\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332949\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu+EGF_donor2\`,`\OMIT\`,1
+`\STUDY_ID\`,`\`,8
+`\OMIT\GFP_Flu_donor2\`,`\OMIT\`,1
+`\SAMPLE_ID\GSM332932\`,`\SAMPLE_ID\`,1
+`\Stimulant\EGF and IL-1b\`,`\Stimulant\`,8
+`\SAMPLE_ID\GSM332950\`,`\SAMPLE_ID\`,1
+`\OMIT\PKI_IL1b_donor3\`,`\OMIT\`,1
+`\OMIT\8h IL-1b\`,`\OMIT\`,6
+`\SAMPLE_ID\GSM332919\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332962\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332920\`,`\SAMPLE_ID\`,1
+`\SUBJ_ID\Donor_G_1\`,`\SUBJ_ID\`,1
+`\Stimulant\None\`,`\Stimulant\`,8
+`\SAMPLE_ID\GSM332942\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332929\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332930\`,`\SAMPLE_ID\`,1
+`\SAMPLE_ID\GSM332952\`,`\SAMPLE_ID\`,1
+`\OMIT\GFP_Flu+IL1b_donor4\`,`\OMIT\`,1

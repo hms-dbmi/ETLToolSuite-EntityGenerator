@@ -362,96 +362,104 @@ public class CSVToI2b2TM2New2 extends JobType {
 			String raceCDFile =  patientMap.containsKey("raceCD") ? patientMap.get("raceCD").split(":")[0] : "";
 			String raceCDPatCol = "0";		
 			
-			
-			List recs = CSVDataSource2.buildObjectMap(patientNumFile, new File( FILE_NAME + patientNumFile ), DATASOURCE_FORMAT);
-			
-			for(Object rec: recs) {
-				if(rec instanceof LinkedHashMap) {
-					
-					LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
-						
-					List<Object> values = defRec.get( patientMap.get("PatientNum"));
-					
-					for(Object valueObj:values) {
-						Map<String, String> newPat = new HashMap<String,String>();
-
-						newPat.put("patientNum", valueObj.toString());
-						
-						patients.put(valueObj.toString(), newPat);
-					}
+			if(patientNumFile.isEmpty()) {
+				logger.info("No PatientNum given to generate patients.  Patients will not be generated.");
+			} else {
+				List recs = CSVDataSource2.buildObjectMap(patientNumFile, new File( FILE_NAME + patientNumFile ), DATASOURCE_FORMAT);
 				
-				}
-			}
-			
-			recs = CSVDataSource2.buildObjectMap(sexCdFile, new File( FILE_NAME + sexCdFile + ".csv"), DATASOURCE_FORMAT);
-
-			for(Object rec: recs) {
-				if(rec instanceof LinkedHashMap) {
+				for(Object rec: recs) {
+					if(rec instanceof LinkedHashMap) {
+						
+						LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
+							
+						List<Object> values = defRec.get( patientMap.get("PatientNum"));
+						
+						for(Object valueObj:values) {
+							Map<String, String> newPat = new HashMap<String,String>();
+	
+							newPat.put("patientNum", valueObj.toString());
+							
+							patients.put(valueObj.toString(), newPat);
+						}
 					
-					LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
-						
-					List<Object> values = defRec.get( patientMap.get("sexCD"));
-					
-					Map<String,String> dict = dataDict.containsKey(sexCdFile) ? dataDict.get(sexCdFile): new HashMap<String,String>();
-
-					for(Object valueObj:values) {
-						Map<String, String> newPat = patients.get(defRec.get(sexCdFile + ':' + sexCdPatCol).get(0));
-
-						valueObj = dict.containsKey(valueObj.toString()) ? dict.get(valueObj).toString(): valueObj;
-						
-						newPat.put("sexCD", valueObj.toString());
-						
-						patients.put(defRec.get(sexCdFile + ':' + sexCdPatCol).get(0).toString(), newPat);
 					}
 				}
 			}
-			
-			recs = CSVDataSource2.buildObjectMap(ageInYearsNumFile, new File( FILE_NAME + ageInYearsNumFile + ".csv"), DATASOURCE_FORMAT);
+			if(!sexCdFile.isEmpty()) {
 
-			for(Object rec: recs) {
-				if(rec instanceof LinkedHashMap) {
-					
-					LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
+			List recs = CSVDataSource2.buildObjectMap(sexCdFile, new File( FILE_NAME + sexCdFile + ".csv"), DATASOURCE_FORMAT);
+
+				for(Object rec: recs) {
+					if(rec instanceof LinkedHashMap) {
 						
-					List<Object> values = defRec.get( patientMap.get("ageInYearsNum"));
-					
-					Map<String,String> dict = dataDict.containsKey(ageInYearsNumFile) ? dataDict.get(ageInYearsNumFile): new HashMap<String,String>();
-					if(!values.isEmpty()) {
+						LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
+							
+						List<Object> values = defRec.get( patientMap.get("sexCD"));
+						
+						Map<String,String> dict = dataDict.containsKey(sexCdFile) ? dataDict.get(sexCdFile): new HashMap<String,String>();
+	
 						for(Object valueObj:values) {
-							Map<String, String> newPat = patients.get(defRec.get(ageInYearsNumFile + ':' + ageInYearsNumPatCol).get(0));
+							Map<String, String> newPat = patients.get(defRec.get(sexCdFile + ':' + sexCdPatCol).get(0));
 	
 							valueObj = dict.containsKey(valueObj.toString()) ? dict.get(valueObj).toString(): valueObj;
 							
-							newPat.put("ageInYearsNum", valueObj.toString());
+							newPat.put("sexCD", valueObj.toString());
 							
-							patients.put(defRec.get(ageInYearsNumFile + ':' + ageInYearsNumPatCol).get(0).toString(), newPat);
+							patients.put(defRec.get(sexCdFile + ':' + sexCdPatCol).get(0).toString(), newPat);
 						}
 					}
 				}
-			}			
-			recs = CSVDataSource2.buildObjectMap(raceCDFile, new File( FILE_NAME + raceCDFile + ".csv"), DATASOURCE_FORMAT);
+			}
+			if(!ageInYearsNumFile.isEmpty()) {
 
-			for(Object rec: recs) {
-				if(rec instanceof LinkedHashMap) {
-					
-					LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
+				List recs = CSVDataSource2.buildObjectMap(ageInYearsNumFile, new File( FILE_NAME + ageInYearsNumFile + ".csv"), DATASOURCE_FORMAT);
+	
+				for(Object rec: recs) {
+					if(rec instanceof LinkedHashMap) {
 						
-					List<Object> values = defRec.get( patientMap.get("raceCD"));
-					
-					Map<String,String> dict = dataDict.containsKey(raceCDFile) ? dataDict.get(raceCDFile): new HashMap<String,String>();
-
-					for(Object valueObj:values) {
-						Map<String, String> newPat = patients.get(defRec.get(raceCDFile + ':' + raceCDPatCol).get(0));
-
-						valueObj = dict.containsKey(valueObj.toString()) ? dict.get(valueObj).toString(): valueObj;
+						LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
+							
+						List<Object> values = defRec.get( patientMap.get("ageInYearsNum"));
 						
-						newPat.put("raceCD", valueObj.toString());
-						
-						patients.put(defRec.get(raceCDFile + ':' + raceCDPatCol).get(0).toString(), newPat);
-					}
-				}
-			}			
+						Map<String,String> dict = dataDict.containsKey(ageInYearsNumFile) ? dataDict.get(ageInYearsNumFile): new HashMap<String,String>();
+						if(!values.isEmpty()) {
+							for(Object valueObj:values) {
+								Map<String, String> newPat = patients.get(defRec.get(ageInYearsNumFile + ':' + ageInYearsNumPatCol).get(0));
 		
+								valueObj = dict.containsKey(valueObj.toString()) ? dict.get(valueObj).toString(): valueObj;
+								
+								newPat.put("ageInYearsNum", valueObj.toString());
+								
+								patients.put(defRec.get(ageInYearsNumFile + ':' + ageInYearsNumPatCol).get(0).toString(), newPat);
+							}
+						}
+					}
+				}	
+			}
+			if(!raceCDFile.isEmpty()) {
+				List recs = CSVDataSource2.buildObjectMap(raceCDFile, new File( FILE_NAME + raceCDFile + ".csv"), DATASOURCE_FORMAT);
+	
+				for(Object rec: recs) {
+					if(rec instanceof LinkedHashMap) {
+						
+						LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
+							
+						List<Object> values = defRec.get( patientMap.get("raceCD"));
+						
+						Map<String,String> dict = dataDict.containsKey(raceCDFile) ? dataDict.get(raceCDFile): new HashMap<String,String>();
+	
+						for(Object valueObj:values) {
+							Map<String, String> newPat = patients.get(defRec.get(raceCDFile + ':' + raceCDPatCol).get(0));
+	
+							valueObj = dict.containsKey(valueObj.toString()) ? dict.get(valueObj).toString(): valueObj;
+							
+							newPat.put("raceCD", valueObj.toString());
+							
+							patients.put(defRec.get(raceCDFile + ':' + raceCDPatCol).get(0).toString(), newPat);
+						}
+					}
+				}			
+			}
 		} else {
 			return new HashMap();
 		}
