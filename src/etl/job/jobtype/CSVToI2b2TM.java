@@ -74,7 +74,9 @@ public class CSVToI2b2TM extends JobType {
 	private static char MAPPING_QUOTED_STRING = 0;
 
 	private static boolean MAPPING_SKIP_HEADER;
-	
+
+	private static boolean RELATIONAL_KEY_OVERRIDE = true;
+
 	private static String RELATIONAL_KEY = "0";
 			
 	private static Map<String,List<String>> OMISSIONS_MAP = new HashMap<String, List<String>>();
@@ -230,6 +232,15 @@ public class CSVToI2b2TM extends JobType {
 			List<PatientMapping2> patientMappingFile = 
 					!PATIENT_MAPPING_FILE.isEmpty() ? PatientMapping2.class.newInstance().generateMappingList(PATIENT_MAPPING_FILE, MAPPING_DELIMITER): new ArrayList<PatientMapping2>();
 			
+			// set relational key if not set in config
+			if(RELATIONAL_KEY_OVERRIDE == false) {
+				for(PatientMapping2 pm: patientMappingFile) {
+					if(pm.getPatientColumn().equalsIgnoreCase("PatientNum")) {
+						RELATIONAL_KEY = pm.getPatientKey().split(":")[1];
+					}
+					
+				}
+			}
 			Map<String,Map<String,String>> datadic = DICT_FILE.exists() ? generateDataDict(DICT_FILE): new HashMap<String,Map<String,String>>();
 
 			if(data.exists()){
@@ -927,6 +938,11 @@ public class CSVToI2b2TM extends JobType {
 					if(values == null) throw new Exception("Following Mapping does not exist in the datafile: \n"
 							+ mapping.toCSV() + "\n" +
 							" be sure that the column and file exist.");
+					
+					if(relationalValue == null) throw new Exception("Following Mapping does not exist in the datafile: \n"
+							+ mapping.toCSV() + "\n" +
+							" be sure that the column and file exist.");
+					
 					Set<Entity> newEnts = dt.generateTables(mapping, entities, values, relationalValue);
 					
 					if(newEnts != null && newEnts.size() > 0){
@@ -1098,10 +1114,12 @@ public class CSVToI2b2TM extends JobType {
 		//optional
 		MAPPING_DELIMITER = jobProperties.containsKey("mappingdelimiter") && jobProperties.getProperty("mappingdelimiter").toCharArray().length == 1 ? 
 				jobProperties.getProperty("mappingdelimiter").toCharArray()[0] : ',';
-		
-		RELATIONAL_KEY = jobProperties.containsKey("relationalkey") ? 
-				jobProperties.getProperty("relationalkey"): RELATIONAL_KEY;
-		
+				
+		if(jobProperties.containsKey("relationalkey")){
+			RELATIONAL_KEY = jobProperties.getProperty("relationalkey");
+		} else {
+			RELATIONAL_KEY_OVERRIDE = false;
+		}
 		Entity.SOURCESYSTEM_CD = jobProperties.containsKey("sourcesystemcd") ? jobProperties.getProperty("sourcesystemcd"): "TRIAL";
 		
 		CSVDataSource2.SKIP_HEADER = jobProperties.getProperty("skipdataheader").equalsIgnoreCase("Y") ? 1:0;  
