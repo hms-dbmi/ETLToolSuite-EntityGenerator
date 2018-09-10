@@ -39,6 +39,15 @@ public class ConceptDimension extends Entity{
 			String downloadDate, String importDate, String sourceSystemCd,
 			String uploadId, String tableName) throws Exception {
 		super(str);
+		
+		conceptCd = conceptCd.trim();
+		
+		nameChar = nameChar.replaceAll("[*|/<\\?%>\":]", "");
+		nameChar = nameChar.trim();
+		
+		conceptPath = conceptPath.replaceAll(" \\\\", "\\\\");
+		conceptPath = conceptPath.replaceAll("[*|/<\\?%>\":]", "");
+		
 		this.conceptCd = conceptCd;
 		this.conceptPath = conceptPath;
 		this.nameChar = nameChar;
@@ -94,6 +103,10 @@ public class ConceptDimension extends Entity{
 			this.sourceSystemCd = this.SOURCESYSTEM_CD;
 			this.uploadId = null;
 			this.tableName = null;
+			this.nameChar = this.nameChar.replaceAll("[*|/<\\?%>\":]", "");
+			this.nameChar = this.nameChar.trim();
+			this.conceptPath = this.conceptPath.replaceAll(" \\\\", "\\\\");
+			this.conceptPath = this.conceptPath.replaceAll("[*|/<\\?%>\":]", "");
 		}
 	}
 
@@ -106,6 +119,8 @@ public class ConceptDimension extends Entity{
 	}
 
 	public void setConceptCd(String conceptCd) {
+		conceptCd = conceptCd.trim();
+
 		this.conceptCd = conceptCd;
 	}
 
@@ -114,6 +129,8 @@ public class ConceptDimension extends Entity{
 	}
 
 	public void setConceptPath(String conceptPath) {
+		conceptPath = conceptPath.replaceAll(" \\\\", "\\\\");
+		conceptPath = conceptPath.replaceAll("[*|/<\\?%>\":]", "");
 		this.conceptPath = conceptPath;
 	}
 
@@ -122,6 +139,8 @@ public class ConceptDimension extends Entity{
 	}
 
 	public void setNameChar(String nameChar) {
+		nameChar = nameChar.replaceAll("[*|/<\\?%>\":]", "");
+		nameChar = nameChar.trim();
 		this.nameChar = nameChar;
 	}
 
@@ -211,26 +230,8 @@ public class ConceptDimension extends Entity{
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((conceptBlob == null) ? 0 : conceptBlob.hashCode());
-		result = prime * result
-				+ ((conceptCd == null) ? 0 : conceptCd.hashCode());
-		result = prime * result
-				+ ((conceptPath == null) ? 0 : conceptPath.hashCode());
-		result = prime * result
-				+ ((downloadDate == null) ? 0 : downloadDate.hashCode());
-		result = prime * result
-				+ ((importDate == null) ? 0 : importDate.hashCode());
-		result = prime * result
-				+ ((nameChar == null) ? 0 : nameChar.hashCode());
-		result = prime * result
-				+ ((sourceSystemCd == null) ? 0 : sourceSystemCd.hashCode());
-		result = prime * result
-				+ ((tableName == null) ? 0 : tableName.hashCode());
-		result = prime * result
-				+ ((updateDate == null) ? 0 : updateDate.hashCode());
-		result = prime * result
-				+ ((uploadId == null) ? 0 : uploadId.hashCode());
+		result = prime * result + ((conceptCd == null) ? 0 : conceptCd.hashCode());
+		result = prime * result + ((conceptPath == null) ? 0 : conceptPath.hashCode());
 		return result;
 	}
 
@@ -244,11 +245,6 @@ public class ConceptDimension extends Entity{
 		if (getClass() != obj.getClass())
 			return false;
 		ConceptDimension other = (ConceptDimension) obj;
-		if (conceptBlob == null) {
-			if (other.conceptBlob != null)
-				return false;
-		} else if (!conceptBlob.equals(other.conceptBlob))
-			return false;
 		if (conceptCd == null) {
 			if (other.conceptCd != null)
 				return false;
@@ -259,42 +255,9 @@ public class ConceptDimension extends Entity{
 				return false;
 		} else if (!conceptPath.equals(other.conceptPath))
 			return false;
-		if (downloadDate == null) {
-			if (other.downloadDate != null)
-				return false;
-		} else if (!downloadDate.equals(other.downloadDate))
-			return false;
-		if (importDate == null) {
-			if (other.importDate != null)
-				return false;
-		} else if (!importDate.equals(other.importDate))
-			return false;
-		if (nameChar == null) {
-			if (other.nameChar != null)
-				return false;
-		} else if (!nameChar.equals(other.nameChar))
-			return false;
-		if (sourceSystemCd == null) {
-			if (other.sourceSystemCd != null)
-				return false;
-		} else if (!sourceSystemCd.equals(other.sourceSystemCd))
-			return false;
-		if (tableName == null) {
-			if (other.tableName != null)
-				return false;
-		} else if (!tableName.equals(other.tableName))
-			return false;
-		if (updateDate == null) {
-			if (other.updateDate != null)
-				return false;
-		} else if (!updateDate.equals(other.updateDate))
-			return false;
-		if (uploadId == null) {
-			if (other.uploadId != null)
-				return false;
-		} else if (!uploadId.equals(other.uploadId))
-			return false;
 		return true;
 	}
+
+
 
 }

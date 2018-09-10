@@ -51,6 +51,8 @@ public class ConceptCounts extends Entity {
 	}
 
 	public void setConceptPath(String conceptPath) {
+		conceptPath = conceptPath.replaceAll(" \\\\", "\\\\");
+		conceptPath = conceptPath.replaceAll("[*|/<\\?%>\":]", "");
 		this.conceptPath = conceptPath;
 	}
 
@@ -59,6 +61,8 @@ public class ConceptCounts extends Entity {
 	}
 
 	public void setParentConceptPath(String parentConceptPath) {
+		parentConceptPath = parentConceptPath.replaceAll(" \\\\", "\\\\");
+		parentConceptPath = parentConceptPath.replaceAll("[*|/<\\?%>\":]", "");
 		this.parentConceptPath = parentConceptPath;
 	}
 

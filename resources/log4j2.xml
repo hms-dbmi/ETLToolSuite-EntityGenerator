@@ -35,11 +35,12 @@
         	    <appender-ref ref="Errors" level="error"/>
         	    <appender-ref ref="all" level="info"/>
         </Logger>
-        <Logger name="etl.job.jobtype.JsonToI2b2TM2New" level="all" additivity="false">
+        <!-- <Logger name="etl.job.jobtype.JsonToI2b2TM2New" level="all" additivity="false">
         	    <appender-ref ref="Errors" level="error"/>
         	    <appender-ref ref="all" level="info"/>
   	   	    <appender-ref ref="Debug" level="debug"/>
         </Logger>
+         -->
         <Root level="info" additivity="false">
         		<appender-ref ref="Console" />
         </Root>

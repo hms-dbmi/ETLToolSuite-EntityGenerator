@@ -46,7 +46,6 @@ public class JSONDataSource2 extends DataSource {
 		if(obj instanceof File){
 
 			//System.out.println(objectMapper.readValue((File) obj, Class.forName(_class)));
-			
 			return (List) objectMapper.readValue((File) obj, new TypeReference<List<T>>(){});//createTypeReference(c));
 		
 		} else if ( obj instanceof String){

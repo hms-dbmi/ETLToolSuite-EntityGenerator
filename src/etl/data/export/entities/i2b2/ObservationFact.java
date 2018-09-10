@@ -23,6 +23,8 @@ public class ObservationFact extends Entity{
 			String importDate, String sourceSystemCd, String uploadId,
 			String observationBlob, String instanceNum) throws Exception {
 		super(str);
+		
+		
 		this.encounterNum = encounterNum;
 		this.patientNum = patientNum;
 		this.conceptCd = conceptCd;
@@ -30,7 +32,7 @@ public class ObservationFact extends Entity{
 		this.startDate = startDate;
 		this.modifierCd = modifierCd;
 		this.valtypeCd = valtypeCd;
-		this.tvalChar = tvalChar;
+		this.tvalChar = tvalChar.trim();
 		this.nvalNum = nvalNum;
 		this.valueFlagCd = valueFlagCd;
 		this.quantityNum = quantityNum;
@@ -182,7 +184,7 @@ public class ObservationFact extends Entity{
 		return conceptCd;
 	}
 	public void setConceptCd(String conceptCd) {
-		this.conceptCd = conceptCd;
+		this.conceptCd = conceptCd.trim();
 	}
 	public String getProviderId() {
 		return providerId;
@@ -212,7 +214,7 @@ public class ObservationFact extends Entity{
 		return tvalChar;
 	}
 	public void setTvalChar(String tvalChar) {
-		this.tvalChar = tvalChar;
+		this.tvalChar = tvalChar.trim();
 	}
 	public String getNvalNum() {
 		return nvalNum;

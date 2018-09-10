@@ -3,6 +3,7 @@ package etl.job.jobtype;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -38,9 +39,12 @@ import etl.data.datatype.i2b2.Objectarray;
 import etl.data.export.Export;
 import etl.data.export.entities.Entity;
 import etl.data.export.entities.i2b2.ConceptCounts;
+import etl.data.export.entities.i2b2.ConceptDimension;
 import etl.data.export.entities.i2b2.I2B2;
 import etl.data.export.entities.i2b2.ObjectMapping;
+import etl.data.export.entities.i2b2.ObservationFact;
 import etl.data.export.entities.i2b2.PatientDimension;
+import etl.data.export.entities.i2b2.PatientMapping;
 import etl.data.export.entities.i2b2.PatientTrial;
 import etl.data.export.entities.i2b2.utils.ColumnSequencer;
 import etl.data.export.i2b2.ExportI2B2;
@@ -75,6 +79,9 @@ public class JsonToI2b2TM2New extends JobType {
 	
 	/// Internal Config
 	List<ColumnSequencer> sequencers = new ArrayList<ColumnSequencer>(); 	
+	
+	private static boolean LEVEL_1_ACCESS = false;
+	
 	private static String FILE_TYPE = "JSONFILE";
 	
 	private static OpenOption[] WRITE_OPTIONS = new OpenOption[] { WRITE, CREATE, TRUNCATE_EXISTING };
@@ -107,6 +114,104 @@ public class JsonToI2b2TM2New extends JobType {
 		// TODO Auto-generated constructor stub
 	}
 
+	/**
+	 * This is a temporary fix to solve the dummy row issue needed to ensure Trials works 
+	 * All of this should be removed once bug is fixed in tm
+	 * @throws Exception 
+	 * 
+	 */
+	
+	private static void performRequiredTempFixes(Set<Entity> entities) throws Exception {
+		entities.add(buildDummyForTrial());
+		forceSourceSystemCds(entities);
+
+		buildL1Security(entities);
+
+
+		//Set<Entity> cleaned = cleanChars(entities);
+		
+		//entities = new HashSet<Entity>();
+		
+		//entities.addAll(cleaned);
+		
+	}
+	
+	private static void forceSourceSystemCds(Set<Entity> entities) throws IllegalArgumentException, IllegalAccessException {
+		for(Entity entity: entities) {
+			List<Field> fields = Arrays.asList(entity.getClass().getDeclaredFields());
+			boolean hasField = false;
+			for(Field field: fields) {
+				// if class contains sourcesystemcd force new value
+				if(field.getName().equalsIgnoreCase("sourcesystemcd")) {
+					if(entity instanceof PatientDimension) {
+						String patientNum = ((PatientDimension) entity).getPatientNum();
+						((PatientDimension) entity).setSourceSystemCD(Entity.SOURCESYSTEM_CD + ":" + patientNum);
+					} else if(entity instanceof I2B2) {
+						((I2B2) entity).setcComment(Entity.SOURCESYSTEM_CD);;
+						((I2B2) entity).setSourceSystemCd(Entity.SOURCESYSTEM_CD);
+					} else {
+						field.setAccessible(true);
+						field.set(entity, Entity.SOURCESYSTEM_CD);
+					}
+				}
+			}
+		}
+		
+	}
+
+	private static void buildL1Security(Set<Entity> entities) throws Exception {
+		Set<Entity> newEnts = new HashSet<Entity>();
+		if(LEVEL_1_ACCESS) {
+			for(Entity entity: entities) {
+				if(entity instanceof PatientDimension) {
+					ObservationFact of = new ObservationFact("ObservationFact");
+					of.setPatientNum(((PatientDimension)entity).getPatientNum());
+					of.setEncounterNum("-1");
+					of.setConceptCd("SECURITY");
+					of.setProviderId("@");
+					of.setModifierCd(Entity.SOURCESYSTEM_CD);
+					of.setValtypeCd("T");
+					of.setTvalChar("EXP:PUBLIC");
+					of.setValueFlagCd("@");
+					of.setLocationCd("@");
+					newEnts.add(of);
+				}
+			}
+		}
+		entities.addAll(newEnts);
+	}
+	private static I2B2 buildDummyForTrial() throws Exception{
+		I2B2 i2b2 = new I2B2("I2B2");
+		
+		i2b2.setcHlevel("0");
+		i2b2.setcFullName("\\a\\");
+		i2b2.setcName("a");
+		i2b2.setcSynonymCd("N");
+		i2b2.setcVisualAttributes("CA");
+		i2b2.setcTotalNum("");
+		i2b2.setcBaseCode("");
+		i2b2.setcMetaDataXML("");
+		i2b2.setcFactTableColumn("CONCEPT_CD");
+		i2b2.setcTableName("CONCEPT_DIMENSION");
+		i2b2.setcColumnName("CONCEPT_PATH");
+		i2b2.setcColumnDataType("T");
+		i2b2.setcOperator("LIKE");
+		i2b2.setcDimCode(i2b2.getcFullName());
+		i2b2.setcComment("trial:" + Entity.SOURCESYSTEM_CD);
+		i2b2.setcToolTip(i2b2.getcFullName());
+		i2b2.setmAppliedPath("");
+		i2b2.setUpdateDate("");
+		i2b2.setDownloadDate("");;
+		i2b2.setImportDate("");
+		i2b2.setSourceSystemCd(Entity.SOURCESYSTEM_CD);
+		i2b2.setValueTypeCd("");
+		i2b2.setmExclusionCd("");
+		i2b2.setcPath("");
+		i2b2.setcSymbol("");
+		
+		return i2b2;
+	}
+	
 	/** primary process of this job.
 	 * 
 	 * @see etl.job.jobtype.JobType#runJob()
@@ -149,7 +254,7 @@ public class JsonToI2b2TM2New extends JobType {
 						LinkedHashMap record = ( LinkedHashMap ) o;
 						
 						builtEnts.addAll(processEntities(mappingFile, record));	
-						/*
+						
 						for(Entity entity: processPatientEntities(patientMappingFile,record)) {
 							if(entity instanceof PatientDimension) {
 								if(((PatientDimension) entity).isValid()) {
@@ -159,14 +264,14 @@ public class JsonToI2b2TM2New extends JobType {
 								}
 							}
 						}
-*/
+
 					}
 				}
 				
 				list = null;
 				logger.info("Filling in Tree");
 				builtEnts.addAll(thisFillTree(builtEnts));
-				
+								
 				logger.info("Generating ConceptCounts");
 				builtEnts.addAll(ConceptCounts.generateCounts2(builtEnts));
 				logger.info("finished generating tables");
@@ -174,7 +279,7 @@ public class JsonToI2b2TM2New extends JobType {
 			} else {
 				logger.error("File " + dataFile + " Does Not Exist!");
 			}
-			
+
 			logger.info("Generating sequences");
 			
 
@@ -185,10 +290,15 @@ public class JsonToI2b2TM2New extends JobType {
 				oms.addAll(seq.generateSeqeunce(builtEnts));
 				
 			}
+			Set<PatientMapping> pms = PatientMapping.objectMappingToPatientMapping(oms);
 			
-			
+			builtEnts.addAll(pms);
 			builtEnts.addAll(oms);
 
+
+			logger.info("Performing temp fixes");
+			//perform any temp fixes in method called here
+			performRequiredTempFixes(builtEnts);		
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.catching(Level.ERROR,e);
@@ -222,6 +332,8 @@ public class JsonToI2b2TM2New extends JobType {
 		*/
 	}
 	
+
+
 	private boolean iterateOmkeys(List<String> omkeys, Map map) {
 		
 		for(String omkey:omkeys) {
@@ -721,6 +833,7 @@ public class JsonToI2b2TM2New extends JobType {
 			pd = new PatientDimension("PatientDimension",record,valueMap);
 			pt = new PatientTrial("PatientTrial", record, valueMap);
 			
+			
 			entities.add(pd);
 			entities.add(pt);
 		}
@@ -810,6 +923,7 @@ public class JsonToI2b2TM2New extends JobType {
 				jobProperties.getProperty("relationalkey"): RELATIONAL_KEY;
 		
 		Entity.SOURCESYSTEM_CD = jobProperties.getProperty("sourcesystemcd");
+		System.out.println(Entity.SOURCESYSTEM_CD);
 		
 		DATASOURCE_FORMAT = jobProperties.containsKey("datasourceformat") ? Class.forName(jobProperties.getProperty("datasourceformat")): null;
 
@@ -819,8 +933,13 @@ public class JsonToI2b2TM2New extends JobType {
 		
 		sequencers.add(new ColumnSequencer(Arrays.asList("PatientDimension","ObservationFact","PatientTrial"), "patientNum", "ID", "I2B2", 1, 1));
 		
-		ENTITY_PACKAGE = jobProperties.getProperty("entitypackage");
+		ENTITY_PACKAGE = "etl.data.export.entities.i2b2.";
 		
+		if(jobProperties.containsKey("level1")) {
+			LEVEL_1_ACCESS = jobProperties.get("level1").toString().equalsIgnoreCase("Y") ||
+				jobProperties.get("level1").toString().equalsIgnoreCase("YES") ||
+				jobProperties.get("level1").toString().equalsIgnoreCase("TRUE") ? true: false;
+		}
 		try {
 			entities = buildEntities();
 		} catch (InstantiationException e) {

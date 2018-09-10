@@ -136,6 +136,13 @@ public abstract class JobProperties extends Properties{
 	 *  Always use JobProperties as your generic class not Properties.
 	 */
 	@Override
+	public boolean contains(Object value) {
+		if(value == null) return false;
+		if(this.stringPropertyNames().contains(value.toString())) return true;
+		else return false;
+		
+	}
+	@Override
     public Object put(Object key, Object value) {
         String lowercase = ((String) key).toLowerCase();
         return super.put(lowercase, value);

@@ -85,6 +85,10 @@ public abstract class Entity implements Cloneable{
 		};
 	}
 	
+	public Entity() {
+		// TODO Auto-generated constructor stub
+	}
+
 	@SuppressWarnings("finally")
 	public static Entity initEntityType(String entityPackage, String entityType){
 		

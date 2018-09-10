@@ -59,6 +59,14 @@ public class I2B2 extends Entity {
 			String cPath, String cSymbol)
 			throws Exception {
 		super(str);
+		cFullName = cFullName.replaceAll("[*|/<\\?%>\":]", "");
+		cName = cName.replaceAll("[*|/<\\?%>\":]", "");
+		
+		cName = cName.replaceAll(" \\\\", "\\\\");
+		cName = cName.trim();		
+		cFullName = cFullName.replaceAll(" \\\\", "\\\\");
+		cToolTip = cFullName;
+		cDimCode = cFullName;
 		this.cHlevel = cHlevel;
 		this.cFullName = cFullName;
 		this.cName = cName;
@@ -177,6 +185,9 @@ public class I2B2 extends Entity {
 	}
 
 	public void setcFullName(String cFullName) {
+		cFullName = cFullName.replaceAll("[*|/<\\?%>\":]", "");
+		
+		cFullName = cFullName.replaceAll(" \\\\", "\\\\");		
 		this.cFullName = cFullName;
 	}
 
@@ -185,6 +196,10 @@ public class I2B2 extends Entity {
 	}
 
 	public void setcName(String cName) {
+		cName = cName.replaceAll("[*|/<\\?%>\":]", "");
+		
+		cName = cName.replaceAll(" \\\\", "\\\\");
+		cName = cName.trim();
 		this.cName = cName;
 	}
 
@@ -273,6 +288,9 @@ public class I2B2 extends Entity {
 	}
 
 	public void setcDimCode(String cDimCode) {
+		cDimCode = cDimCode.replaceAll("[*|/<\\?%>\":]", "");
+		
+		cDimCode = cDimCode.replaceAll(" \\\\", "\\\\");		
 		this.cDimCode = cDimCode;
 	}
 
@@ -289,6 +307,9 @@ public class I2B2 extends Entity {
 	}
 
 	public void setcToolTip(String cToolTip) {
+		cToolTip = cToolTip.replaceAll("[*|/<\\?%>\":]", "");
+		
+		cToolTip = cToolTip.replaceAll(" \\\\", "\\\\");	
 		this.cToolTip = cToolTip;
 	}
 
@@ -470,56 +491,12 @@ public class I2B2 extends Entity {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((cBaseCode == null) ? 0 : cBaseCode.hashCode());
-		result = prime * result
-				+ ((cColumnDataType == null) ? 0 : cColumnDataType.hashCode());
-		result = prime * result
-				+ ((cColumnName == null) ? 0 : cColumnName.hashCode());
-		result = prime * result
-				+ ((cComment == null) ? 0 : cComment.hashCode());
-		result = prime * result
-				+ ((cDimCode == null) ? 0 : cDimCode.hashCode());
-		result = prime
-				* result
-				+ ((cFactTableColumn == null) ? 0 : cFactTableColumn.hashCode());
-		result = prime * result
-				+ ((cFullName == null) ? 0 : cFullName.hashCode());
+		result = prime * result + ((cDimCode == null) ? 0 : cDimCode.hashCode());
+		result = prime * result + ((cFullName == null) ? 0 : cFullName.hashCode());
 		result = prime * result + ((cHlevel == null) ? 0 : cHlevel.hashCode());
-		result = prime * result
-				+ ((cMetaDataXML == null) ? 0 : cMetaDataXML.hashCode());
 		result = prime * result + ((cName == null) ? 0 : cName.hashCode());
-		result = prime * result
-				+ ((cOperator == null) ? 0 : cOperator.hashCode());
-		result = prime * result + ((cPath == null) ? 0 : cPath.hashCode());
-		result = prime * result + ((cSymbol == null) ? 0 : cSymbol.hashCode());
-		result = prime * result
-				+ ((cSynonymCd == null) ? 0 : cSynonymCd.hashCode());
-		result = prime * result
-				+ ((cTableName == null) ? 0 : cTableName.hashCode());
-		result = prime * result
-				+ ((cToolTip == null) ? 0 : cToolTip.hashCode());
-		result = prime * result
-				+ ((cTotalNum == null) ? 0 : cTotalNum.hashCode());
-		result = prime
-				* result
-				+ ((cVisualAttributes == null) ? 0 : cVisualAttributes
-						.hashCode());
-		result = prime * result
-				+ ((downloadDate == null) ? 0 : downloadDate.hashCode());
-		result = prime * result + ((i2b2Id == null) ? 0 : i2b2Id.hashCode());
-		result = prime * result
-				+ ((importDate == null) ? 0 : importDate.hashCode());
-		result = prime * result
-				+ ((mAppliedPath == null) ? 0 : mAppliedPath.hashCode());
-		result = prime * result
-				+ ((mExclusionCd == null) ? 0 : mExclusionCd.hashCode());
-		result = prime * result
-				+ ((sourceSystemCd == null) ? 0 : sourceSystemCd.hashCode());
-		result = prime * result
-				+ ((updateDate == null) ? 0 : updateDate.hashCode());
-		result = prime * result
-				+ ((valueTypeCd == null) ? 0 : valueTypeCd.hashCode());
+		result = prime * result + ((mAppliedPath == null) ? 0 : mAppliedPath.hashCode());
+		result = prime * result + ((sourceSystemCd == null) ? 0 : sourceSystemCd.hashCode());
 		return result;
 	}
 
@@ -532,35 +509,10 @@ public class I2B2 extends Entity {
 		if (getClass() != obj.getClass())
 			return false;
 		I2B2 other = (I2B2) obj;
-		if (cBaseCode == null) {
-			if (other.cBaseCode != null)
-				return false;
-		} else if (!cBaseCode.equals(other.cBaseCode))
-			return false;
-		if (cColumnDataType == null) {
-			if (other.cColumnDataType != null)
-				return false;
-		} else if (!cColumnDataType.equals(other.cColumnDataType))
-			return false;
-		if (cColumnName == null) {
-			if (other.cColumnName != null)
-				return false;
-		} else if (!cColumnName.equals(other.cColumnName))
-			return false;
-		if (cComment == null) {
-			if (other.cComment != null)
-				return false;
-		} else if (!cComment.equals(other.cComment))
-			return false;
 		if (cDimCode == null) {
 			if (other.cDimCode != null)
 				return false;
 		} else if (!cDimCode.equals(other.cDimCode))
-			return false;
-		if (cFactTableColumn == null) {
-			if (other.cFactTableColumn != null)
-				return false;
-		} else if (!cFactTableColumn.equals(other.cFactTableColumn))
 			return false;
 		if (cFullName == null) {
 			if (other.cFullName != null)
@@ -572,97 +524,23 @@ public class I2B2 extends Entity {
 				return false;
 		} else if (!cHlevel.equals(other.cHlevel))
 			return false;
-		if (cMetaDataXML == null) {
-			if (other.cMetaDataXML != null)
-				return false;
-		} else if (!cMetaDataXML.equals(other.cMetaDataXML))
-			return false;
 		if (cName == null) {
 			if (other.cName != null)
 				return false;
 		} else if (!cName.equals(other.cName))
-			return false;
-		if (cOperator == null) {
-			if (other.cOperator != null)
-				return false;
-		} else if (!cOperator.equals(other.cOperator))
-			return false;
-		if (cPath == null) {
-			if (other.cPath != null)
-				return false;
-		} else if (!cPath.equals(other.cPath))
-			return false;
-		if (cSymbol == null) {
-			if (other.cSymbol != null)
-				return false;
-		} else if (!cSymbol.equals(other.cSymbol))
-			return false;
-		if (cSynonymCd == null) {
-			if (other.cSynonymCd != null)
-				return false;
-		} else if (!cSynonymCd.equals(other.cSynonymCd))
-			return false;
-		if (cTableName == null) {
-			if (other.cTableName != null)
-				return false;
-		} else if (!cTableName.equals(other.cTableName))
-			return false;
-		if (cToolTip == null) {
-			if (other.cToolTip != null)
-				return false;
-		} else if (!cToolTip.equals(other.cToolTip))
-			return false;
-		if (cTotalNum == null) {
-			if (other.cTotalNum != null)
-				return false;
-		} else if (!cTotalNum.equals(other.cTotalNum))
-			return false;
-		if (cVisualAttributes == null) {
-			if (other.cVisualAttributes != null)
-				return false;
-		} else if (!cVisualAttributes.equals(other.cVisualAttributes))
-			return false;
-		if (downloadDate == null) {
-			if (other.downloadDate != null)
-				return false;
-		} else if (!downloadDate.equals(other.downloadDate))
-			return false;
-		if (i2b2Id == null) {
-			if (other.i2b2Id != null)
-				return false;
-		} else if (!i2b2Id.equals(other.i2b2Id))
-			return false;
-		if (importDate == null) {
-			if (other.importDate != null)
-				return false;
-		} else if (!importDate.equals(other.importDate))
 			return false;
 		if (mAppliedPath == null) {
 			if (other.mAppliedPath != null)
 				return false;
 		} else if (!mAppliedPath.equals(other.mAppliedPath))
 			return false;
-		if (mExclusionCd == null) {
-			if (other.mExclusionCd != null)
-				return false;
-		} else if (!mExclusionCd.equals(other.mExclusionCd))
-			return false;
 		if (sourceSystemCd == null) {
 			if (other.sourceSystemCd != null)
 				return false;
 		} else if (!sourceSystemCd.equals(other.sourceSystemCd))
 			return false;
-		if (updateDate == null) {
-			if (other.updateDate != null)
-				return false;
-		} else if (!updateDate.equals(other.updateDate))
-			return false;
-		if (valueTypeCd == null) {
-			if (other.valueTypeCd != null)
-				return false;
-		} else if (!valueTypeCd.equals(other.valueTypeCd))
-			return false;
 		return true;
 	}
-	
+
+
 }

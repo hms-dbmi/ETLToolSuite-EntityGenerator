@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -45,6 +46,7 @@ import etl.data.export.entities.Entity;
 import etl.data.export.entities.i2b2.ConceptCounts;
 import etl.data.export.entities.i2b2.I2B2;
 import etl.data.export.entities.i2b2.ObjectMapping;
+import etl.data.export.entities.i2b2.ObservationFact;
 import etl.data.export.entities.i2b2.PatientDimension;
 import etl.data.export.entities.i2b2.PatientTrial;
 import etl.data.export.entities.i2b2.utils.ColumnSequencer;
@@ -56,7 +58,8 @@ import etl.job.jsontoi2b2tm.entity.PatientMapping2;
 import static java.nio.file.StandardOpenOption.*;
 
 public class CSVToI2b2TM2New2 extends JobType {
-	
+	private static boolean LEVEL_1_ACCESS = false;
+
 	//required configs
 	private static String FILE_NAME; 
 	
@@ -104,6 +107,97 @@ public class CSVToI2b2TM2New2 extends JobType {
 	int maxSize;
 
 	private boolean IS_DIR;
+
+	/**
+	 * This is a temporary fix to solve the dummy row issue needed to ensure Trials works 
+	 * All of this should be removed once bug is fixed in tm
+	 * @throws Exception 
+	 * 
+	 */
+	
+	private static void performRequiredTempFixes(Set<Entity> entities) throws Exception {
+		entities.add(buildDummyForTrial());
+		
+		forceSourceSystemCds(entities);
+		
+		buildL1Security(entities);
+	}
+	
+	private static void forceSourceSystemCds(Set<Entity> entities) throws IllegalArgumentException, IllegalAccessException {
+		for(Entity entity: entities) {
+			List<Field> fields = Arrays.asList(entity.getClass().getDeclaredFields());
+			boolean hasField = false;
+			for(Field field: fields) {
+				// if class contains sourcesystemcd force new value
+				if(field.getName().equalsIgnoreCase("sourcesystemcd")) {
+					if(entity instanceof PatientDimension) {
+						String patientNum = ((PatientDimension) entity).getPatientNum();
+						((PatientDimension) entity).setSourceSystemCD(Entity.SOURCESYSTEM_CD + ":" + patientNum);
+					} else if(entity instanceof I2B2) {
+						((I2B2) entity).setcComment(Entity.SOURCESYSTEM_CD);;
+						
+					} else {
+						field.setAccessible(true);
+						field.set(entity, Entity.SOURCESYSTEM_CD);
+					}
+				}
+			}
+		}
+		
+	}
+
+	private static void buildL1Security(Set<Entity> entities) throws Exception {
+		Set<Entity> newEnts = new HashSet<Entity>();
+		if(LEVEL_1_ACCESS) {
+			for(Entity entity: entities) {
+				if(entity instanceof PatientDimension) {
+					ObservationFact of = new ObservationFact("ObservationFact");
+					of.setPatientNum(((PatientDimension)entity).getPatientNum());
+					of.setEncounterNum("-1");
+					of.setConceptCd("SECURITY");
+					of.setProviderId("@");
+					of.setModifierCd(Entity.SOURCESYSTEM_CD);
+					of.setValtypeCd("T");
+					of.setTvalChar("EXP:PUBLIC");
+					of.setValueFlagCd("@");
+					of.setLocationCd("@");
+					newEnts.add(of);
+				}
+			}
+		}
+		entities.addAll(newEnts);
+	}
+	private static I2B2 buildDummyForTrial() throws Exception{
+		I2B2 i2b2 = new I2B2("I2B2");
+		
+		i2b2.setcHlevel("0");
+		i2b2.setcFullName("\\a\\");
+		i2b2.setcName("a");
+		i2b2.setcSynonymCd("N");
+		i2b2.setcVisualAttributes("CA");
+		i2b2.setcTotalNum("");
+		i2b2.setcBaseCode("");
+		i2b2.setcMetaDataXML("");
+		i2b2.setcFactTableColumn("CONCEPT_CD");
+		i2b2.setcTableName("CONCEPT_DIMENSION");
+		i2b2.setcColumnName("CONCEPT_PATH");
+		i2b2.setcColumnDataType("T");
+		i2b2.setcOperator("LIKE");
+		i2b2.setcDimCode(i2b2.getcFullName());
+		i2b2.setcComment("trial:" + Entity.SOURCESYSTEM_CD);
+		i2b2.setcToolTip(i2b2.getcFullName());
+		i2b2.setmAppliedPath("");
+		i2b2.setUpdateDate("");
+		i2b2.setDownloadDate("");;
+		i2b2.setImportDate("");
+		i2b2.setSourceSystemCd(Entity.SOURCESYSTEM_CD);
+		i2b2.setValueTypeCd("");
+		i2b2.setmExclusionCd("");
+		i2b2.setcPath("");
+		i2b2.setcSymbol("");
+		
+		return i2b2;
+	}
 	
 	public CSVToI2b2TM2New2(String str) throws Exception {
 		super(str);
@@ -197,7 +291,7 @@ public class CSVToI2b2TM2New2 extends JobType {
 			
 			Set<ObjectMapping> oms = new HashSet<ObjectMapping>();
 			logger.info("Applying sequences");
-System.out.println("apply sequences");
+			System.out.println("apply sequences");
 			for(ColumnSequencer seq: sequencers ) {
 				logger.info("Performing sequence: " + seq.entityColumn + " for e ( " + seq.entityNames + " )" );
 				oms.addAll(seq.generateSeqeunce(builtEnts));
@@ -214,13 +308,17 @@ System.out.println("apply sequences");
 		} 
 		try {
 			logger.info("Building files to write");
-System.out.println("writing files");
+			System.out.println("writing files");
+			logger.info("Performing temp fixes");
+			//perform any temp fixes in method called here
+			performRequiredTempFixes(builtEnts);
+			
 			Map<Path, List<String>> paths = Export.buildFilestoWrite(builtEnts, WRITE_DESTINATION, OUTPUT_FILE_EXTENSION);
 			
 			logger.info("writing files");
 			Export.writeToFile(paths, WRITE_OPTIONS);
 			
-		} catch (IOException e1) {
+		} catch ( Exception e1) {
 		
 			e1.printStackTrace();
 		}
@@ -255,17 +353,17 @@ System.out.println("writing files");
 			
 			String patientNumFile = patientMap.get("PatientNum").split(":")[0];
 			
-			String sexCdFile = patientMap.get("sexCD").split(":")[0];
+			String sexCdFile = patientMap.containsKey("sexCD") ? patientMap.get("sexCD").split(":")[0] : "";
 			String sexCdPatCol = "0";
 			
-			String ageInYearsNumFile = patientMap.get("ageInYearsNum").split(":")[0];
+			String ageInYearsNumFile =  patientMap.containsKey("ageInYearsNum") ? patientMap.get("ageInYearsNum").split(":")[0]: "";
 			String ageInYearsNumPatCol = "0";
 			
-			String raceCDFile = patientMap.get("raceCD").split(":")[0];
+			String raceCDFile =  patientMap.containsKey("raceCD") ? patientMap.get("raceCD").split(":")[0] : "";
 			String raceCDPatCol = "0";		
 			
 			
-			List recs = CSVDataSource2.buildObjectMap(patientNumFile, new File( FILE_NAME + patientNumFile + ".csv"), DATASOURCE_FORMAT);
+			List recs = CSVDataSource2.buildObjectMap(patientNumFile, new File( FILE_NAME + patientNumFile ), DATASOURCE_FORMAT);
 			
 			for(Object rec: recs) {
 				if(rec instanceof LinkedHashMap) {
@@ -284,6 +382,7 @@ System.out.println("writing files");
 				
 				}
 			}
+			
 			recs = CSVDataSource2.buildObjectMap(sexCdFile, new File( FILE_NAME + sexCdFile + ".csv"), DATASOURCE_FORMAT);
 
 			for(Object rec: recs) {
@@ -969,6 +1068,11 @@ System.out.println("writing files");
 	@Override
 	public void setVariables(JobProperties jobProperties) throws ClassNotFoundException {
 		
+		if(jobProperties.containsKey("level1")) {
+			LEVEL_1_ACCESS = jobProperties.get("level1").toString().equalsIgnoreCase("Y") ||
+				jobProperties.get("level1").toString().equalsIgnoreCase("YES") ||
+				jobProperties.get("level1").toString().equalsIgnoreCase("TRUE") ? true: false;
+		}
 		//required
 		FILE_NAME = jobProperties.getProperty("filename"); ; 
 		
@@ -984,9 +1088,12 @@ System.out.println("writing files");
 		RELATIONAL_KEY = jobProperties.containsKey("relationalkey") ? 
 				jobProperties.getProperty("relationalkey"): RELATIONAL_KEY;
 		
-		Entity.SOURCESYSTEM_CD = jobProperties.getProperty("sourcesystemcd");
+		Entity.SOURCESYSTEM_CD = jobProperties.containsKey("sourcesystemcd") ? jobProperties.getProperty("sourcesystemcd"): "TRIAL";
 		
 		CSVDataSource2.SKIP_HEADER = jobProperties.getProperty("skipdataheader").equalsIgnoreCase("Y") ? 1:0;  
+		
+		CSVDataSource2.DELIMITER = jobProperties.containsKey("datadelimiter") ? jobProperties.getProperty("datadelimiter").toCharArray()[0]
+				: ',';  
 		
 		DATASOURCE_FORMAT = jobProperties.containsKey("datasourceformat") ? Class.forName(jobProperties.getProperty("datasourceformat")): null;
 	
@@ -996,8 +1103,8 @@ System.out.println("writing files");
 		MAPPING_QUOTED_STRING = jobProperties.containsKey("mappingquotedstring") ? 
 				jobProperties.getProperty("mappingquotedstring").charAt(0): '"';
 				
-		MAPPING_SKIP_HEADER = jobProperties.containsKey("mappingquotedstring") &&
-				jobProperties.getProperty("mappingquotedstring").substring(0, 1).equalsIgnoreCase("Y") ? true: false;
+		MAPPING_SKIP_HEADER = jobProperties.containsKey("skipmapperheader") &&
+				jobProperties.getProperty("skipmapperheader").substring(0, 1).equalsIgnoreCase("Y") ? true: false;
 		
 		sequencers = jobProperties.containsKey("sequencers") ? buildSequences(jobProperties.getProperty("sequencers")): sequencers;
 	

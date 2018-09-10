@@ -199,7 +199,7 @@ public class PatientMapping2 {
 		reader.setDelimiter(delimiter);
 		
 		// skip header
-		reader.readHeaders();
+		//reader.readHeaders();
 		
 		while(reader.readRecord()){
 			// Check if delimiter exists if so set default.

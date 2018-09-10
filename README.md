@@ -20,7 +20,7 @@ This example was validated on a Mac and AMI Linux terminals
 1. Open bash connection to your ETL Client Docker  
 `docker exec -it etl-client bash`   
 2. use git to clone this project to a dir of your choosing. Change username to your git user.  
-`git clone https://username@github.com/hms-dbmi/ETLToolSuite-EntityGenerator`     
+`git clone https://github.com/hms-dbmi/ETLToolSuite-EntityGenerator`     
 3. cd to root directory:     
 `cd ETLToolSuite-EntityGenerator`   
 4. Make a directory to store your data:    
@@ -31,9 +31,9 @@ This example was validated on a Mac and AMI Linux terminals
 `mkdir completed`  
 7. Copy the data file and mapping file generated from the [MappingGenerator Example](https://github.com/hms-dbmi/ETLToolSuite-MappingGenerator)    
 ( The BASE_DIR will be the location of the MappingGenerator git project you cloned in the Mapping generator example ) :      
-`cp <BASE_DIR>/example/Asthma_Misior_GSE13168.txt data`   
-`cp <BASE_DIR>/example/GSE13168_Mapping.txt mappings\mapping.csv`    
-`cp <BASE_DIR>/example/GSE13168_Mapping.csv.patient mappings\PatientMapping.csv`     
+`cp ../ETLToolSuite-MappingGenerator/example/Asthma_Misior_GSE13168.txt data`   
+`cp ../ETLToolSuite-MappingGenerator/example/GSE13168_Mapping.csv mappings/mapping.csv`    
+`cp ../ETLToolSuite-MappingGenerator/example/GSE13168_Mapping.csv.patient mappings/PatientMapping.csv`        
 8. execute following code block to generate your I2B2 entities:    
 `java -jar EntityGenerator.jar -jobtype CSVToI2b2TM2New2`   
 9. cd completed directory
