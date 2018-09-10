@@ -48,6 +48,7 @@ import etl.data.export.entities.i2b2.I2B2;
 import etl.data.export.entities.i2b2.ObjectMapping;
 import etl.data.export.entities.i2b2.ObservationFact;
 import etl.data.export.entities.i2b2.PatientDimension;
+import etl.data.export.entities.i2b2.PatientMapping;
 import etl.data.export.entities.i2b2.PatientTrial;
 import etl.data.export.entities.i2b2.utils.ColumnSequencer;
 import etl.data.export.i2b2.ExportI2B2;
@@ -309,8 +310,11 @@ public class CSVToI2b2TM extends JobType {
 
 			}
 			
+			Set<PatientMapping> pms = PatientMapping.objectMappingToPatientMapping(oms);
+			
+			builtEnts.addAll(pms);
 			builtEnts.addAll(oms);
-
+			
 		} catch (Exception e) {
 		
 			logger.catching(Level.ERROR,e);
