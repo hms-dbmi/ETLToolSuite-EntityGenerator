@@ -57,7 +57,7 @@ import etl.job.jsontoi2b2tm.entity.PatientMapping2;
 
 import static java.nio.file.StandardOpenOption.*;
 
-public class CSVToI2b2TM2New2 extends JobType {
+public class CSVToI2b2TM extends JobType {
 	private static boolean LEVEL_1_ACCESS = false;
 
 	//required configs
@@ -199,7 +199,7 @@ public class CSVToI2b2TM2New2 extends JobType {
 		return i2b2;
 	}
 	
-	public CSVToI2b2TM2New2(String str) throws Exception {
+	public CSVToI2b2TM(String str) throws Exception {
 		super(str);
 		// TODO Auto-generated constructor stub
 	}
@@ -236,7 +236,6 @@ public class CSVToI2b2TM2New2 extends JobType {
 				// Read datafile into a List of LinkedHashMaps.
 				// List should be objects that will be used for up and down casting through out the job process.
 				// Using casting will allow the application to be very dynamic while also being type safe.
-				System.out.println("building records");
 				List list = buildRecordList(data, mappingFile, datadic);
 				
 				Map<String, Map<String,String>> patientList = buildPatientRecordList(data,patientMappingFile, datadic);
@@ -246,7 +245,6 @@ public class CSVToI2b2TM2New2 extends JobType {
 					builtEnts.addAll(processPatientEntities(patientList.get(key)));
 					
 				}
-				System.out.println("generating tables");
 				logger.info("generating tables");
 				for(Object o: list){
 					
@@ -259,16 +257,12 @@ public class CSVToI2b2TM2New2 extends JobType {
 				
 				list = null;
 				
-				System.out.println("fill in tree");
 				logger.info("Filling in Tree");
 				builtEnts.addAll(thisFillTree(builtEnts));
-				
-				System.out.println("counts");
-				
+								
 				logger.info("Generating ConceptCounts");
 				
 				builtEnts.addAll(ConceptCounts.generateCounts2(builtEnts));
-				
 				
 				logger.info("finished generating tables");
 
@@ -277,7 +271,6 @@ public class CSVToI2b2TM2New2 extends JobType {
 			}
 			//builtEnts.addAll(thisFillTree(builtEnts));
 			// for testint seqeunces move this to a global variable and generate it from properties once working;
-			System.out.println("sequences");
 			logger.info("Generating sequences");
 			
 			List<ColumnSequencer> sequencers = new ArrayList<ColumnSequencer>();
@@ -291,7 +284,7 @@ public class CSVToI2b2TM2New2 extends JobType {
 			
 			Set<ObjectMapping> oms = new HashSet<ObjectMapping>();
 			logger.info("Applying sequences");
-			System.out.println("apply sequences");
+
 			for(ColumnSequencer seq: sequencers ) {
 				logger.info("Performing sequence: " + seq.entityColumn + " for e ( " + seq.entityNames + " )" );
 				oms.addAll(seq.generateSeqeunce(builtEnts));
@@ -308,7 +301,7 @@ public class CSVToI2b2TM2New2 extends JobType {
 		} 
 		try {
 			logger.info("Building files to write");
-			System.out.println("writing files");
+
 			logger.info("Performing temp fixes");
 			//perform any temp fixes in method called here
 			performRequiredTempFixes(builtEnts);
@@ -336,7 +329,7 @@ public class CSVToI2b2TM2New2 extends JobType {
 	}
 
 	private Map buildPatientRecordList(File file, List<PatientMapping2> mappings,
-			Map<String, Map<String, String>> dataDict) throws JsonParseException, JsonMappingException, ClassNotFoundException, IOException {
+			Map<String, Map<String, String>> dataDict) throws  Exception {
 		
 		Map<String, String> patientMap = PatientMapping2.toMap(mappings);
 		
@@ -365,6 +358,7 @@ public class CSVToI2b2TM2New2 extends JobType {
 			if(patientNumFile.isEmpty()) {
 				logger.info("No PatientNum given to generate patients.  Patients will not be generated.");
 			} else {
+				
 				List recs = CSVDataSource2.buildObjectMap(patientNumFile, new File( FILE_NAME + patientNumFile ), DATASOURCE_FORMAT);
 				
 				for(Object rec: recs) {
@@ -373,6 +367,9 @@ public class CSVToI2b2TM2New2 extends JobType {
 						LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
 							
 						List<Object> values = defRec.get( patientMap.get("PatientNum"));
+						
+						if( values == null) throw new Exception(patientNumFile + "does not have values for Patient Ids.  Ensure that you\n"
+								+ " have proper column mapped and using correct delimiters." );
 						
 						for(Object valueObj:values) {
 							Map<String, String> newPat = new HashMap<String,String>();
@@ -395,7 +392,8 @@ public class CSVToI2b2TM2New2 extends JobType {
 						LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
 							
 						List<Object> values = defRec.get( patientMap.get("sexCD"));
-						
+						if( values == null) throw new Exception(sexCdFile + "does not have values for Patients' sex.  Ensure that you\n"
+								+ " have proper column mapped and using correct delimiters." );	
 						Map<String,String> dict = dataDict.containsKey(sexCdFile) ? dataDict.get(sexCdFile): new HashMap<String,String>();
 	
 						for(Object valueObj:values) {
@@ -421,6 +419,9 @@ public class CSVToI2b2TM2New2 extends JobType {
 							
 						List<Object> values = defRec.get( patientMap.get("ageInYearsNum"));
 						
+						if( values == null) throw new Exception(ageInYearsNumFile + " does not have values for Patients' age.  Ensure that you\n"
+								+ " have proper column mapped and using correct delimiters." );	
+						
 						Map<String,String> dict = dataDict.containsKey(ageInYearsNumFile) ? dataDict.get(ageInYearsNumFile): new HashMap<String,String>();
 						if(!values.isEmpty()) {
 							for(Object valueObj:values) {
@@ -445,7 +446,10 @@ public class CSVToI2b2TM2New2 extends JobType {
 						LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
 							
 						List<Object> values = defRec.get( patientMap.get("raceCD"));
-						
+	
+						if( values == null) throw new Exception(raceCDFile + " does not have values for Patients' race.  Ensure that you\n"
+								+ " have proper column mapped and using correct delimiters." );	
+												
 						Map<String,String> dict = dataDict.containsKey(raceCDFile) ? dataDict.get(raceCDFile): new HashMap<String,String>();
 	
 						for(Object valueObj:values) {
@@ -481,7 +485,7 @@ public class CSVToI2b2TM2New2 extends JobType {
 			for(Mapping mapping: mappings) {
 				files.add(mapping.getKey().split(":")[0]);
 			}
-			System.out.println(files.size());
+
 			for(String f: files) {
 				Map<String,String> dict = dataDict.containsKey(f) ? dataDict.get(f): new HashMap<String,String>();
 	
