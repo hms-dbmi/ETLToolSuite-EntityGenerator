@@ -88,7 +88,7 @@ public class CSVToI2b2TM extends JobType {
 	/// Internal Config
 	private static String FILE_TYPE = "JSONFILE";
 	
-	private static OpenOption[] WRITE_OPTIONS = new OpenOption[] { WRITE, CREATE, APPEND };
+	private static OpenOption[] WRITE_OPTIONS = new OpenOption[] { WRITE, CREATE, TRUNCATE_EXISTING };
 	
 	private static final String ENTITY_PACKAGE = "etl.data.export.entities.i2b2.";
 	
