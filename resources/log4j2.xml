@@ -31,7 +31,7 @@
   			<appender-ref ref="Errors" level="error"/>
 			<appender-ref ref="all" level="info"/>
     		</Logger>
-        <Logger name="etl.job.jobtype.CsvToI2B2TM2New2" level="all" additivity="false">
+        <Logger name="etl.job.jobtype.CsvToI2B2TM2" level="all" additivity="false">
         	    <appender-ref ref="Errors" level="error"/>
         	    <appender-ref ref="all" level="info"/>
         </Logger>
