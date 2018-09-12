@@ -57,12 +57,14 @@
             <src path="resources"/>
             <classpath refid="classpath"/>
         </javac>
-    </target>
-  	<jar destfile="EntityGenerator.jar">
-		<manifest>
-			<attribute name="Main-Class" value="etl.drivers.TestDriver"/>
-		</manifest>
-  	    <fileset dir="bin" includes="**/*.class" />
-  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
-  	</jar>
+    
+	  	<jar destfile="EntityGenerator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.drivers.TestDriver"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>
+    	</target>
 </project>
