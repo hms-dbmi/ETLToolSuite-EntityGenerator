@@ -28,14 +28,14 @@ This example was validated on a Mac and AMI Linux terminals
 5. Make a directory to store your mapping file:    
 `mkdir mappings`   
 6. Make a directory to store your processed data files:      
-`mkdir completed`  
+`mkdir completed`
 7. Copy the data file and mapping file generated from the [MappingGenerator Example](https://github.com/hms-dbmi/ETLToolSuite-MappingGenerator)    
 ( The BASE_DIR will be the location of the MappingGenerator git project you cloned in the Mapping generator example ) :      
 `cp ../ETLToolSuite-MappingGenerator/example/Asthma_Misior_GSE13168.txt data`   
-`cp ../ETLToolSuite-MappingGenerator/example/GSE13168_Mapping.csv mappings/mapping.csv`    
-`cp ../ETLToolSuite-MappingGenerator/example/GSE13168_Mapping.csv.patient mappings/PatientMapping.csv`        
+`cp ../ETLToolSuite-MappingGenerator/example/mapping.csv mappings/mapping.csv`    
+`cp ../ETLToolSuite-MappingGenerator/example/mapping.csv.patient mappings/PatientMapping.csv`        
 8. execute following code block to generate your I2B2 entities:    
-`java -jar EntityGenerator.jar -jobtype CSVToI2b2TM2New2`   
+`java -jar EntityGenerator.jar -jobtype CSVToI2b2TM`   
 9. cd completed directory
 `cd completed`  
 10. list the directory's contents.  
