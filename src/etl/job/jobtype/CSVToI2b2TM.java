@@ -248,6 +248,7 @@ public class CSVToI2b2TM extends JobType {
 				for(PatientMapping2 pm: patientMappingFile) {
 					if(pm.getPatientColumn().equalsIgnoreCase("PatientNum")) {
 						RELATIONAL_KEY = pm.getPatientKey().split(":")[1];
+						break;
 					}
 					
 				}
@@ -264,6 +265,8 @@ public class CSVToI2b2TM extends JobType {
 				
 				Map<String, Map<String,String>> patientList = buildPatientRecordList(data,patientMappingFile, datadic);
 				
+				logger.info("generating patients");
+
 				for(String key: patientList.keySet()) {
 					
 					builtEnts.addAll(processPatientEntities(patientList.get(key)));
@@ -402,7 +405,6 @@ public class CSVToI2b2TM extends JobType {
 						LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
 							
 						List<Object> values = defRec.get( patientMap.get("PatientNum"));
-						
 						if( values == null) throw new Exception(patientNumFile + "does not have values for Patient Ids.  Ensure that you\n"
 								+ " have proper column mapped and using correct delimiters." );
 						
@@ -410,7 +412,6 @@ public class CSVToI2b2TM extends JobType {
 							Map<String, String> newPat = new HashMap<String,String>();
 	
 							newPat.put("patientNum", valueObj.toString());
-							
 							patients.put(valueObj.toString(), newPat);
 						}
 					
