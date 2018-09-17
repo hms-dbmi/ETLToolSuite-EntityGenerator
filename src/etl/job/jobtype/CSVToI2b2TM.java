@@ -48,6 +48,7 @@ import etl.data.datatype.i2b2.Objectarray;
 import etl.data.export.Export;
 import etl.data.export.entities.Entity;
 import etl.data.export.entities.i2b2.ConceptCounts;
+import etl.data.export.entities.i2b2.ConceptDimension;
 import etl.data.export.entities.i2b2.I2B2;
 import etl.data.export.entities.i2b2.ObjectMapping;
 import etl.data.export.entities.i2b2.ObservationFact;
@@ -63,7 +64,7 @@ import etl.job.jsontoi2b2tm.entity.PatientMapping2;
 import static java.nio.file.StandardOpenOption.*;
 
 public class CSVToI2b2TM extends JobType {
-	private static boolean LEVEL_1_ACCESS = false;
+	private static boolean LEVEL_1_ACCESS = true;
 
 	//required configs
 	private static String FILE_NAME; 
@@ -134,8 +135,29 @@ public class CSVToI2b2TM extends JobType {
 		forceSourceSystemCds(entities);
 		
 		buildL1Security(entities);
+		
+		fixcBaseCode(entities);
+		
 	}
 	
+	private static void fixcBaseCode(Set<Entity> entities) {
+		Map<String,String> map = new HashMap<String,String>();
+		for(Entity entity: entities) {
+			if( entity instanceof ConceptDimension) {
+				map.put(((ConceptDimension) entity).getConceptPath(), ((ConceptDimension) entity).getConceptCd());
+			}
+		}
+		for(Entity entity: entities) {
+			if( entity instanceof I2B2) {
+				if(map.keySet().contains(((I2B2) entity).getcFullName())) {
+					((I2B2) entity).setcBaseCode(map.get(((I2B2) entity).getcFullName()));
+				}
+			}
+		}
+		
+		
+	}
+
 	private static void forceSourceSystemCds(Set<Entity> entities) throws IllegalArgumentException, IllegalAccessException {
 		for(Entity entity: entities) {
 			List<Field> fields = Arrays.asList(entity.getClass().getDeclaredFields());
