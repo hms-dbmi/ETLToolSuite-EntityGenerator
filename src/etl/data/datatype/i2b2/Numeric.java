@@ -303,7 +303,8 @@ public class Numeric extends DataType{
 					String value = v.toString();
 				
 					if(!StringUtils.isNumeric(value)) {
-						value = value.replaceAll("[^a-zA-Z0-9 .,]|(?<!\\d)[.,]|[.,](?!\\d)", "");
+						value = value.replaceAll("[^0-9.]", "");
+						if(value.isEmpty()) break; 
 					} 
 				
 					if(options.containsKey("REGEXEDIT") && value instanceof String){
