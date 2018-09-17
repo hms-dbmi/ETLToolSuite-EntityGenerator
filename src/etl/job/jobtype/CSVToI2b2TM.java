@@ -5,8 +5,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.Period;
@@ -21,8 +23,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Level;
@@ -254,6 +258,8 @@ public class CSVToI2b2TM extends JobType {
 				// Read datafile into a List of LinkedHashMaps.
 				// List should be objects that will be used for up and down casting through out the job process.
 				// Using casting will allow the application to be very dynamic while also being type safe.
+				
+				
 				List recs = buildRecordList(data, mappingFile, datadic);
 				
 				Map<String, Map<String,String>> patientList = buildPatientRecordList(data,patientMappingFile, datadic);
@@ -500,7 +506,7 @@ public class CSVToI2b2TM extends JobType {
 		return patients;
 
 	}
-
+		
 	private List buildRecordList(File file, List<Mapping> mappings, Map<String, Map<String,String>> dataDict) throws Exception{
 		if(file.isFile()) {
 			
@@ -1140,7 +1146,7 @@ public class CSVToI2b2TM extends JobType {
 		}
 		Entity.SOURCESYSTEM_CD = jobProperties.containsKey("sourcesystemcd") ? jobProperties.getProperty("sourcesystemcd"): "TRIAL";
 		
-		CSVDataSource2.SKIP_HEADER = jobProperties.getProperty("skipdataheader").equalsIgnoreCase("Y") ? 1:0;  
+		CSVDataSource2.SKIP_HEADER = jobProperties.containsKey("skipdataheader") && jobProperties.getProperty("skipdataheader").equalsIgnoreCase("Y") ? 1:0;  
 		
 		CSVDataSource2.DELIMITER = jobProperties.containsKey("datadelimiter") ? jobProperties.getProperty("datadelimiter").toCharArray()[0]
 				: ',';  
