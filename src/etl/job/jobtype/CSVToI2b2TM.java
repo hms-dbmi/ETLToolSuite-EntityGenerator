@@ -231,6 +231,7 @@ public class CSVToI2b2TM extends JobType {
 		// this will have to be changed to be more dynamic
 		
 		// Entity object that will hold all the wanted entities to be generated
+
 		Set<Entity> builtEnts = new HashSet<Entity>();
 		
 		try {		
@@ -260,18 +261,26 @@ public class CSVToI2b2TM extends JobType {
 				// List should be objects that will be used for up and down casting through out the job process.
 				// Using casting will allow the application to be very dynamic while also being type safe.
 				
-				
 				List recs = buildRecordList(data, mappingFile, datadic);
 				
 				Map<String, Map<String,String>> patientList = buildPatientRecordList(data,patientMappingFile, datadic);
 				
 				logger.info("generating patients");
-
+				
+				Set<String> patientIds = new HashSet<String>();
+				
 				for(String key: patientList.keySet()) {
+					Map<String,String> pat = patientList.get(key);
 					
+					if(pat.containsKey("patientNum")) {
+
+						patientIds.add(pat.get("patientNum"));
+		
+					}
 					builtEnts.addAll(processPatientEntities(patientList.get(key)));
 					
 				}
+				
 				logger.info("generating tables");
 				for(Object o: recs){
 					
@@ -289,7 +298,7 @@ public class CSVToI2b2TM extends JobType {
 								
 				logger.info("Generating ConceptCounts");
 				
-				builtEnts.addAll(ConceptCounts.generateCounts2(builtEnts));
+				builtEnts.addAll(ConceptCounts.generateCounts2(builtEnts, patientIds));
 				
 				logger.info("finished generating tables");
 
@@ -304,8 +313,10 @@ public class CSVToI2b2TM extends JobType {
 			
 			sequencers.add(new ColumnSequencer(Arrays.asList("ConceptDimension","ObservationFact"), "conceptCd", "CONCEPTCD", "I2B2", CONCEPT_CD_STARTING_SEQ, 1));
 
-			sequencers.add(new ColumnSequencer(Arrays.asList("ObservationFact"), "encounterNum", "ENCNUM", "I2B2", ENCOUNTER_NUM_STARTING_SEQ, 1));
+			sequencers.add(new ColumnSequencer(Arrays.asList("ObservationFact"), "encounterNum", "ENCNUM", "I2B2", ENCOUNTER_NUM_STARTING_SEQ, 1,true));
 			
+			sequencers.add(new ColumnSequencer(Arrays.asList("ObservationFact"), "instanceNum", "ENCNUM", "I2B2", ENCOUNTER_NUM_STARTING_SEQ, 1,true));
+
 			sequencers.add(new ColumnSequencer(Arrays.asList("PatientDimension","ObservationFact","PatientTrial"), "patientNum", "ID", "I2B2", PATIENT_NUM_STARTING_SEQ, 1));
 			//sequencers.add(new ColumnSequencer(Arrays.asList("PatientDimension","ObservationFact","PatientTrial"), "patientNum", "ID", "I2B2", 1000000, 1));
 			

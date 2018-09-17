@@ -31,7 +31,7 @@ This example was validated on a Mac and AMI Linux terminals
 `mkdir completed`
 7. Copy the data file and mapping file generated from the [MappingGenerator Example](https://github.com/hms-dbmi/ETLToolSuite-MappingGenerator)    
 ( The BASE_DIR will be the location of the MappingGenerator git project you cloned in the Mapping generator example ) :      
-`cp ../ETLToolSuite-MappingGenerator/example/Asthma_Misior_GSE13168.txt data`   
+`cp ../ETLToolSuite-MappingGenerator/example/Asthma_Misior_GSE13168.txt data/`   
 `cp ../ETLToolSuite-MappingGenerator/example/mapping.csv mappings/mapping.csv`    
 `cp ../ETLToolSuite-MappingGenerator/example/mapping.csv.patient mappings/PatientMapping.csv`        
 8. execute following code block to generate your I2B2 entities:    
@@ -48,7 +48,7 @@ ConceptCounts.csv
 TableAccess.csv   
 PatientDimension.csv   
 PatientTrial.csv   
-
-12. If your data files exist you can now move on to loading the entity files into your database by following the [readme here](https://github.com/hms-dbmi/ETLToolSuite-WorkflowScripts/tree/master/oracle/ctl/I2B2TM_V18_1).
+12. exit
+13. If your data files exist you can now move on to loading the entity files into your database by following the [readme here](https://github.com/hms-dbmi/ETLToolSuite-WorkflowScripts/tree/master/oracle/ctl/I2B2TM_V18_1).
 ***
 

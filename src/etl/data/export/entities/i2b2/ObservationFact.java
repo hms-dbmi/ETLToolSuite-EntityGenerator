@@ -342,6 +342,7 @@ public class ObservationFact extends Entity{
 				makeStringSafe(uploadId) + "," +
 				makeStringSafe(observationBlob) + "," +
 				makeStringSafe(instanceNum) + "";
+		
 	}
 
 

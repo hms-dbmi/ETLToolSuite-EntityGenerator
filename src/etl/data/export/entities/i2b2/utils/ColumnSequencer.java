@@ -23,12 +23,14 @@ public class ColumnSequencer {
 	public int interval = 1;
 	public int currSequence;
 	public ArrayList<String> values = new ArrayList<String>();
-	private Map<String,Integer> sequenced = new HashMap<String,Integer>(); 
+	private Map<String,Integer> sequenced = new HashMap<String,Integer>();
+	public boolean IS_CONSTANT; 
 	
 	
 	public Set<ObjectMapping> generateSeqeunce(Set<Entity> builtEnts) throws Exception{
 		 //List<String> seq = new ArrayList<String>();
 		Set<ObjectMapping> objectMappings = new HashSet<ObjectMapping>();
+		
 		/*
 		ConcurrentMap<String, List<Entity>> ents = builtEnts.parallelStream().collect(Collectors.groupingByConcurrent(Entity::getEntityType));
 		
@@ -46,7 +48,7 @@ public class ColumnSequencer {
 			}
 			
 		}*/
-		
+		System.out.println(IS_CONSTANT);
 		for(Entity entity: builtEnts) {
 			if(entityNames.indexOf(entity.getClass().getSimpleName()) != -1) {
 				
@@ -74,7 +76,9 @@ public class ColumnSequencer {
 	public Integer findSeqId(String searchfield) {
 		
 		Integer index;
-		
+		if(IS_CONSTANT) {
+			return -1;
+		}
 		if(!this.sequenced.containsKey(searchfield)) {
 			
 			index = this.currSequence;
@@ -104,8 +108,6 @@ public class ColumnSequencer {
 		return index;
 		
 	}
-	
-	
 	public ColumnSequencer(List<String> entityNames, String entityColumn,String columnType, int startSequence) {
 		super();
 		this.entityNames = entityNames;
@@ -124,6 +126,28 @@ public class ColumnSequencer {
 		this.currSequence = startSequence;
 		this.mappedName = mappedName;
 		this.columnType = columnType;
+	}	
+	
+	public ColumnSequencer(List<String> entityNames, String entityColumn,String columnType, int startSequence, boolean isConstant) {
+		super();
+		this.entityNames = entityNames;
+		this.entityColumn = entityColumn;
+		this.startSequence = startSequence;
+		this.currSequence = startSequence;
+		this.columnType = columnType;
+		this.IS_CONSTANT = isConstant;
+	}
+	
+	public ColumnSequencer(List<String> entityNames, String entityColumn, String columnType, String mappedName, int startSequence, int interval, boolean isConstant) {
+		super();
+		this.entityNames = entityNames;
+		this.entityColumn = entityColumn;
+		this.startSequence = startSequence;
+		this.interval = interval;
+		this.currSequence = startSequence;
+		this.mappedName = mappedName;
+		this.columnType = columnType;
+		this.IS_CONSTANT = isConstant;
 	}
 
 	public Integer nextVal() {

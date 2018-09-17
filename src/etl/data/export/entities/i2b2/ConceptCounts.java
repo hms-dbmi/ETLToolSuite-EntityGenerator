@@ -74,6 +74,113 @@ public class ConceptCounts extends Entity {
 		this.patientCount = patientCount;
 	}
 
+	public static List<ConceptCounts> generateCounts2(Set<Entity> entities, Set<String> patientKeys) throws Exception{
+
+		List<ConceptCounts> cc = new ArrayList<ConceptCounts>();
+		
+		Map<String, ConceptCountsBuilder> conceptsPatients = new HashMap<String, ConceptCountsBuilder>();
+		
+		Map<String, ConceptCountsBuilderPaths> pathsConcepts = new HashMap<String, ConceptCountsBuilderPaths>();		
+		
+		Map<String, String> conceptPaths = new HashMap<String,String>();
+		
+		for(Entity ent: entities) {
+			
+			if(ent instanceof ObservationFact) {
+				
+				if(conceptsPatients.containsKey(((ObservationFact) ent).getConceptCd())) {
+					
+					if(!patientKeys.contains(((ObservationFact) ent).getPatientNum())) continue;
+					
+					ConceptCountsBuilder ccb = conceptsPatients.get(((ObservationFact) ent).getConceptCd());
+					
+					Set<String> patients =  ccb.getPatients();
+					
+					patients.add(((ObservationFact) ent).getPatientNum());
+					
+					ccb.setPatients(patients);
+					
+					conceptsPatients.put(((ObservationFact) ent).getConceptCd(), ccb);
+					
+				} else {
+					if(!patientKeys.contains(((ObservationFact) ent).getPatientNum())) continue;
+
+					ConceptCountsBuilder ccb = new ConceptCountsBuilder();
+					
+					Set<String> patients =  ccb.getPatients();
+					
+					patients.add(((ObservationFact) ent).getPatientNum());
+					
+					ccb.setPatients(patients);
+					
+					conceptsPatients.put(((ObservationFact) ent).getConceptCd(), ccb);
+				}
+				
+			} else if(ent instanceof I2B2) {
+				
+				if(!pathsConcepts.containsKey(((I2B2) ent).getcFullName())) {					
+					
+					ConceptCountsBuilderPaths ccbp = new ConceptCountsBuilderPaths();
+					
+					ccbp.setConceptPath(((I2B2) ent).getcFullName());
+					
+					pathsConcepts.put(((I2B2) ent).getcFullName(), ccbp);
+					
+				}
+			} else if(ent instanceof ConceptDimension) {
+				
+				conceptPaths.put(((ConceptDimension) ent).getConceptPath(), ((ConceptDimension) ent).getConceptCd());
+				
+			}
+		} 
+		
+		Map<String,Set<String>> nodeConcepts = new HashMap<String,Set<String>>();
+		
+		for(java.util.Map.Entry<String, String> e: conceptPaths.entrySet()) {
+			
+			recurseCounts(e.getKey(),e.getValue(),nodeConcepts);
+			
+		}
+		
+		Map<String,Set<String>> patientSets = new HashMap<String,Set<String>>();
+		
+		for(String key: nodeConcepts.keySet()) {
+			Set<String> patientIds = new HashSet<String>();
+			
+			Set<String> conceptkeys = nodeConcepts.get(key);
+			
+			for(String conceptkey: conceptkeys) {
+				
+				if(conceptsPatients.containsKey(conceptkey)) {
+				
+					ConceptCountsBuilder ccb = conceptsPatients.get(conceptkey);
+					
+					patientIds.addAll(ccb.getPatients());
+				}
+			}
+			int size = patientIds.size();
+			
+			ConceptCounts nodescount = new ConceptCounts("ConceptCounts");
+			
+			nodescount.setConceptPath(key);
+			
+			int endIndex = org.apache.commons.lang3.StringUtils.ordinalIndexOf(
+						key, 
+						"\\", 
+						org.apache.commons.lang3.StringUtils.countMatches(key, "\\") - 1
+					) + 1;
+			
+			nodescount.setParentConceptPath(key.substring(0, endIndex));
+			nodescount.setPatientCount(patientIds.size());
+			
+			cc.add(nodescount);
+			
+		}
+		
+		return cc;
+	}
+
+	
 	public static List<ConceptCounts> generateCounts2(Set<Entity> entities) throws Exception{
 
 		List<ConceptCounts> cc = new ArrayList<ConceptCounts>();
