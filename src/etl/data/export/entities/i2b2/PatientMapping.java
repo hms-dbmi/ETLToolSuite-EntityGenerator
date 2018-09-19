@@ -85,4 +85,55 @@ public class PatientMapping extends Entity {
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((patientIde == null) ? 0 : patientIde.hashCode());
+		result = prime * result + ((patientIdeSource == null) ? 0 : patientIdeSource.hashCode());
+		result = prime * result + ((patientNum == null) ? 0 : patientNum.hashCode());
+		result = prime * result + ((projectId == null) ? 0 : projectId.hashCode());
+		result = prime * result + ((sourceSystemCd == null) ? 0 : sourceSystemCd.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PatientMapping other = (PatientMapping) obj;
+		if (patientIde == null) {
+			if (other.patientIde != null)
+				return false;
+		} else if (!patientIde.equals(other.patientIde))
+			return false;
+		if (patientIdeSource == null) {
+			if (other.patientIdeSource != null)
+				return false;
+		} else if (!patientIdeSource.equals(other.patientIdeSource))
+			return false;
+		if (patientNum == null) {
+			if (other.patientNum != null)
+				return false;
+		} else if (!patientNum.equals(other.patientNum))
+			return false;
+		if (projectId == null) {
+			if (other.projectId != null)
+				return false;
+		} else if (!projectId.equals(other.projectId))
+			return false;
+		if (sourceSystemCd == null) {
+			if (other.sourceSystemCd != null)
+				return false;
+		} else if (!sourceSystemCd.equals(other.sourceSystemCd))
+			return false;
+		return true;
+	}
+	
+	
 }
