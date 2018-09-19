@@ -122,16 +122,7 @@ public class PatientMapping extends Entity {
 				return false;
 		} else if (!patientNum.equals(other.patientNum))
 			return false;
-		if (projectId == null) {
-			if (other.projectId != null)
-				return false;
-		} else if (!projectId.equals(other.projectId))
-			return false;
-		if (sourceSystemCd == null) {
-			if (other.sourceSystemCd != null)
-				return false;
-		} else if (!sourceSystemCd.equals(other.sourceSystemCd))
-			return false;
+		
 		return true;
 	}
 	
