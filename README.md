@@ -6,22 +6,20 @@ This tool will generate Entity Files that can be used to load into Datasources.
 ***
 **Example Prerequistes**
 ***
-Java8  
-git  
-admin rights  
+Admin rights to machine hosting docker    
 [Quick Start docker stack](https://github.com/hms-dbmi/docker-images/tree/master/deployments/i2b2transmart/quickstart)     
 [ETL Client Docker](https://github.com/hms-dbmi/etl-client-docker)    
 Data file and Mapping file from [MappingGenerator Example](https://github.com/hms-dbmi/ETLToolSuite-MappingGenerator)    
 
 ***
 Steps:  
-This example was validated on a Mac and AMI Linux terminals   
+This example was validated on a Mac and AMI Linux terminals.   
 
 1. Open bash connection to your ETL Client Docker  
-`docker exec -it etl-client bash`   
-2. use git to clone this project to a dir of your choosing. Change username to your git user.  
+``docker exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" -ti etl-client bash``   
+2. use git to clone this project to a dir of your choosing.
 `git clone https://github.com/hms-dbmi/ETLToolSuite-EntityGenerator`     
-3. cd to root directory:     
+3. Navigate to root directory:     
 `cd ETLToolSuite-EntityGenerator`   
 4. Make a directory to store your data:    
 `mkdir data`   
@@ -36,18 +34,19 @@ This example was validated on a Mac and AMI Linux terminals
 `cp ../ETLToolSuite-MappingGenerator/example/mapping.csv.patient mappings/PatientMapping.csv`        
 8. execute following code block to generate your I2B2 entities:    
 `java -jar EntityGenerator.jar -jobtype CSVToI2b2TM`   
-9. cd completed directory
+9. Navigate to completed directory
 `cd completed`  
 10. list the directory's contents.  
 `ls -la`  
-11. Once the job has completed processing this folder will contain the following files:
-I2B2.csv  
-ConceptDimension.csv   
-ObservationFact.csv   
-ConceptCounts.csv   
-TableAccess.csv   
-PatientDimension.csv   
-PatientTrial.csv   
+11. Once the job has completed processing this folder will contain the following files:    
+	*I2B2.csv*  
+	*ConceptDimension.csv*  
+	*ObservationFact.csv*  
+	*ConceptCounts.csv*
+	*TableAccess.csv*   
+	*PatientDimension.csv*   
+	*PatientTrial.csv*    
+	*PatientMapping.csv*   
 12. exit
 13. If your data files exist you can now move on to loading the entity files into your database by following the [readme here](https://github.com/hms-dbmi/ETLToolSuite-WorkflowScripts/tree/master/oracle/ctl/I2B2TM_V18_1).
 ***
