@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,11 +37,14 @@ public class CSVDataSource2 extends DataSource {
 	}
 
 	public static <T> List buildObjectMap(Object obj, Class<T> _class) throws JsonParseException, JsonMappingException, ClassNotFoundException, IOException {
+		if(obj instanceof Path) {
+			com.opencsv.CSVReader csvReader = new com.opencsv.CSVReader(new FileReader(((Path) obj).toFile()), DELIMITER, QUOTE_CHAR,ESCAPE_CHAR, SKIP_HEADER);
+		}
 		if(obj instanceof File){
 			
 			au.com.bytecode.opencsv.CSVReader reader = new CSVReader(new FileReader((File) obj), DELIMITER, QUOTE_CHAR,ESCAPE_CHAR, SKIP_HEADER);
 			
-			return buildObjectMapper(reader);
+			return buildObjectMapper(reader, ((File) obj).getName());
 			//System.out.println(objectMapper.readValue((File) obj, Class.forName(_class)));
 			
 			//return (List) objectMapper.readValue((File) obj, new TypeReference<List<T>>(){});//createTypeReference(c));
@@ -78,7 +82,7 @@ public class CSVDataSource2 extends DataSource {
 		//throw new Exception("Invalid Input type for JSON Object");
 	}
 	@SuppressWarnings("rawtypes")
-	private static List buildObjectMapper(CSVReader reader) throws IOException {
+	private static List buildObjectMapper(CSVReader reader,String fileName) throws IOException {
 		List list = new ArrayList<>();
 		
 		for(Object node: reader.readAll()) {
@@ -89,7 +93,7 @@ public class CSVDataSource2 extends DataSource {
 				Integer column = 0;
 				for(String variable: line) {
 					
-					record.put(column.toString(),Arrays.asList(variable));
+					record.put(fileName + ":" + column.toString(),Arrays.asList(variable));
 					
 					column++;
 					

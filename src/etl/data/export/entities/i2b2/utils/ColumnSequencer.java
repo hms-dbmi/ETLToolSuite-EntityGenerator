@@ -48,7 +48,6 @@ public class ColumnSequencer {
 			}
 			
 		}*/
-		System.out.println(IS_CONSTANT);
 		for(Entity entity: builtEnts) {
 			if(entityNames.indexOf(entity.getClass().getSimpleName()) != -1) {
 				

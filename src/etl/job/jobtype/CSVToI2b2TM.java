@@ -84,7 +84,17 @@ public class CSVToI2b2TM extends JobType {
 	private static boolean RELATIONAL_KEY_OVERRIDE = true;
 
 	private static String RELATIONAL_KEY = "0";
-			
+	
+	private static boolean DO_SEQUENCING = true;
+	
+	private static boolean DO_PATIENT_NUM_SEQUENCE = true;
+	
+	private static boolean DO_CONCEPT_CD_SEQUENCE = true;
+	
+	private static boolean DO_ENCOUNTER_NUM_SEQUENCE = true;
+	
+	private static boolean DO_INSTANCE_NUM_SEQUENCE = true;
+	
 	private static Map<String,List<String>> OMISSIONS_MAP = new HashMap<String, List<String>>();
 
 	List<ColumnSequencer> sequencers = new ArrayList<ColumnSequencer>();
@@ -333,14 +343,17 @@ public class CSVToI2b2TM extends JobType {
 			
 			List<ColumnSequencer> sequencers = new ArrayList<ColumnSequencer>();
 			
-			sequencers.add(new ColumnSequencer(Arrays.asList("ConceptDimension","ObservationFact"), "conceptCd", "CONCEPTCD", "I2B2", CONCEPT_CD_STARTING_SEQ, 1));
+			if(DO_SEQUENCING) {
+				
+				if(DO_CONCEPT_CD_SEQUENCE) sequencers.add(new ColumnSequencer(Arrays.asList("ConceptDimension","ObservationFact"), "conceptCd", "CONCEPTCD", "I2B2", CONCEPT_CD_STARTING_SEQ, 1));
+	
+				if(DO_ENCOUNTER_NUM_SEQUENCE) sequencers.add(new ColumnSequencer(Arrays.asList("ObservationFact"), "encounterNum", "ENCOUNTER", "I2B2", ENCOUNTER_NUM_STARTING_SEQ, 1));
+				
+				if(DO_INSTANCE_NUM_SEQUENCE) sequencers.add(new ColumnSequencer(Arrays.asList("ObservationFact"), "instanceNum", "INSTANCE", "I2B2", ENCOUNTER_NUM_STARTING_SEQ, 1));
+	
+				if(DO_PATIENT_NUM_SEQUENCE) sequencers.add(new ColumnSequencer(Arrays.asList("PatientDimension","ObservationFact","PatientTrial"), "patientNum", "ID", "I2B2", PATIENT_NUM_STARTING_SEQ, 1));
 
-			sequencers.add(new ColumnSequencer(Arrays.asList("ObservationFact"), "encounterNum", "ENCNUM", "I2B2", ENCOUNTER_NUM_STARTING_SEQ, 1,true));
-			
-			sequencers.add(new ColumnSequencer(Arrays.asList("ObservationFact"), "instanceNum", "ENCNUM", "I2B2", ENCOUNTER_NUM_STARTING_SEQ, 1,true));
-
-			sequencers.add(new ColumnSequencer(Arrays.asList("PatientDimension","ObservationFact","PatientTrial"), "patientNum", "ID", "I2B2", PATIENT_NUM_STARTING_SEQ, 1));
-			//sequencers.add(new ColumnSequencer(Arrays.asList("PatientDimension","ObservationFact","PatientTrial"), "patientNum", "ID", "I2B2", 1000000, 1));
+			}
 			
 			Set<ObjectMapping> oms = new HashSet<ObjectMapping>();
 			logger.info("Applying sequences");
@@ -408,7 +421,129 @@ public class CSVToI2b2TM extends JobType {
 		
 		Map<String, Map<String, String>> patients = new LinkedHashMap<String,Map<String,String>>();
 		if(file.isFile()) {
-			return new HashMap();//CSVDataSource2.buildObjectMap(file, DATASOURCE_FORMAT);
+			
+			if(!patientMap.containsKey("PatientNum")) {
+				return new HashMap();
+			}
+			
+			String patientNumFile = patientMap.get("PatientNum").split(":")[0];
+			
+			String sexCdFile = patientMap.containsKey("sexCD") ? patientMap.get("sexCD").split(":")[0] : "";
+			String sexCdPatCol = "0";
+			
+			String ageInYearsNumFile =  patientMap.containsKey("ageInYearsNum") ? patientMap.get("ageInYearsNum").split(":")[0]: "";
+			String ageInYearsNumPatCol = "0";
+			
+			String raceCDFile =  patientMap.containsKey("raceCD") ? patientMap.get("raceCD").split(":")[0] : "";
+			String raceCDPatCol = "0";		
+			if(patientNumFile.isEmpty()) {
+				logger.info("No PatientNum given to generate patients.  Patients will not be generated.");
+			} else {
+				
+				List recs = CSVDataSource2.buildObjectMap(patientNumFile, new File( Paths.get(FILE_NAME).getParent()+ "/" + patientNumFile  ), DATASOURCE_FORMAT);
+				// check if file
+				for(Object rec: recs) {
+					if(rec instanceof LinkedHashMap) {
+						
+						LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
+							
+						List<Object> values = defRec.get( patientMap.get("PatientNum"));
+						if( values == null) throw new Exception(patientNumFile + "does not have values for Patient Ids.  Ensure that you\n"
+								+ " have proper column mapped and using correct delimiters." );
+						
+						for(Object valueObj:values) {
+							Map<String, String> newPat = new HashMap<String,String>();
+	
+							newPat.put("patientNum", valueObj.toString());
+							patients.put(valueObj.toString(), newPat);
+						}
+					
+					}
+				}
+			}
+			if(!sexCdFile.isEmpty()) {
+
+			List recs = CSVDataSource2.buildObjectMap(sexCdFile, new File( Paths.get(FILE_NAME).getParent() + "/" + sexCdFile ), DATASOURCE_FORMAT);
+
+				for(Object rec: recs) {
+					if(rec instanceof LinkedHashMap) {
+						
+						LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
+							
+						List<Object> values = defRec.get( patientMap.get("sexCD"));
+						if( values == null) throw new Exception(sexCdFile + "does not have values for Patients' sex.  Ensure that you\n"
+								+ " have proper column mapped and using correct delimiters." );	
+						Map<String,String> dict = dataDict.containsKey(sexCdFile) ? dataDict.get(sexCdFile): new HashMap<String,String>();
+	
+						for(Object valueObj:values) {
+							Map<String, String> newPat = patients.get(defRec.get(patientMap.get("PatientNum")).get(0));
+	
+							valueObj = dict.containsKey(valueObj.toString()) ? dict.get(valueObj).toString(): valueObj;
+							
+							newPat.put("sexCD", valueObj.toString());
+							
+							patients.put(defRec.get(sexCdFile + ':' + sexCdPatCol).get(0).toString(), newPat);
+						}
+					}
+				}
+			}
+			if(!ageInYearsNumFile.isEmpty()) {
+
+				List recs = CSVDataSource2.buildObjectMap(ageInYearsNumFile, new File( Paths.get(FILE_NAME).getParent() + "/" + ageInYearsNumFile ), DATASOURCE_FORMAT);
+	
+				for(Object rec: recs) {
+					if(rec instanceof LinkedHashMap) {
+						
+						LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
+							
+						List<Object> values = defRec.get( patientMap.get("ageInYearsNum"));
+						
+						if( values == null) throw new Exception(ageInYearsNumFile + " does not have values for Patients' age.  Ensure that you\n"
+								+ " have proper column mapped and using correct delimiters." );	
+						
+						Map<String,String> dict = dataDict.containsKey(ageInYearsNumFile) ? dataDict.get(ageInYearsNumFile): new HashMap<String,String>();
+						if(!values.isEmpty()) {
+							for(Object valueObj:values) {
+								Map<String, String> newPat = patients.get(defRec.get(patientMap.get("PatientNum")).get(0));
+		
+								valueObj = dict.containsKey(valueObj.toString()) ? dict.get(valueObj).toString(): valueObj;
+								
+								newPat.put("ageInYearsNum", valueObj.toString());
+								
+								patients.put(defRec.get(ageInYearsNumFile + ':' + ageInYearsNumPatCol).get(0).toString(), newPat);
+							}
+						}
+					}
+				}	
+			}
+			if(!raceCDFile.isEmpty()) {
+				List recs = CSVDataSource2.buildObjectMap(raceCDFile, new File( Paths.get(FILE_NAME).getParent() + "/"  + raceCDFile ), DATASOURCE_FORMAT);
+	
+				for(Object rec: recs) {
+					if(rec instanceof LinkedHashMap) {
+						
+						LinkedHashMap<String,List<Object>> defRec = (LinkedHashMap<String,List<Object>>) rec;
+							
+						List<Object> values = defRec.get( patientMap.get("raceCD"));
+	
+						if( values == null) throw new Exception(raceCDFile + " does not have values for Patients' race.  Ensure that you\n"
+								+ " have proper column mapped and using correct delimiters." );	
+												
+						Map<String,String> dict = dataDict.containsKey(raceCDFile) ? dataDict.get(raceCDFile): new HashMap<String,String>();
+	
+						for(Object valueObj:values) {
+							Map<String, String> newPat = patients.get(defRec.get(patientMap.get("PatientNum")).get(0));
+	
+							valueObj = dict.containsKey(valueObj.toString()) ? dict.get(valueObj).toString(): valueObj;
+							
+							newPat.put("raceCD", valueObj.toString());
+							
+							patients.put(defRec.get(raceCDFile + ':' + raceCDPatCol).get(0).toString(), newPat);
+						}
+					}
+				}			
+			}
+			
 		} else if ( file.isDirectory() ) {
 			
 			if(!patientMap.containsKey("PatientNum")) {
@@ -431,7 +566,7 @@ public class CSVToI2b2TM extends JobType {
 			} else {
 				
 				List recs = CSVDataSource2.buildObjectMap(patientNumFile, new File( FILE_NAME + patientNumFile  ), DATASOURCE_FORMAT);
-				
+				// check if file
 				for(Object rec: recs) {
 					if(rec instanceof LinkedHashMap) {
 						
@@ -543,24 +678,36 @@ public class CSVToI2b2TM extends JobType {
 		
 	private List buildRecordList(File file, List<Mapping> mappings, Map<String, Map<String,String>> dataDict) throws Exception{
 		if(file.isFile()) {
-			
-			return CSVDataSource2.buildObjectMap(file, DATASOURCE_FORMAT);
+			File f2 = file.getParentFile();
+			return buildRecordList(f2,mappings,dataDict);
 			
 		} else if ( file.isDirectory() ) {
 			IS_DIR = true;
 			List records = new ArrayList();
-			Set<String> files = new HashSet<String>();
+			Set<String> filenames = new HashSet<String>();
 			
 			for(Mapping mapping: mappings) {
-				files.add(mapping.getKey().split(":")[0]);
+				filenames.add(mapping.getKey().split(":")[0]);
 			}
-
-			for(String f: files) {
+			
+			
+			for(String f: filenames) {
+				
 				Map<String,String> dict = dataDict.containsKey(f) ? dataDict.get(f): new HashMap<String,String>();
 	
 				String fileName = f;
-				File fileToRead = new File( FILE_NAME + fileName);
-				if(fileToRead.exists()) {
+				List<File> files = Arrays.asList(file.listFiles());
+				File fileToRead = null;
+
+				for(File f2: files) {
+					if(f2.getName().equals(fileName)) {
+						fileToRead = f2;
+						break;
+					}
+				}
+				
+				
+				if(fileToRead != null || fileToRead.exists()) {
 				
 					List recs = CSVDataSource2.buildObjectMap(f, fileToRead, DATASOURCE_FORMAT);
 					
@@ -869,7 +1016,10 @@ public class CSVToI2b2TM extends JobType {
 				List<Object> relationalValue = new ArrayList<Object>();
 
 				if(!IS_DIR) {
-					relationalValue = findValueByKey(record,RELATIONAL_KEY.split(":"));
+					
+					String[] array = new String[mapping.getKey().split(":").length - 1];
+					array[0] = mapping.getKey().split(":")[0] + ":" + RELATIONAL_KEY;
+					relationalValue = findValueByKey(record,array);
 				} else {
 					
 					String[] array = new String[mapping.getKey().split(":").length - 1];
@@ -884,7 +1034,11 @@ public class CSVToI2b2TM extends JobType {
 					List<Object> values = new ArrayList<Object>();
 					
 					if(!IS_DIR) {
-						values = findValueByKey2(record, new ArrayList(Arrays.asList(mapping.getKey().split(":"))));
+						
+						String[] array = new String[mapping.getKey().split(":").length - 1];
+						array[0] = mapping.getKey();
+						values = findValueByKey2(record,new ArrayList(Arrays.asList(array)));
+						//values = findValueByKey2(record, new ArrayList(Arrays.asList(mapping.getKey().split(":"))));
 					} else {
 						
 						
@@ -893,6 +1047,7 @@ public class CSVToI2b2TM extends JobType {
 						values = findValueByKey2(record,new ArrayList(Arrays.asList(array)));
 					}
 					
+
 					Map<String,String> options = mapping.buildOptions(mapping);
 					
 					if(!options.isEmpty()) {
@@ -1196,13 +1351,19 @@ public class CSVToI2b2TM extends JobType {
 		MAPPING_SKIP_HEADER = jobProperties.containsKey("skipmapperheader") &&
 				jobProperties.getProperty("skipmapperheader").substring(0, 1).equalsIgnoreCase("Y") ? true: false;
 		
-		sequencers = jobProperties.containsKey("sequencers") ? buildSequences(jobProperties.getProperty("sequencers")): sequencers;
+		//sequencers = jobProperties.containsKey("sequencers") ? buildSequences(jobProperties.getProperty("sequencers")): sequencers;
 	
-		CONCEPT_CD_STARTING_SEQ = jobProperties.containsKey("conceptcdstartseq") ? (int) jobProperties.get("conceptcdstartseq"): 1;
+		CONCEPT_CD_STARTING_SEQ = jobProperties.containsKey("conceptcdstartseq") ? new Integer(jobProperties.get("conceptcdstartseq").toString()): 1;
 		
-		ENCOUNTER_NUM_STARTING_SEQ = jobProperties.containsKey("encounternumstartseq") ? (int) jobProperties.get("encounternumstartseq"): 1;
-		PATIENT_NUM_STARTING_SEQ = jobProperties.containsKey("patientnumstartseq") ? (int) jobProperties.get("patientnumstartseq"): 1;
+		ENCOUNTER_NUM_STARTING_SEQ = jobProperties.containsKey("encounternumstartseq") ? new Integer(jobProperties.get("encounternumstartseq").toString()): 1;
+		PATIENT_NUM_STARTING_SEQ = jobProperties.containsKey("patientnumstartseq") ? new Integer(jobProperties.get("patientnumstartseq").toString()): 1;
 
+		DO_SEQUENCING = jobProperties.containsKey("sequencedata") ? jobProperties.get("sequencedata").toString().toUpperCase().contains("Y") ? true: false: true;
+		DO_PATIENT_NUM_SEQUENCE = jobProperties.containsKey("sequencepatient") ? jobProperties.get("sequencepatient").toString().toUpperCase().contains("Y") ? true: false: true;
+		DO_CONCEPT_CD_SEQUENCE = jobProperties.containsKey("sequenceconcept") ? jobProperties.get("sequenceconcept").toString().toUpperCase().contains("Y") ? true: false: true;
+		DO_ENCOUNTER_NUM_SEQUENCE = jobProperties.containsKey("sequenceencounter") ? jobProperties.get("sequenceencounter").toString().toUpperCase().contains("Y") ? true: false: true;
+		DO_INSTANCE_NUM_SEQUENCE = jobProperties.containsKey("sequenceinstance") ? jobProperties.get("sequenceinstance").toString().toUpperCase().contains("Y") ? true: false: true;
+		
 	}
 	
 	

@@ -1,5 +1,6 @@
 package etl.data.datatype.i2b2;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -95,8 +96,10 @@ public class Text extends DataType {
 								
 								of.setPatientNum(map.get(relationalKey).toString());
 								
-								of.setEncounterNum(map.get(relationalKey) + mapping.getKey());
+								of.setEncounterNum(map.get(relationalKey) + ":" + mapping.getKey());
 								
+								of.setInstanceNum(map.get(relationalKey) + ":" + mapping.getKey() + ":" + value);
+
 								of.setConceptCd(mapping.getKey() + ':' + value);
 								
 								of.setValtypeCd(DEFAULT_VALUETYPE);
@@ -360,9 +363,11 @@ public class Text extends DataType {
 							
 							of.setPatientNum(relationalValue.toString());
 							
-							of.setEncounterNum(relationalValue + mapping.getKey());
+							of.setEncounterNum(relationalValue + ":" + mapping.getKey());
+														
+							of.setInstanceNum(relationalValue + ":" + mapping.getKey() + ":" + Instant.now().toEpochMilli() );
 							
-							of.setConceptCd(mapping.getKey() + ':' + value);
+							of.setConceptCd(mapping.getKey() + ":" + value);
 							
 							of.setValtypeCd(DEFAULT_VALUETYPE);
 													

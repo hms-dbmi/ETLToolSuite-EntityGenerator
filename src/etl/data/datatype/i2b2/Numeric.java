@@ -1,5 +1,6 @@
 package etl.data.datatype.i2b2;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
@@ -44,6 +45,7 @@ public class Numeric extends DataType{
 	 * Expecting a single 1 to 1 relationship
 	 * @throws Exception 
 	 */
+	@Deprecated
 	@Override
 	public Set<Entity> generateTables(String[] data,
 			CsvToI2b2TMMapping mapping, List<Entity> entities) throws Exception {
@@ -324,9 +326,9 @@ public class Numeric extends DataType{
 													
 						of.setPatientNum(relationalValue.toString());
 						
-						of.setEncounterNum(relationalValue.toString() + mapping.getKey());
-						
-						of.setInstanceNum(relationalValue.toString() + mapping.getKey() + value);
+						of.setEncounterNum(relationalValue + ":" + mapping.getKey());
+													
+						of.setInstanceNum(relationalValue + ":" + mapping.getKey() + ":" + Instant.now().toEpochMilli());
 						
 						of.setConceptCd(mapping.getKey());
 						
@@ -405,7 +407,7 @@ public class Numeric extends DataType{
 		
 		return ents;
 	}
-
+	@Deprecated
 	@Override
 	public Set<Entity> generateTables(Map map, Mapping mapping, List<Entity> entities, String relationalKey,
 			String omissionKey) throws InstantiationException, IllegalAccessException, Exception {

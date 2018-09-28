@@ -47,7 +47,7 @@ public abstract class DataType {
 		return false;
 		
 	}
-	
+	@Deprecated
 	public DataType generateDataType(Map map, Mapping mapping, List<Entity> entities, String relationalKey, String omissionKey) throws InstantiationException, IllegalAccessException {
 				// verify is a valid datatype
 		if(DataType.isValidDataType(mapping.getDataType())){
@@ -125,6 +125,7 @@ public abstract class DataType {
 		}
 		
 	}
+	@Deprecated
 
 	public abstract Set<Entity> generateTables(Map map, Mapping mapping,
 			List<Entity> entities, String relationalKey, String omissionKey) throws InstantiationException, IllegalAccessException, Exception;
@@ -148,7 +149,7 @@ public abstract class DataType {
 	
 	}
 
-
+	@Deprecated
 	public abstract Set<Entity> generateTables(String[] data,
 			CsvToI2b2TMMapping mapping, List<Entity> entities) throws Exception;
 
