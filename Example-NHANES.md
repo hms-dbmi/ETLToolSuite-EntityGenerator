@@ -1,14 +1,14 @@
 ## Load NHANES data subset
   
 The following will give examples on how to load subsets of Nhanes data into I2B2 / Transmart   
-***   
-**Example Prerequisites**   
-***   
+
+### Prerequisites   
+   
 Admin rights to machine hosting docker.   
 Quick Start docker stack   
 ETL Client Docker   
    
-Steps:   
+### Steps to load data   
 1.	Open bash connection to your ETL Client Docker    
 ``docker exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" -ti etl-client bash``       
 2.	Use git to clone this project to a dir of your choosing.    
