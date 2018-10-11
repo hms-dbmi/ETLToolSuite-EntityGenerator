@@ -1,32 +1,3 @@
-
-Skip to content
-
-    Features
-    Business
-    Explore
-    Marketplace
-    Pricing
-
-Sign in or Sign up
-
-17
-260
-
-    233
-
-IQAndreas/markdown-licenses
-Code
-Issues 5
-Pull requests 12
-Projects 0
-Insights
-Join GitHub today
-
-GitHub is home to over 28 million developers working together to host and review code, manage projects, and build software together.
-markdown-licenses/apache-v2.0.md
-4f71fa6 on May 31, 2014
-@IQAndreas IQAndreas Formatting improvements
-196 lines (156 sloc) 10.2 KB
 Apache License
 
 Version 2.0, January 2004
