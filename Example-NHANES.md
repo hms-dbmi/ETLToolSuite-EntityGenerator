@@ -1,5 +1,5 @@
-***
-**Additional Data Loads Examples**   
+## Load NHANES data subset
+  
 The following will give examples on how to load subsets of Nhanes data into I2B2 / Transmart   
 ***   
 **Example Prerequisites**   
