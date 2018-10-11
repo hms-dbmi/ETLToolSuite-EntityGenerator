@@ -14,7 +14,7 @@ Data file and Mapping file from [MappingGenerator Example](https://github.com/hm
 ***
 Steps:  
 This example was validated on a Mac and AMI Linux terminals.   
-To see it in action follow here to [load the NHANES dataset](https://github.com/hms-dbmi/ETLToolSuite-EntityGenerator/edit/master/Example-NHANES.md)
+To see it in action follow here to [load the NHANES dataset](https://github.com/hms-dbmi/ETLToolSuite-EntityGenerator/blob/master/Example-NHANES.md)
 
 1. Open bash connection to your ETL Client Docker  
 ``docker exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" -ti etl-client bash``   
