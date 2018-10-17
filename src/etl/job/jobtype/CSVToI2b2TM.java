@@ -103,13 +103,15 @@ public class CSVToI2b2TM extends JobType {
 	/// Internal Config
 	private static String FILE_TYPE = "JSONFILE";
 	
-	private static OpenOption[] WRITE_OPTIONS = new OpenOption[] { WRITE, CREATE, TRUNCATE_EXISTING };
+	private static OpenOption[] WRITE_OPTIONS = new OpenOption[] { WRITE, CREATE, APPEND };
 	
 	private static final String ENTITY_PACKAGE = "etl.data.export.entities.i2b2.";
 	
 	private static final String ARRAY_FORMAT = "JSONFILE";
 
 	private static final String OUTPUT_FILE_EXTENSION = ".csv";
+
+	private static final boolean APPEND_FILES = false;
 
 	private static Integer CONCEPT_CD_STARTING_SEQ = 1;
 
@@ -266,16 +268,22 @@ public class CSVToI2b2TM extends JobType {
 
 		Set<Entity> builtEnts = new HashSet<Entity>();
 		
-		try {		
+		Set<String> patientIds = new HashSet<String>();
+		
+		try {	
+			logger.info("Setting Variables");
 			setVariables(jobProperties);
 		
 			File data = new File(FILE_NAME);
+			
+			logger.info("Reading Mapping files");
 			
 			List<Mapping> mappingFile = Mapping.class.newInstance().generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
 
 			List<PatientMapping2> patientMappingFile = 
 					!PATIENT_MAPPING_FILE.isEmpty() ? PatientMapping2.class.newInstance().generateMappingList(PATIENT_MAPPING_FILE, MAPPING_DELIMITER): new ArrayList<PatientMapping2>();
 			
+					
 			// set relational key if not set in config
 			if(RELATIONAL_KEY_OVERRIDE == false) {
 				for(PatientMapping2 pm: patientMappingFile) {
@@ -287,43 +295,64 @@ public class CSVToI2b2TM extends JobType {
 				}
 			}
 			Map<String,Map<String,String>> datadic = DICT_FILE.exists() ? generateDataDict(DICT_FILE): new HashMap<String,Map<String,String>>();
+			
+			logger.info("Finished Reading Mapping Files");
 
 			if(data.exists()){
 				// Read datafile into a List of LinkedHashMaps.
 				// List should be objects that will be used for up and down casting through out the job process.
 				// Using casting will allow the application to be very dynamic while also being type safe.
 				
-				List recs = buildRecordList(data, mappingFile, datadic);
+				try {
 				
-				Map<String, Map<String,String>> patientList = buildPatientRecordList(data,patientMappingFile, datadic);
-				
-				logger.info("generating patients");
-				
-				Set<String> patientIds = new HashSet<String>();
-				
-				for(String key: patientList.keySet()) {
-					Map<String,String> pat = patientList.get(key);
+					logger.info("generating patients");
 					
-					if(pat.containsKey("patientNum")) {
-
-						patientIds.add(pat.get("patientNum"));
-		
+					Map<String, Map<String,String>> patientList = buildPatientRecordList(data,patientMappingFile, datadic);
+					
+					for(String key: patientList.keySet()) {
+						Map<String,String> pat = patientList.get(key);
+						
+						if(pat.containsKey("patientNum")) {
+	
+							patientIds.add(pat.get("patientNum"));
+			
+						}
+						builtEnts.addAll(processPatientEntities(patientList.get(key)));
+						
 					}
-					builtEnts.addAll(processPatientEntities(patientList.get(key)));
 					
+					logger.info(patientIds.size() + " Patients Generated.");
+					
+				} catch (Exception e) {
+					logger.error("Error building patients");
+					logger.error(e);
 				}
 				
 				logger.info("generating tables");
-				for(Object o: recs){
-					
-					if( o instanceof LinkedHashMap ) {
-						
-						builtEnts.addAll(processEntities(mappingFile,( LinkedHashMap ) o));	
+				try {
+					logger.info("Reading Data Files");
 
+					List recs = buildRecordList(data, mappingFile, datadic);
+
+					logger.info("Finished reading Data Files");
+
+					logger.info("Building table Entities");
+
+					for(Object o: recs){
+						
+						if( o instanceof LinkedHashMap ) {
+							
+							builtEnts.addAll(processEntities(mappingFile,( LinkedHashMap ) o));	
+	
+						}
 					}
+					
+					logger.info("Finished Building Entities");
+					
+				} catch (Exception e) {
+					logger.error("Error Processing data files");
+					logger.error(e);
 				}
-				
-				recs = null;
 				
 				logger.info("Filling in Tree");
 				builtEnts.addAll(thisFillTree(builtEnts));
@@ -355,43 +384,70 @@ public class CSVToI2b2TM extends JobType {
 
 			}
 			
-			Set<ObjectMapping> oms = new HashSet<ObjectMapping>();
+			//Set<ObjectMapping> oms = new HashSet<ObjectMapping>();
 			logger.info("Applying sequences");
-
+			//Set<PatientMapping> pms = PatientMapping.objectMappingToPatientMapping(oms);
+			Set<PatientMapping> pms = new HashSet<PatientMapping>();
 			for(ColumnSequencer seq: sequencers ) {
 				logger.info("Performing sequence: " + seq.entityColumn + " for e ( " + seq.entityNames + " )" );
-				oms.addAll(seq.generateSeqeunce(builtEnts));
+				
+				if(seq.entityColumn.equalsIgnoreCase("patientnum")) pms.addAll(seq.generateSeqeunce2(builtEnts));
+				
 				logger.info("Sequencing completed " + seq.entityColumn + " for e ( " + seq.entityNames + " )" );
 
 			}
 			
-			Set<PatientMapping> pms = PatientMapping.objectMappingToPatientMapping(oms);
+			logger.info("Building Patient Mappings");
+			//Set<PatientMapping> pms = PatientMapping.objectMappingToPatientMapping(oms);
+			logger.info("Finished Building Patient Mappings");
 			
-			builtEnts.addAll(pms);
-			builtEnts.addAll(oms);
+			
+			try {
+
+				logger.info("Performing temp fixes");
+				//perform any temp fixes in method called here
+				performRequiredTempFixes(builtEnts);
+				
+
+				//Map<Path, List<String>> paths = Export.buildFilestoWrite(builtEnts, WRITE_DESTINATION, OUTPUT_FILE_EXTENSION);
+				
+				logger.info("writing tables");
+				
+				if(APPEND_FILES == false) {
+					
+					logger.info("Cleaning write directory - " + new File(WRITE_DESTINATION).getAbsolutePath());
+					
+					Export.cleanWriteDir(WRITE_DESTINATION);
+					
+				}
+				//Export.writeToFile(paths, WRITE_OPTIONS);
+				
+				logger.info("Writing Entites to " + new File(WRITE_DESTINATION).getAbsolutePath());
+				
+				Export.writeToFile(builtEnts, WRITE_DESTINATION, OUTPUT_FILE_EXTENSION, WRITE_OPTIONS);
+				
+				Export.writeToFile(pms, WRITE_DESTINATION, OUTPUT_FILE_EXTENSION, WRITE_OPTIONS);
+
+				logger.info("Finished writing files to " + new File(WRITE_DESTINATION).getAbsolutePath());
+				
+				//Export.writeToFile(oms, WRITE_DESTINATION, OUTPUT_FILE_EXTENSION, WRITE_OPTIONS);
+
+			} catch ( Exception e1) {
+			
+				e1.printStackTrace();
+			}
+			
+			//builtEnts.addAll(pms);
+			
+			//builtEnts.addAll(oms);
 			
 		} catch (Exception e) {
 		
 			logger.catching(Level.ERROR,e);
 			
 		} 
-		try {
-			logger.info("Building files to write");
 
-			logger.info("Performing temp fixes");
-			//perform any temp fixes in method called here
-			performRequiredTempFixes(builtEnts);
-			
-			Map<Path, List<String>> paths = Export.buildFilestoWrite(builtEnts, WRITE_DESTINATION, OUTPUT_FILE_EXTENSION);
-			
-			logger.info("writing files");
-			Export.writeToFile(paths, WRITE_OPTIONS);
-			
-		} catch ( Exception e1) {
-		
-			e1.printStackTrace();
-		}
-
+		logger.info("Job Completed");
 	}
 	
 	private Collection<? extends Entity> processPatientEntities(Map<String, String> map) throws Exception {

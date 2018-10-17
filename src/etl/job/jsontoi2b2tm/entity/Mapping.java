@@ -21,11 +21,11 @@ public class Mapping {
 	
 	public static String OPTIONS_KV_DELIMITER = ":";
 	
-	private String key;
-	private String rootNode;
-	private String supPath;
-	private String dataType;
-	private String options;
+	private String key = "";
+	private String rootNode = "";
+	private String supPath = "";
+	private String dataType = "";
+	private String options = "";
 	
 	public Mapping(){
 		
@@ -90,21 +90,21 @@ public class Mapping {
 		while(reader.readRecord()){
 			// Check if delimiter exists if so set default.
 			if(reader.getValues().length == Mapping.class.getDeclaredFields().length - 2){
-				
-				Mapping m = new Mapping();
-				
-				m.setKey(reader.get(0));
-				
-				m.setRootNode(reader.get(1));
-				
-				m.setSupPath(reader.get(2));
-				
-				m.setDataType(reader.get(3));
-				
-				m.setOptions(reader.get(4));
-
-				mapping.add(m);
-				
+				if(!reader.get(0).equalsIgnoreCase("key")) {
+					Mapping m = new Mapping();
+					
+					m.setKey(reader.get(0));
+					
+					m.setRootNode(reader.get(1));
+					
+					m.setSupPath(reader.get(2));
+					
+					m.setDataType(reader.get(3));
+					
+					m.setOptions(reader.get(4));
+	
+					mapping.add(m);
+				}
 			}
 		
 		}		

@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 import etl.data.export.entities.Entity;
 import etl.data.export.entities.i2b2.ConceptDimension;
 import etl.data.export.entities.i2b2.ObjectMapping;
+import etl.data.export.entities.i2b2.PatientDimension;
+import etl.data.export.entities.i2b2.PatientMapping;
 
 public class ColumnSequencer {
 	public List<String> entityNames = new ArrayList<String>();
@@ -25,7 +27,56 @@ public class ColumnSequencer {
 	public ArrayList<String> values = new ArrayList<String>();
 	private Map<String,Integer> sequenced = new HashMap<String,Integer>();
 	public boolean IS_CONSTANT; 
+
 	
+	public Set<PatientMapping> generateSeqeunce2(Set<Entity> builtEnts) throws Exception{
+		 //List<String> seq = new ArrayList<String>();
+		Set<PatientMapping> patientMappings = new HashSet<PatientMapping>();
+		
+		/*
+		ConcurrentMap<String, List<Entity>> ents = builtEnts.parallelStream().collect(Collectors.groupingByConcurrent(Entity::getEntityType));
+		
+		Set<String> distinctValues = builtEnts.stream().filter(e -> e.getEntityType().equals("ConceptDimension")).map(ConceptDimension::getConceptCd);;
+		
+		//Set<String> distinctValues = new HashSet<String>();
+		
+		if(ents.containsKey("ConceptDimension")) {
+			
+			for(Entity ent:ents.get("ConceptDimension")) {
+				
+				ConceptDimension cd = (ConceptDimension) ent;
+				
+				distinctValues.add(cd.getConceptCd());
+			}
+			
+		}*/
+		for(Entity entity: builtEnts) {
+			if(entity instanceof PatientDimension) {
+				if(entityNames.indexOf(entity.getClass().getSimpleName()) != -1) {
+					
+					Field field = entity.getClass().getDeclaredField(this.entityColumn);	
+					field.setAccessible(true);
+					Object sourceId = field.get(entity);
+					if(sourceId != null) {
+						int index = findSeqId(sourceId.toString());
+							
+						field.set(entity, new Integer(index).toString());
+						PatientMapping pm = new PatientMapping("PatientMapping");
+						
+						pm.setPatientNum(new Integer(index).toString());
+						pm.setPatientIdeSource(sourceId.toString());
+						pm.setPatientIde(this.columnType + ":" + this.entityColumn + ":" + this.mappedName);
+						patientMappings.add(pm);
+						
+						field.setAccessible(false);
+					}
+				}
+			}
+		}
+		return patientMappings;
+	}
+	
+
 	
 	public Set<ObjectMapping> generateSeqeunce(Set<Entity> builtEnts) throws Exception{
 		 //List<String> seq = new ArrayList<String>();

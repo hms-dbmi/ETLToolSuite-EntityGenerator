@@ -1,6 +1,7 @@
 package etl.data.export;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
@@ -51,7 +52,47 @@ public abstract class Export implements ExportInterface {
 		return false;
 		
 	}
+	
 
+	public static void cleanWriteDir(String writeDir) {
+
+		File dir = new File(writeDir);
+		
+		for(File file:dir.listFiles()) {
+			file.delete();
+		}
+
+	}
+	
+	public static void writeToFile(Set<? extends Entity> entities, String writeDir, String outputExt, OpenOption[] options) throws IOException {
+		
+		Map<Path,BufferedOutputStream> outs = new HashMap<Path,BufferedOutputStream>();
+		
+		if(entities != null) {
+			for(Entity entity: entities) {
+				Path path = Paths.get(writeDir + entity.getClass().getSimpleName() + outputExt);
+				
+				if(outs.containsKey(path)) {
+					BufferedOutputStream out = outs.get(path);
+					
+					out.write((entity.toCsv() + '\n').getBytes() );
+					
+				} else {
+					BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(path, options));
+					
+					outs.put(path, out);
+					
+					out.write((entity.toCsv() + '\n').getBytes() );
+					
+				}
+			}
+		}
+		for(BufferedOutputStream stream:outs.values()) {
+			stream.flush();
+			stream.close();
+		}
+	}
+	
 	public static Map<Path, List<String>> buildFilestoWrite(Set<Entity> entities, String writeDir, String outputExt) throws IOException{
 		Map<Path, List<String>> map = new HashMap<Path,List<String>>();
 		
@@ -66,6 +107,7 @@ public abstract class Export implements ExportInterface {
 					map.put(destPath, list);
 					
 				} else {
+					
 					List<String> list = map.get(destPath);
 					list.add(entity.toCsv());
 					map.put(destPath, list);
