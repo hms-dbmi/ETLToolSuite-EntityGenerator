@@ -54,6 +54,10 @@ public class PatientMapping extends Entity {
 		this.sourceSystemCd = sourceSystemCd;
 	}
 
+	public PatientMapping(String string) throws Exception {
+		super(string);
+	}
+
 	@Override
 	public boolean isValid() {
 		return true;
@@ -124,6 +128,90 @@ public class PatientMapping extends Entity {
 			return false;
 		
 		return true;
+	}
+
+	public String getPatientIde() {
+		return patientIde;
+	}
+
+	public void setPatientIde(String patientIde) {
+		this.patientIde = patientIde;
+	}
+
+	public String getPatientIdeSource() {
+		return patientIdeSource;
+	}
+
+	public void setPatientIdeSource(String patientIdeSource) {
+		this.patientIdeSource = patientIdeSource;
+	}
+
+	public String getPatientNum() {
+		return patientNum;
+	}
+
+	public void setPatientNum(String patientNum) {
+		this.patientNum = patientNum;
+	}
+
+	public String getPatientIdeStatus() {
+		return patientIdeStatus;
+	}
+
+	public void setPatientIdeStatus(String patientIdeStatus) {
+		this.patientIdeStatus = patientIdeStatus;
+	}
+
+	public String getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(String projectId) {
+		this.projectId = projectId;
+	}
+
+	public String getUploadDate() {
+		return uploadDate;
+	}
+
+	public void setUploadDate(String uploadDate) {
+		this.uploadDate = uploadDate;
+	}
+
+	public String getDownloadDate() {
+		return downloadDate;
+	}
+
+	public void setDownloadDate(String downloadDate) {
+		this.downloadDate = downloadDate;
+	}
+
+	public String getImportDate() {
+		return importDate;
+	}
+
+	public void setImportDate(String importDate) {
+		this.importDate = importDate;
+	}
+
+	public String getSourceSystemCd() {
+		return sourceSystemCd;
+	}
+
+	public void setSourceSystemCd(String sourceSystemCd) {
+		this.sourceSystemCd = sourceSystemCd;
+	}
+
+	public String getUploadId() {
+		return uploadId;
+	}
+
+	public void setUploadId(String uploadId) {
+		this.uploadId = uploadId;
+	}
+
+	public static Logger getLogger() {
+		return logger;
 	}
 	
 	
