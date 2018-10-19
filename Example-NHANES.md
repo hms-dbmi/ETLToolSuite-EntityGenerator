@@ -15,7 +15,7 @@ ETL Client Docker
 `git clone https://github.com/hms-dbmi/ETLToolSuite-EntityGenerator`  
 
 If you already have this repo cloned then go this cloned repo directory , the use the following command
-```git pull```
+`git pull`
 
 3.	Navigate to root directory of EntityGenerator:    
 `cd ETLToolSuite-EntityGenerator`   
