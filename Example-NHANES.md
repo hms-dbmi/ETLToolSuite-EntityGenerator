@@ -48,7 +48,11 @@ PatientMapping.csv
 11.	Open bash connection to your ETL Client Docker   
 ``docker exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" -ti etl-client bash``   
 12.	Use git to clone this project to a dir of your choosing. Change username to your git user.   
-`git clone https://github.com/hms-dbmi/ETLToolSuite-WorkflowScripts`   
+`git clone https://github.com/hms-dbmi/ETLToolSuite-WorkflowScripts`  
+
+`If you already have this repo cloned then go to this cloned repo directory , use the following command to get latest code after step 13`
+ 
+```git pull```
 13.	Navigate to the following dir:   
 `cd ETLToolSuite-WorkflowScripts`   
 14.	Execute following command to load your Docker DB   
