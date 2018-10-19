@@ -21,7 +21,7 @@ ETL Client Docker
 **- Small Sample Size ( 99 Patients )**     
 `java -jar EntityGenerator.jar -jobtype CSVToI2b2TM -propertiesfile resources/NhanesCSV.config`   
 **- Large Sample Size ( 4997 Patients )**    
-`java -Xmx6g -jar EntityGenerator.jar -jobtype CSVToI2b2TM -propertiesfile resources/NhanesCSV2.config`    
+`java -Xmx8g -jar EntityGenerator.jar -jobtype CSVToI2b2TM -propertiesfile resources/NhanesCSV2.config`    
 6.	Navigate to completed directory.   
 `cd completed`    
 7.	List the directory's contents   
