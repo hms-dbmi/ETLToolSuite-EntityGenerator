@@ -51,25 +51,25 @@ public class ColumnSequencer {
 			
 		}*/
 		for(Entity entity: builtEnts) {
-			if(entity instanceof PatientDimension) {
-				if(entityNames.indexOf(entity.getClass().getSimpleName()) != -1) {
-					
-					Field field = entity.getClass().getDeclaredField(this.entityColumn);	
-					field.setAccessible(true);
-					Object sourceId = field.get(entity);
-					if(sourceId != null) {
-						int index = findSeqId(sourceId.toString());
-							
-						field.set(entity, new Integer(index).toString());
+			if(entityNames.indexOf(entity.getClass().getSimpleName()) != -1) {
+				
+				Field field = entity.getClass().getDeclaredField(this.entityColumn);	
+				field.setAccessible(true);
+				Object sourceId = field.get(entity);
+				if(sourceId != null) {
+					int index = findSeqId(sourceId.toString());
+						
+					field.set(entity, new Integer(index).toString());
+					if(entity instanceof PatientDimension) {
+
 						PatientMapping pm = new PatientMapping("PatientMapping");
 						
 						pm.setPatientNum(new Integer(index).toString());
 						pm.setPatientIdeSource(sourceId.toString());
 						pm.setPatientIde(this.columnType + ":" + this.entityColumn + ":" + this.mappedName);
 						patientMappings.add(pm);
-						
-						field.setAccessible(false);
 					}
+					field.setAccessible(false);
 				}
 			}
 		}
@@ -109,13 +109,7 @@ public class ColumnSequencer {
 					int index = findSeqId(sourceId.toString());
 						
 					field.set(entity, new Integer(index).toString());
-					ObjectMapping om = new ObjectMapping("ObjectMapping");
-					
-					om.setMappedId(new Integer(index).toString());
-					om.setSourceId(sourceId.toString());
-					om.setSourceName(this.columnType + ":" + this.entityColumn + ":" + this.mappedName);
-					objectMappings.add(om);
-					
+
 					field.setAccessible(false);
 				}
 			}

@@ -142,6 +142,7 @@ public class CSVToI2b2TM extends JobType {
 	 */
 	
 	private static void performRequiredTempFixes(Set<Entity> entities) throws Exception {
+		
 		entities.add(buildDummyForTrial());
 		
 		forceSourceSystemCds(entities);
@@ -386,14 +387,12 @@ public class CSVToI2b2TM extends JobType {
 			
 			//Set<ObjectMapping> oms = new HashSet<ObjectMapping>();
 			logger.info("Applying sequences");
-			//Set<PatientMapping> pms = PatientMapping.objectMappingToPatientMapping(oms);
-			Set<PatientMapping> pms = new HashSet<PatientMapping>();
+			Set<PatientMapping> pms = new HashSet<PatientMapping>();		
+			
 			for(ColumnSequencer seq: sequencers ) {
 				logger.info("Performing sequence: " + seq.entityColumn + " for e ( " + seq.entityNames + " )" );
 				
-				if(seq.entityColumn.equalsIgnoreCase("patientnum")) pms.addAll(seq.generateSeqeunce2(builtEnts));
-				
-				logger.info("Sequencing completed " + seq.entityColumn + " for e ( " + seq.entityNames + " )" );
+				pms.addAll(seq.generateSeqeunce2(builtEnts));
 
 			}
 			
