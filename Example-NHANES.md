@@ -53,6 +53,7 @@ PatientMapping.csv
 `If you already have this repo cloned then go to this cloned repo directory , use the following command to get latest code after step 13`
  
 ```git pull```
+
 13.	Navigate to the following dir:   
 `cd ETLToolSuite-WorkflowScripts`   
 14.	Execute following command to load your Docker DB   
