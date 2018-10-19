@@ -12,7 +12,11 @@ ETL Client Docker
 1.	Open bash connection to your ETL Client Docker    
 ``docker exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" -ti etl-client bash``       
 2.	Use git to clone this project to a dir of your choosing.    
-`git clone https://github.com/hms-dbmi/ETLToolSuite-EntityGenerator`    
+`git clone https://github.com/hms-dbmi/ETLToolSuite-EntityGenerator`  
+
+If you already have this repo cloned then go this cloned repo directory , the use the following command
+```git pull```
+
 3.	Navigate to root directory of EntityGenerator:    
 `cd ETLToolSuite-EntityGenerator`   
 4.	Make a directory to store your processed data files:      
