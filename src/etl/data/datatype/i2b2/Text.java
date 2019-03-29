@@ -337,14 +337,14 @@ public class Text extends DataType {
 			
 			for(Object relationalValue: relationalValues) {
 				for(Object v: values) {
-					if( v == null || v instanceof Map) {
+					if( v == null || v instanceof Map ) {
 						continue;
 					}
 					
 					v = (v != null ) ? v.toString().replaceAll("[*|\\\\\\/<\\?%>\":]", ""): null;			
 					
 					String value = v.toString();
-					if(value != null){						
+					if(value != null && !value.isEmpty()){						
 				
 						if(options.containsKey("REGEXEDIT") && value instanceof String){
 							value = value.replaceAll(options.get("REGEXEDIT"), "");
@@ -370,7 +370,7 @@ public class Text extends DataType {
 							of.setConceptCd(mapping.getKey() + ":" + value);
 							
 							of.setValtypeCd(DEFAULT_VALUETYPE);
-													
+
 							of.setTvalChar(value);
 							
 							of.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);

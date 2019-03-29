@@ -113,6 +113,8 @@ public class CSVToI2b2TM extends JobType {
 
 	private static final boolean APPEND_FILES = false;
 
+	private static boolean INCLUDE_EMPTY_VALUES = false;
+
 	private static Integer CONCEPT_CD_STARTING_SEQ = 1;
 
 	private static Integer ENCOUNTER_NUM_STARTING_SEQ = 1;
@@ -1211,7 +1213,15 @@ public class CSVToI2b2TM extends JobType {
 							+ mapping.toCSV() + "\n" +
 							" be sure that the column and file exist.");
 					
-					Set<Entity> newEnts = dt.generateTables(mapping, entities, values, relationalValue);
+					Set<Entity> newEnts = new HashSet<Entity>();
+					
+					if(values.isEmpty()) {
+						if(INCLUDE_EMPTY_VALUES == true) {
+							newEnts = dt.generateTables(mapping, entities, values, relationalValue);
+						}
+					} else {
+						newEnts = dt.generateTables(mapping, entities, values, relationalValue);
+					}
 					
 					if(newEnts != null && newEnts.size() > 0){
 					
@@ -1418,6 +1428,8 @@ public class CSVToI2b2TM extends JobType {
 		DO_CONCEPT_CD_SEQUENCE = jobProperties.containsKey("sequenceconcept") ? jobProperties.get("sequenceconcept").toString().toUpperCase().contains("Y") ? true: false: true;
 		DO_ENCOUNTER_NUM_SEQUENCE = jobProperties.containsKey("sequenceencounter") ? jobProperties.get("sequenceencounter").toString().toUpperCase().contains("Y") ? true: false: true;
 		DO_INSTANCE_NUM_SEQUENCE = jobProperties.containsKey("sequenceinstance") ? jobProperties.get("sequenceinstance").toString().toUpperCase().contains("Y") ? true: false: true;
+		
+		INCLUDE_EMPTY_VALUES = jobProperties.containsKey("includeemptyvalues") ? jobProperties.get("includeemptyvalues").toString().toUpperCase().contains("Y") ? true: false: false;     
 		
 	}
 	
