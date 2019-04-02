@@ -329,6 +329,7 @@ public class CSVToI2b2TM extends JobType {
 				} catch (Exception e) {
 					logger.error("Error building patients");
 					logger.error(e);
+					e.printStackTrace();
 				}
 				
 				logger.info("generating tables");
@@ -355,6 +356,7 @@ public class CSVToI2b2TM extends JobType {
 				} catch (Exception e) {
 					logger.error("Error Processing data files");
 					logger.error(e);
+					e.printStackTrace();
 				}
 				
 				logger.info("Filling in Tree");
@@ -1205,30 +1207,33 @@ public class CSVToI2b2TM extends JobType {
 							}
 						}
 					}
-					if(values == null) throw new Exception("Following Mapping does not exist in the datafile: \n"
-							+ mapping.toCSV() + "\n" +
-							" be sure that the column and file exist.");
-					
-					if(relationalValue == null) throw new Exception("Following Mapping does not exist in the datafile: \n"
-							+ mapping.toCSV() + "\n" +
-							" be sure that the column and file exist.");
-					
-					Set<Entity> newEnts = new HashSet<Entity>();
-					
-					if(values.isEmpty()) {
-						if(INCLUDE_EMPTY_VALUES == true) {
+					String mappingK = mapping.getKey().split(":")[0];
+					String recordK = record.keySet().iterator().next().toString().split(":")[0];
+					if(mappingK.equals(recordK)) {
+						if(values == null) throw new Exception("Following Mapping does not exist in the datafile: \n"
+								+ mapping.toCSV() + "\n" +
+								" be sure that the column and file exist.");
+						
+						if(relationalValue == null) throw new Exception("Following Mapping does not exist in the datafile: \n"
+								+ mapping.toCSV() + "\n" +
+								" be sure that the column and file exist.");
+						
+						Set<Entity> newEnts = new HashSet<Entity>();
+						
+						if(values.isEmpty()) {
+							if(INCLUDE_EMPTY_VALUES == true) {
+								newEnts = dt.generateTables(mapping, entities, values, relationalValue);
+							}
+						} else {
 							newEnts = dt.generateTables(mapping, entities, values, relationalValue);
 						}
-					} else {
-						newEnts = dt.generateTables(mapping, entities, values, relationalValue);
+						
+						if(newEnts != null && newEnts.size() > 0){
+						
+							builtEnts.addAll(newEnts);
+						
+						}
 					}
-					
-					if(newEnts != null && newEnts.size() > 0){
-					
-						builtEnts.addAll(newEnts);
-					
-					}
-					
 				}
 						
 			}
