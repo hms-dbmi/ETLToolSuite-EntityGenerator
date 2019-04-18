@@ -136,6 +136,8 @@ public class CSVToI2b2TM extends JobType {
 
 	private boolean IS_DIR;
 
+	private boolean IS_APPEND;
+	
 	/**
 	 * This is a temporary fix to solve the dummy row issue needed to ensure Trials works 
 	 * All of this should be removed once bug is fixed in tm
@@ -273,6 +275,7 @@ public class CSVToI2b2TM extends JobType {
 		
 		Set<String> patientIds = new HashSet<String>();
 		
+
 		try {	
 			logger.info("Setting Variables");
 			setVariables(jobProperties);
@@ -282,9 +285,11 @@ public class CSVToI2b2TM extends JobType {
 			logger.info("Reading Mapping files");
 			
 			List<Mapping> mappingFile = Mapping.class.newInstance().generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
+			List<PatientMapping2> patientMappingFile = new ArrayList<PatientMapping2>();
+			/// If appending set write to append and look for patient_mapping
 
-			List<PatientMapping2> patientMappingFile = 
-					!PATIENT_MAPPING_FILE.isEmpty() ? PatientMapping2.class.newInstance().generateMappingList(PATIENT_MAPPING_FILE, MAPPING_DELIMITER): new ArrayList<PatientMapping2>();
+				patientMappingFile = 
+						!PATIENT_MAPPING_FILE.isEmpty() ? PatientMapping2.class.newInstance().generateMappingList(PATIENT_MAPPING_FILE, MAPPING_DELIMITER): new ArrayList<PatientMapping2>();
 			
 					
 			// set relational key if not set in config
@@ -300,7 +305,7 @@ public class CSVToI2b2TM extends JobType {
 			Map<String,Map<String,String>> datadic = DICT_FILE.exists() ? generateDataDict(DICT_FILE): new HashMap<String,Map<String,String>>();
 			
 			logger.info("Finished Reading Mapping Files");
-
+			
 			if(data.exists()){
 				// Read datafile into a List of LinkedHashMaps.
 				// List should be objects that will be used for up and down casting through out the job process.
@@ -311,7 +316,8 @@ public class CSVToI2b2TM extends JobType {
 					logger.info("generating patients");
 					
 					Map<String, Map<String,String>> patientList = buildPatientRecordList(data,patientMappingFile, datadic);
-					
+					Set<PatientDimension> patientDimension = getPatientsFromFile();
+
 					for(String key: patientList.keySet()) {
 						Map<String,String> pat = patientList.get(key);
 						
@@ -320,8 +326,20 @@ public class CSVToI2b2TM extends JobType {
 							patientIds.add(pat.get("patientNum"));
 			
 						}
-						builtEnts.addAll(processPatientEntities(patientList.get(key)));
-						
+						if(IS_APPEND){
+							List<Entity> ents = new ArrayList<Entity>();
+						    ents.addAll(processPatientEntities(patientList.get(key)));
+						    for(Entity ent: ents) {
+						    		if(ent instanceof PatientDimension) {
+						    			if(!patientDimension.contains((PatientDimension) ent)) {
+						    				// new Patient
+						    				builtEnts.addAll(ents);
+						    			}
+						    		}
+						    }
+						}  else {	
+							builtEnts.addAll(processPatientEntities(patientList.get(key)));
+						}
 					}
 					
 					logger.info(patientIds.size() + " Patients Generated.");
@@ -453,6 +471,38 @@ public class CSVToI2b2TM extends JobType {
 		logger.info("Job Completed");
 	}
 	
+	private Set<PatientDimension> getPatientsFromFile() {
+		boolean fileExists = new File("./completed/PatientDimension.csv").exists();
+		if(fileExists) {
+			List<Object> patients;
+			try {
+				Set<PatientDimension> rPats = new HashSet<PatientDimension>();
+				
+				patients = buildRecordList(new File("./completed/PatientDimension.csv"));
+				
+				for(Object pat:patients) {
+					if(pat instanceof Map) {
+						LinkedHashMap prec = (LinkedHashMap) pat;
+						rPats.add(new PatientDimension(prec));
+					}
+				}
+				return rPats;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				logger.error(e);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				logger.error(e);
+			}
+			
+			
+		} else {
+			return new HashSet<PatientDimension>();
+		}
+		
+		return null;
+	}
+
 	private Collection<? extends Entity> processPatientEntities(Map<String, String> map) throws Exception {
 		List<Entity> entities = new ArrayList<Entity>();
 		PatientDimension pd = new PatientDimension("PatientDimension");
@@ -734,7 +784,10 @@ public class CSVToI2b2TM extends JobType {
 		return patients;
 
 	}
-		
+	private List buildRecordList(File file) throws IOException {
+		return CSVDataSource2.buildObjectMap(file.getName(), file, DATASOURCE_FORMAT);
+
+	}
 	private List buildRecordList(File file, List<Mapping> mappings, Map<String, Map<String,String>> dataDict) throws Exception{
 		if(file.isFile()) {
 			File f2 = file.getParentFile();
@@ -1435,6 +1488,8 @@ public class CSVToI2b2TM extends JobType {
 		DO_INSTANCE_NUM_SEQUENCE = jobProperties.containsKey("sequenceinstance") ? jobProperties.get("sequenceinstance").toString().toUpperCase().contains("Y") ? true: false: true;
 		
 		INCLUDE_EMPTY_VALUES = jobProperties.containsKey("includeemptyvalues") ? jobProperties.get("includeemptyvalues").toString().toUpperCase().contains("Y") ? true: false: false;     
+		
+		IS_APPEND = jobProperties.containsKey("appending") ? jobProperties.get("appending").toString().toUpperCase().contains("Y") ? true: false: false;     
 		
 	}
 	
