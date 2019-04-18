@@ -434,7 +434,7 @@ public class CSVToI2b2TM extends JobType {
 				
 				logger.info("writing tables");
 				
-				if(APPEND_FILES == false) {
+				if(!IS_APPEND) {
 					
 					logger.info("Cleaning write directory - " + new File(WRITE_DESTINATION).getAbsolutePath());
 					
