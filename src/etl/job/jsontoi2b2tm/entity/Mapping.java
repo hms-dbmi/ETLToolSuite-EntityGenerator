@@ -15,7 +15,7 @@ import com.csvreader.CsvReader;
 
 import etl.data.export.entities.Entity;
 
-public class Mapping {
+public class Mapping implements Cloneable{
 	
 	public static String OPTIONS_DELIMITER = ";";
 	
@@ -30,7 +30,11 @@ public class Mapping {
 	public Mapping(){
 		
 	}
-
+	public Object clone() throws
+    CloneNotSupportedException 
+	{ 
+	return super.clone(); 
+	} 
 	public Map<String, Mapping> generateMappingHash(String filePath, char delimiter) throws IOException{
 		
 		Map<String, Mapping> mapping = new HashMap<String, Mapping>();
@@ -89,7 +93,9 @@ public class Mapping {
 		}	
 		while(reader.readRecord()){
 			// Check if delimiter exists if so set default.
-			if(reader.getValues().length == Mapping.class.getDeclaredFields().length - 2){
+			int x = reader.getValues().length;
+			int y = Mapping.class.getDeclaredFields().length - 2;
+			//if(reader.getValues().length == Mapping.class.getDeclaredFields().length - 2){
 				if(!reader.get(0).equalsIgnoreCase("key")) {
 					Mapping m = new Mapping();
 					
@@ -105,7 +111,7 @@ public class Mapping {
 	
 					mapping.add(m);
 				}
-			}
+			//}
 		
 		}		
 		

@@ -30,11 +30,38 @@ public class PatientDimension extends Entity {
 	private String patientBlob;
 	private String incomeCD;
 	
-	public PatientDimension(String str) throws Exception {
-		super(str);
-		this.schema = "I2B2DEMODATA";
+	public PatientDimension(String pd) throws Exception {
+		super(pd);
+	}
+	
+	public PatientDimension(LinkedHashMap prec) {
 
 		// TODO Auto-generated constructor stub
+		int x = 0;
+		for(Object k: prec.keySet()) {
+			if(x==0) this.patientNum = ((List) prec.get(k)).get(0).toString();
+			else if(x==1) this.vitalStatusCD = ((List) prec.get(k)).get(0).toString();
+			else if(x==2) this.birthDate = ((List) prec.get(k)).get(0).toString();
+			else if(x==3) this.deathDate = ((List) prec.get(k)).get(0).toString();
+			else if(x==4) this.sexCD = ((List) prec.get(k)).get(0).toString();
+			else if(x==5) this.ageInYearsNum = ((List) prec.get(k)).get(0).toString();
+			else if(x==6) this.languageCD = ((List) prec.get(k)).get(0).toString();
+			else if(x==7) this.raceCD = ((List) prec.get(k)).get(0).toString();
+			else if(x==8) this.maritalStatusCD = ((List) prec.get(k)).get(0).toString();
+			else if(x==9) this.religionCD = ((List) prec.get(k)).get(0).toString();
+			else if(x==10) this.zipCD = ((List) prec.get(k)).get(0).toString();
+			else if(x==11) this.stateCityZipPath = ((List) prec.get(k)).get(0).toString();
+			else if(x==12) this.updateDate = ((List) prec.get(k)).get(0).toString();
+			else if(x==13) this.downloadDate = ((List) prec.get(k)).get(0).toString();
+			else if(x==14) this.importDate = ((List) prec.get(k)).get(0).toString();
+			else if(x==15) this.sourceSystemCD = ((List) prec.get(k)).get(0).toString();
+			else if(x==16) this.uploadID = ((List) prec.get(k)).get(0).toString();
+			else if(x==17) this.patientBlob = ((List) prec.get(k)).get(0).toString();
+			else if(x==18) this.incomeCD = ((List) prec.get(k)).get(0).toString();
+			x++;
+		}
+
+		
 	}
 	
 	private boolean containsValues(Map<String, List<Object>> valueMap, String fieldKey) {

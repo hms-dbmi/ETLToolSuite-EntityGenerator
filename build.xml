@@ -66,5 +66,21 @@
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 	  	</jar>
+	  	<jar destfile="Partitioner.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.drivers.Partitioner"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>
+	  	<jar destfile="DataEvaluation.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.drivers.DataEvaluation"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>
     	</target>
 </project>

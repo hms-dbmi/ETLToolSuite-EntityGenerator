@@ -138,6 +138,9 @@ public class CSVToI2b2TM extends JobType {
 
 	private boolean IS_APPEND;
 	
+	private static boolean IS_PARTITION_JOB = true;
+	
+	private static boolean IS_LAST_PARTITION = false;
 	/**
 	 * This is a temporary fix to solve the dummy row issue needed to ensure Trials works 
 	 * All of this should be removed once bug is fixed in tm
@@ -146,15 +149,24 @@ public class CSVToI2b2TM extends JobType {
 	 */
 	
 	private static void performRequiredTempFixes(Set<Entity> entities) throws Exception {
-		
-		entities.add(buildDummyForTrial());
-		
-		forceSourceSystemCds(entities);
-		
-		buildL1Security(entities);
-		
-		fixcBaseCode(entities);
-		
+		if(IS_PARTITION_JOB) {
+			if(IS_LAST_PARTITION) {
+				entities.add(buildDummyForTrial());
+				
+				forceSourceSystemCds(entities);
+				
+				//buildL1Security(entities);
+				
+				fixcBaseCode(entities);
+			}
+		} else {
+			entities.add(buildDummyForTrial());
+			
+			forceSourceSystemCds(entities);
+			
+			
+			fixcBaseCode(entities);
+		}
 	}
 	
 	private static void fixcBaseCode(Set<Entity> entities) {
@@ -285,11 +297,8 @@ public class CSVToI2b2TM extends JobType {
 			logger.info("Reading Mapping files");
 			
 			List<Mapping> mappingFile = Mapping.class.newInstance().generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
-			List<PatientMapping2> patientMappingFile = new ArrayList<PatientMapping2>();
-			/// If appending set write to append and look for patient_mapping
 
-				patientMappingFile = 
-						!PATIENT_MAPPING_FILE.isEmpty() ? PatientMapping2.class.newInstance().generateMappingList(PATIENT_MAPPING_FILE, MAPPING_DELIMITER): new ArrayList<PatientMapping2>();
+			List<PatientMapping2> patientMappingFile = !PATIENT_MAPPING_FILE.isEmpty() ? PatientMapping2.class.newInstance().generateMappingList(PATIENT_MAPPING_FILE, MAPPING_DELIMITER): new ArrayList<PatientMapping2>();
 			
 					
 			// set relational key if not set in config
@@ -331,17 +340,26 @@ public class CSVToI2b2TM extends JobType {
 						    ents.addAll(processPatientEntities(patientList.get(key)));
 						    for(Entity ent: ents) {
 						    		if(ent instanceof PatientDimension) {
-						    			if(!patientDimension.contains((PatientDimension) ent)) {
-						    				// new Patient
-						    				builtEnts.addAll(ents);
+						    			boolean patExists = false;
+						    			for(PatientDimension pd: patientDimension) {
+						    				String pat1 = pd.getPatientNum();
+						    				String pat2 = ((PatientDimension) ent).getPatientNum();
+						    				if(pd.getPatientNum().equals(((PatientDimension) ent).getPatientNum())) {
+							    				// new Patient
+							    				//builtEnts.addAll(ents);
+						    					patExists = true;
+						    					break;
+							    			}	
 						    			}
+						    			if(!patExists) builtEnts.addAll(ents);
 						    		}
 						    }
 						}  else {	
 							builtEnts.addAll(processPatientEntities(patientList.get(key)));
 						}
 					}
-					
+					buildL1Security(builtEnts);
+
 					logger.info(patientIds.size() + " Patients Generated.");
 					
 				} catch (Exception e) {
@@ -359,22 +377,25 @@ public class CSVToI2b2TM extends JobType {
 					logger.info("Finished reading Data Files");
 
 					logger.info("Building table Entities");
-
+					
+					logger.info("Processing " + recs.size() + " total records");
+					int x = 0;
 					for(Object o: recs){
 						
 						if( o instanceof LinkedHashMap ) {
-							
+							// very slow process
 							builtEnts.addAll(processEntities(mappingFile,( LinkedHashMap ) o));	
 	
 						}
+						if(x % 100 == 0 ) logger.info(x++ + " Records processed");
+						else x++;
 					}
 					
 					logger.info("Finished Building Entities");
 					
 				} catch (Exception e) {
 					logger.error("Error Processing data files");
-					logger.error(e);
-					e.printStackTrace();
+					logger.catching(e);
 				}
 				
 				logger.info("Filling in Tree");
@@ -408,6 +429,8 @@ public class CSVToI2b2TM extends JobType {
 			}
 			
 			//Set<ObjectMapping> oms = new HashSet<ObjectMapping>();
+			logger.info("Building Patient Mappings");
+
 			logger.info("Applying sequences");
 			Set<PatientMapping> pms = new HashSet<PatientMapping>();		
 			
@@ -418,10 +441,8 @@ public class CSVToI2b2TM extends JobType {
 
 			}
 			
-			logger.info("Building Patient Mappings");
 			//Set<PatientMapping> pms = PatientMapping.objectMappingToPatientMapping(oms);
 			logger.info("Finished Building Patient Mappings");
-			
 			
 			try {
 
@@ -490,9 +511,11 @@ public class CSVToI2b2TM extends JobType {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				logger.error(e);
+				logger.catching(e);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				logger.error(e);
+				logger.catching(e);
 			}
 			
 			
@@ -785,6 +808,7 @@ public class CSVToI2b2TM extends JobType {
 
 	}
 	private List buildRecordList(File file) throws IOException {
+		CSVDataSource2.QUOTE_CHAR = '`';
 		return CSVDataSource2.buildObjectMap(file.getName(), file, DATASOURCE_FORMAT);
 
 	}
@@ -818,8 +842,8 @@ public class CSVToI2b2TM extends JobType {
 					}
 				}
 				
-				
-				if(fileToRead != null || fileToRead.exists()) {
+				if(fileToRead == null) continue; 
+				if(fileToRead.exists()) {
 				
 					List recs = CSVDataSource2.buildObjectMap(f, fileToRead, DATASOURCE_FORMAT);
 					
@@ -1125,6 +1149,11 @@ public class CSVToI2b2TM extends JobType {
 		if(!isOmitted){
 			
 			for(Mapping mapping: mappings){
+				String currentFile = mapping.getKey().split(":")[0];
+				String currentRecFule = record.keySet().iterator().next().toString().split(":")[0];
+				if(!currentFile.equals(currentRecFule)) {
+					continue;
+				}
 				List<Object> relationalValue = new ArrayList<Object>();
 
 				if(!IS_DIR) {
@@ -1482,15 +1511,20 @@ public class CSVToI2b2TM extends JobType {
 		PATIENT_NUM_STARTING_SEQ = jobProperties.containsKey("patientnumstartseq") ? new Integer(jobProperties.get("patientnumstartseq").toString()): 1;
 
 		DO_SEQUENCING = jobProperties.containsKey("sequencedata") ? jobProperties.get("sequencedata").toString().toUpperCase().contains("Y") ? true: false: true;
+		
 		DO_PATIENT_NUM_SEQUENCE = jobProperties.containsKey("sequencepatient") ? jobProperties.get("sequencepatient").toString().toUpperCase().contains("Y") ? true: false: true;
 		DO_CONCEPT_CD_SEQUENCE = jobProperties.containsKey("sequenceconcept") ? jobProperties.get("sequenceconcept").toString().toUpperCase().contains("Y") ? true: false: true;
 		DO_ENCOUNTER_NUM_SEQUENCE = jobProperties.containsKey("sequenceencounter") ? jobProperties.get("sequenceencounter").toString().toUpperCase().contains("Y") ? true: false: true;
 		DO_INSTANCE_NUM_SEQUENCE = jobProperties.containsKey("sequenceinstance") ? jobProperties.get("sequenceinstance").toString().toUpperCase().contains("Y") ? true: false: true;
 		
+		
+		
 		INCLUDE_EMPTY_VALUES = jobProperties.containsKey("includeemptyvalues") ? jobProperties.get("includeemptyvalues").toString().toUpperCase().contains("Y") ? true: false: false;     
 		
 		IS_APPEND = jobProperties.containsKey("appending") ? jobProperties.get("appending").toString().toUpperCase().contains("Y") ? true: false: false;     
-		
+		IS_PARTITION_JOB = jobProperties.containsKey("ispartition") ? jobProperties.get("ispartition").toString().toUpperCase().contains("Y") ? true: false: false;     
+		IS_LAST_PARTITION = jobProperties.containsKey("finalpartition") ? jobProperties.get("finalpartition").toString().toUpperCase().contains("Y") ? true: false: false;     
+
 	}
 	
 	

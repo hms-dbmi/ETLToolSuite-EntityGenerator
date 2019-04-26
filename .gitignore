@@ -3,3 +3,12 @@
 /completed/
 /data/
 /.project
+/resources/config.*.config
+dating-trace*
+debug*.log
+error*.log
+info*.log
+old/*
+mappings/mapping.*.csv
+org.eclipse*
+arch*
