@@ -1,8 +1,10 @@
 package etl.job.jobtype;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
@@ -300,7 +302,18 @@ public class CSVToI2b2TM extends JobType {
 
 			List<PatientMapping2> patientMappingFile = !PATIENT_MAPPING_FILE.isEmpty() ? PatientMapping2.class.newInstance().generateMappingList(PATIENT_MAPPING_FILE, MAPPING_DELIMITER): new ArrayList<PatientMapping2>();
 			
-					
+			boolean isPatientFile = false;
+			
+			if(IS_APPEND) {
+				
+				String patientfile = patientMappingFile.get(0).toString().split(":")[0];
+				
+				for(Mapping mapping: mappingFile) {
+					if(patientfile.equals(mapping.getKey().split(":")[0])) {
+						isPatientFile = true;
+					}
+				}
+			}
 			// set relational key if not set in config
 			if(RELATIONAL_KEY_OVERRIDE == false) {
 				for(PatientMapping2 pm: patientMappingFile) {
@@ -335,7 +348,11 @@ public class CSVToI2b2TM extends JobType {
 							patientIds.add(pat.get("patientNum"));
 			
 						}
-						if(IS_APPEND){
+						if(IS_APPEND && isPatientFile){
+							
+							OutputStream clean = new FileOutputStream(WRITE_DESTINATION + "/PatientDimension.csv");
+							clean.close();
+							
 							List<Entity> ents = new ArrayList<Entity>();
 						    ents.addAll(processPatientEntities(patientList.get(key)));
 						    for(Entity ent: ents) {
