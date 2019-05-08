@@ -96,8 +96,8 @@ public class Partitioner {
                 cf.conceptcdstartseq = new Integer(currentConceptSeq).toString();
                 cf.encounternumstartseq= new Integer(1).toString();
                 cf.patientnumstartseq  = new Integer(3).toString();
-            		
-                currentConceptSeq = currentConceptSeq + estimatedconcepts + 100;
+            		//buffer is not enough setting to 10000
+                currentConceptSeq = currentConceptSeq + estimatedconcepts + 10000;
                 
                 try(OutputStream output = new FileOutputStream("./mappings/mapping.part" + partition + ".csv")) {
                 	
