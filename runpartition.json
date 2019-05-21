@@ -1,0 +1,20 @@
+{
+    "resourcesdir": "resources/",
+    "datadir": "data/",
+    "mappingdir": "mappings/",
+    "jobconfig": "resources/MESA.config",
+    "writedir": "completed/",
+    "mappingfilename": "mapping.csv",
+    "patientmappingfilename": "mapping.csv.patient",
+    "patientconfig": "resources/patient.config",
+    "maxjobs": 10,
+    "jobmemory": "4g",
+    "runcurator": "Y",
+    "rundataeval": "Y",
+    "runpartitioning": "Y",
+    "rungenerator": "Y",
+    "loglevel": "DEBUG",
+    "logdir": "logs/",
+    "clearlogs": "Y",
+    "archivelogs": "N"
+}
