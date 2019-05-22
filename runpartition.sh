@@ -1,14 +1,21 @@
 #!/bin/bash
 
-java -jar EntityGenerator.jar -jobtype CSVToI2b2TM -propertiesfile patient.config -Xmx12g
+while getopts m:j:c:r: option
+do
+case "${option}"
+in
+        m) memory=${OPTARG};;
+        j) maxjobs=${OPTARG};;
+        c) configfile=${OPTARG};;
+        r) resdir=${OPTARG};;
+esac
+done
 
-for filename in ./resources/config.part*.config; do
+for filename in ${resdir}${configfile}; do
+        nohup java -jar EntityGenerator.jar -jobtype CSVToI2b2TM -propertiesfile $filename -Xmx${memory} & 
 
-	nohup java -jar EntityGenerator.jar -jobtype CSVToI2b2TM -propertiesfile $filename -Xmx12g & >> logs/${filename}.log
-
-        if [ $(ps aux --no-heading | grep EntityGenerator.jar | wc -l) -gt 10 ]
+        if [ $(ps aux | grep EntityGenerator.jar | wc -l) -gt ${maxjobs} ]
            then
-		sleep 5
-           	echo $(ps aux --no-heading | grep EntityGenerator.jar | wc -l)
-	fi
+                sleep 5
+        fi
 done
