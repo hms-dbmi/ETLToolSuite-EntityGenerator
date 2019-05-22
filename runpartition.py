@@ -100,7 +100,7 @@ if runcurator == 'Y':
     #mainlogger.error(''.join(stderr))      
 ## Data Evaluations
 if rundataeval == 'Y':
-    args = ['java', '-jar', 'DataEvaluation.jar', '-datadir', datadir]
+    args = ['java', '-jar', 'DataEvaluation.jar', '-datadir', datadir, '-mappingfile', mappingdir + '/' + mappingfilename]
     mainlogger.info('Starting: ' + ' '.join(args))
     stdout,stderr = cmdWrapper(*args)
     logmsgs(mainlogger, stdout, stderr)
