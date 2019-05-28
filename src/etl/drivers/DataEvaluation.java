@@ -29,7 +29,9 @@ public class DataEvaluation {
 	
 	private static final boolean SKIP_HEADERS = true;
 
-	private static final String MAPPING_FILE = "./mappings/mapping.csv";
+	private static String WRITE_DIR = "./resources/";
+	
+	private static String MAPPING_FILE = "./mappings/mapping.csv";
 
 	private static final boolean MAPPING_SKIP_HEADER = false;
 
@@ -37,7 +39,7 @@ public class DataEvaluation {
 
 	private static final char MAPPING_QUOTED_STRING = '"';
 
-	private static final String PATIENT_MAPPING_FILE = "./mappings/mapping.csv.patient";
+	private static String PATIENT_MAPPING_FILE = "./mappings/mapping.csv.patient";
 	
 	private static String DATA_DIR = "./data/";
 	
@@ -47,11 +49,15 @@ public class DataEvaluation {
 	
 	private static Map<String, Set<String>> uniqueVals = new HashMap<String, Set<String>>();
 	
-	private static long totalconcepts = 0;
-
 	private static HashMap<String, List<String>> totalVals;
 	
-	public static void main(String[] args) throws IOException, InstantiationException, IllegalAccessException {
+	private static int totalFacts = 0;
+	private static int totalConcepts = 0;
+	private static Set<String> fileNames = new HashSet<String>();
+
+	public static void main(String[] args) throws Exception {
+		setVariables(args);
+		
 		executeMethod1();
 		// clean previous evaluations
 		
@@ -60,7 +66,13 @@ public class DataEvaluation {
 
 
 	private static void executeMethod1() throws IOException, InstantiationException, IllegalAccessException {
-		OutputStream clean = new FileOutputStream("./resources/dataevaluation.txt");
+		OutputStream clean = new FileOutputStream(WRITE_DIR + "dataevaluation.txt");
+		clean.close();
+		clean = new FileOutputStream(WRITE_DIR + "factevaluation.txt");
+		clean.close();
+		clean = new FileOutputStream(WRITE_DIR + "conceptevaluation.txt");
+		clean.close();
+		clean = new FileOutputStream(WRITE_DIR + "dataevaluation");
 		clean.close();
 		
 		List<Mapping> mappingFile = Mapping.class.newInstance().generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
@@ -91,7 +103,6 @@ public class DataEvaluation {
 			}
 		});		
 		Set<String> patientids = new HashSet<String>();
-		Set<String> fileNames = new HashSet<String>();
 
 		for(PatientMapping2 pm :patientMappingFile) {
 			if(pm.getPatientColumn().equalsIgnoreCase("patientnum")) {
@@ -114,22 +125,27 @@ public class DataEvaluation {
 		for(Mapping m: mappingFile) {
 			fileNames.add(m.getKey().split(":")[0]);
 		}
-		
+
 		Files.list(Paths.get(DATA_DIR)).forEach(path -> {		
 			if(!Files.isDirectory(path))
 			try {
 				
+				if(!fileNames.contains(path.getFileName().toString())) {
+					System.out.println(path.getFileName() + " does not exist in the mapping file.");
+					return;
+				}
 				List<Integer> nonOmittedColumns = new ArrayList<Integer>();
 
 				for(Mapping m: mappingFile) {
-					boolean isOmitted = m.getDataType().equalsIgnoreCase("omitted");
-					
-					if(isOmitted) continue;
 					
 					String fn = m.getKey().split(":")[0];
-					
+
 					if(!fn.equals(path.getFileName().toString())) continue;
 					
+					boolean isOmitted = m.getDataType().equalsIgnoreCase("omit");
+					
+					if(isOmitted) continue;
+
 					Integer col = new Integer(m.getKey().split(":")[1]);
 					
 					nonOmittedColumns.add(col);
@@ -137,7 +153,7 @@ public class DataEvaluation {
 				}
 	
 				CSVReader reader = new CSVReader(Files.newBufferedReader(path));
-				
+							
 				if(SKIP_HEADERS) reader.readNext();
 						
 				int nonnullvals = 0;
@@ -154,9 +170,14 @@ public class DataEvaluation {
 							colIndex++;
 							continue;
 						}
-						if(v == null) continue;
-						//if(v.isEmpty()) continue;
-						
+						if(v == null) {
+							colIndex++;
+							continue;
+						}
+						if(v.isEmpty()) {
+							colIndex++;
+							continue;
+						}
 						if(uniqueVals.containsKey(path.getFileName() + ":" + colIndex)) {
 							uniqueVals.get(path.getFileName() + ":" + colIndex).add(v);
 						} else {
@@ -170,39 +191,38 @@ public class DataEvaluation {
 						colIndex++;
 					}
 				}
-				
+
 				iter = reader.iterator();
 														
 				// filename and col with values
 				Map<String, Integer> estimatedconcepts = new HashMap<String, Integer>();
 				Map<String, Integer> estimatedfacts = new HashMap<String, Integer>();
 				//slong estimatedconcepts = 0;
-				
 				for(Entry<String, Set<String>> entry: uniqueVals.entrySet()) {
 					String dataType = getDataType(entry.getKey(),mappingFile);
-					
+
 					if(dataType.equalsIgnoreCase("text")) {
 						estimatedconcepts.put(entry.getKey(), entry.getValue().size());
-						strings.add(entry.getKey() + " Concepts = " + entry.getValue().size());
+						totalConcepts += entry.getValue().size();
 
 					} else {
 						if(entry.getValue().isEmpty()) {
 							estimatedconcepts.put(entry.getKey(), 0);
-							strings.add(entry.getKey() + " Concepts = " + 0);							
+							
 						} else {
 							estimatedconcepts.put(entry.getKey(), 1);
-							strings.add(entry.getKey() + " Concepts = " + 1);
+							totalConcepts += 1;
+
 						}
 					}
 					
-					totalconcepts = totalconcepts + estimatedconcepts.get(entry.getKey());
 					//estimatedconcepts += dataType.equalsIgnoreCase("text") ? entry.getKey() + '-' + entry.getValue().size(): 1;
 				}
 				
 				for(Entry<String, List<String>> entry: totalVals.entrySet()) {
 					estimatedfacts.put(entry.getKey(), entry.getValue().size());
 					strings.add(entry.getKey() + " Facts = " + entry.getValue().size());
-				
+					totalFacts += entry.getValue().size();
 					//estimatedconcepts += dataType.equalsIgnoreCase("text") ? entry.getKey() + '-' + entry.getValue().size(): 1;
 				}				
 				/*
@@ -210,8 +230,7 @@ public class DataEvaluation {
 					strings.add(path.getFileName() + " Facts = " + estimatedFacts);
 				}
 								*/
-
-		        try(OutputStream output = new FileOutputStream("./resources/conceptevaluation.txt", true)) {
+		        try(OutputStream output = new FileOutputStream( WRITE_DIR + "conceptevaluation.txt", true)) {
 		        		for(Entry<String, Integer> entry : estimatedconcepts.entrySet()) {
 		        			String str2 = entry.getKey() + ",concepts," + entry.getValue() + "\n";	
 		        			//output.write(str1.getBytes());
@@ -220,7 +239,8 @@ public class DataEvaluation {
 		        			output.flush();
 		        		}
 		        }
-		        try(OutputStream output = new FileOutputStream("./resources/factvaluation.txt", true)) {
+
+		        try(OutputStream output = new FileOutputStream(WRITE_DIR + "factevaluation.txt", true)) {
 	        		for(Entry<String, Integer> entry : estimatedfacts.entrySet()) {
 	        			String str2 = entry.getKey() + ",facts," + entry.getValue() + "\n";	
 	        			//output.write(str1.getBytes());
@@ -235,32 +255,19 @@ public class DataEvaluation {
 			}
 			
 		});
-		//System.out.println("sorting");
-		/*Collections.sort(strings, new Comparator<String>() {
-
-			@Override
-			public int compare(String o1, String o2) {
-				Integer o1I = new Integer(o1.split("= ")[1]);
-				Integer o2I = new Integer(o2.split("= ")[1]);
-				if(o1I == o2I ) return 0;
-				else if( o1I > o2I ) return 1;
-				else return -1;
-			}
-		});*/
-		//strings.add("Expected patient total = " + patientids.size());
-		
-		//for(String s: strings) {
-		//	System.out.println(s);
-		//}
-		//int totalfacts = 0;
-		//for(String s: strings) {
-		//	if(s.contains("Facts")) {;
-		//		int o1I = new Integer(s.split("= ")[1]);
-		//		totalfacts += o1I;
-		//	}
-		//}
-		//System.out.println("Total estimated concepts = " + totalconcepts);
-		//System.out.println("Total estimated facts = " + (totalfacts + patientids.size()));
+        try(OutputStream output = new FileOutputStream(WRITE_DIR + "dataevaluation.txt", true)) {
+        		String fout = "Total expected facts: " + (totalFacts + patientids.size() ) + "\n\n";
+        		String cout = "Total expected concepts: " + totalConcepts + "\n\n";
+        		String pout = "Total expected patients: " + patientids.size() + "\n\n";
+        		
+    			output.write(fout.getBytes());
+    			output.flush();
+    			output.write(cout.getBytes());
+    			output.flush();
+    			output.write(pout.getBytes());
+    			output.flush();
+    			output.close();
+        }
 		
 	}
 
@@ -271,5 +278,60 @@ public class DataEvaluation {
 		}
 		return null;
 	}
+	public static void setVariables(String[] args) throws Exception {
+		
+		for(String arg: args) {
+			if(arg.equalsIgnoreCase( "-patientmappingfile" )){
+				
+				PATIENT_MAPPING_FILE = checkPassedArgs(arg, args);
+			} 
+			if(arg.equalsIgnoreCase( "-mappingfile" )){
+				
+				MAPPING_FILE = checkPassedArgs(arg, args);
+			} 
+			if(arg.equalsIgnoreCase( "-datadir" )){
+				
+				DATA_DIR = checkPassedArgs(arg, args);
+			} 
+			
+			if(arg.equalsIgnoreCase( "-writedir" )){
+				
+				WRITE_DIR = checkPassedArgs(arg, args);
+			} 
+		}
+	}
+	
+	
+	// checks passed arguments and sends back value for that argument
+	public static String checkPassedArgs(String arg, String[] args) throws Exception {
+		
+		int argcount = 0;
+		
+		String argv = new String();
+		
+		for(String thisarg: args) {
+			
+			if(thisarg.equals(arg)) {
+				
+				break;
+				
+			} else {
+				
+				argcount++;
+				
+			}
+		}
+		
+		if(args.length > argcount) {
+			
+			argv = args[argcount + 1];
+			
+		} else {
+			
+			throw new Exception("Error in argument: " + arg );
+			
+		}
+		return argv;
 
+	}
 }
