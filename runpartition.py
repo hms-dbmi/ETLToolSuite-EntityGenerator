@@ -3,7 +3,7 @@ from subprocess import *
 
 # set project home variable
 projecthome = os.environ.get('ETL_PROJECT_HOME', './') # sets where script is executed if envvar is not set
-print projecthome
+print 'Project Home is set to ' + projecthome 
 # set variables
 with open(projecthome + '/runpartition.json') as json_data:
     data = json.load(json_data)
@@ -123,7 +123,7 @@ if rungenerator == 'Y':
     logmsgs(mainlogger, stdout, stderr)
     mainlogger.info('Finished: ' + ' '.join(args))
     
-## Process partitions
+## Process partitions this will generate the rest of the entities.
     #for file in os.listdir(resourcesdir):
      #   if 'config.part' in file:
             #args = ['java', '-jar', 'EntityGenerator.jar', '-propertiesfile', resourcesdir + file, '-jobtype', 'CSVToI2b2TM' ]
@@ -133,4 +133,13 @@ if rungenerator == 'Y':
     stdout,stderr = cmdWrapper(*args)
     logmsgs(mainlogger, stdout, stderr)
     mainlogger.info('Finished: ' + ' '.join(args))
- 
+
+## Run data cleanup
+    args = ['java', '-jar', 'DataCleanUp.jar', '-datadir', datadir ]
+    
+    mainlogger.info('Starting: ' + ' '.join(args))
+    stdout,stderr = cmdWrapper(*args)
+    logmsgs(mainlogger, stdout, stderr)
+    mainlogger.info('Finished: ' + ' '.join(args))
+
+
