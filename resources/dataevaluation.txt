@@ -1,0 +1,6 @@
+Total expected facts: 13417003
+
+Total expected concepts: 8333
+
+Total expected patients: 9779
+
