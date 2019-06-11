@@ -16,6 +16,7 @@ import java.util.Set;
 import com.opencsv.CSVReader;
 import com.opencsv.bean.CsvBindByPosition;
 import com.opencsv.bean.CsvToBean;
+import com.opencsv.bean.CsvToBeanBuilder;
 
 import etl.utils.Utils;
 
@@ -25,15 +26,15 @@ public class Mapping implements Cloneable{
 	
 	public static String OPTIONS_KV_DELIMITER = ":";
 	
-	@CsvBindByPosition(position = 1)
+	@CsvBindByPosition(position = 0, required=false)
 	private String key = "";
-	@CsvBindByPosition(position = 2)
+	@CsvBindByPosition(position = 1, required=false)
 	private String rootNode = "";
-	@CsvBindByPosition(position = 3)
+	@CsvBindByPosition(position = 2, required=false)
 	private String supPath = "";
-	@CsvBindByPosition(position = 4)
+	@CsvBindByPosition(position = 3, required=false)
 	private String dataType = "";
-	@CsvBindByPosition(position = 5)
+	@CsvBindByPosition(position = 4, required=false)
 	private String options = "";
 	
 	public Mapping(){
@@ -88,24 +89,29 @@ public class Mapping implements Cloneable{
 	}
 
 	
-	public static List<Mapping> generateMappingList(String filePath, boolean skipheader, char separator,char quotedChar) throws IOException{
+	public static List<Mapping> generateMappingList(String filePath, boolean skipheader, char separator,char quoteChar) throws IOException{
 		
 		if(!Files.exists(Paths.get(filePath))) {
 			throw new IOException(filePath + " does not exist.");
 		}
-		CsvToBean<Mapping> beans = new CsvToBean<Mapping>();
+		
+		ArrayList<Mapping> list = new ArrayList<Mapping>();
+		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(filePath))){
-			beans = Utils.readCsv(buffer, quotedChar, separator);
+			
+			CsvToBean<Mapping> beans = Utils.readCsvToBean(Mapping.class, buffer, quoteChar, separator, skipheader);
+
+			beans.forEach(bean ->{
+				list.add(bean);
+			});
+			
 		}
 		
-		List<Mapping> mapping = beans.parse();
-		// skip header
-		// skip header
 		if(skipheader) {
-			mapping.remove(0);
+			list.remove(0);
 		}			
 		
-		return mapping;
+		return list;
 		
 	}
 

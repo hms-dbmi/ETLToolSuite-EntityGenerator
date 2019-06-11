@@ -38,8 +38,6 @@ public class ConceptDimension {
 	}
 
 	public void setConceptCd(String conceptCd) {
-		conceptCd = conceptCd.trim();
-
 		this.conceptCd = conceptCd;
 	}
 

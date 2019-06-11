@@ -39,7 +39,7 @@ public class FactGenerator {
 	
 	private static String MAPPING_FILE = "./mappings/mapping.csv";
 
-	private static boolean MAPPING_SKIP_HEADER = false;
+	private static boolean MAPPING_SKIP_HEADER = true;
 
 	private static char MAPPING_DELIMITER = ',';
 
@@ -64,21 +64,7 @@ public class FactGenerator {
 	private static Integer INSTANCE_COL = -1;
 	
 	// hash map with patient dim attribute keyword and filename and column as value
-	private static HashMap<String, MappingHelper> attributemap = new HashMap<String,MappingHelper>();
-	static {
-		attributemap.put("patientnum", new MappingHelper());
-		attributemap.put("vitalstatusdcd", new MappingHelper());
-		attributemap.put("birthdate", new MappingHelper());
-		attributemap.put("sexcd", new MappingHelper());
-		attributemap.put("ageinyearsnum", new MappingHelper());
-		attributemap.put("languagecd", new MappingHelper());
-		attributemap.put("racecd", new MappingHelper());
-		attributemap.put("maritalstatuscd", new MappingHelper());
-		attributemap.put("religioncd", new MappingHelper());
-		attributemap.put("zipcd", new MappingHelper());
-		attributemap.put("statecityzippath", new MappingHelper());
-		attributemap.put("incomecd", new MappingHelper());
-	}	
+
 	public static void main(String[] args) throws Exception {
 		setVariables(args);
 		

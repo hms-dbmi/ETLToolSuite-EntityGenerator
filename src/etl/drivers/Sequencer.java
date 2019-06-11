@@ -10,17 +10,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
-import com.opencsv.RFC4180Parser;
-import com.opencsv.RFC4180ParserBuilder;
-import com.opencsv.bean.StatefulBeanToCsv;
-import com.opencsv.bean.StatefulBeanToCsvBuilder;
+import com.opencsv.bean.CsvToBean;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
+import etl.job.entity.i2b2tm.ConceptDimension;
 import etl.job.entity.i2b2tm.ObservationFact;
 import etl.job.entity.i2b2tm.PatientDimension;
 import etl.utils.Utils;
@@ -64,16 +59,13 @@ public class Sequencer {
 		
 		try {
 			if(DO_SEQUENCING) execute();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	private static void execute() throws Exception {
+	private static void execute() {
 		
 		/**
 		 *  PATIENT NUM SEQUENCED IN OBSERVATIONFACT.CSV AND PATIENTDIMENSION.CSV
@@ -82,33 +74,96 @@ public class Sequencer {
 		 */
 
 		if(DO_PATIENT_NUM_SEQUENCE) {
-			sequencePatients();
-			
+			try {
+				sequencePatients();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if(DO_CONCEPT_CD_SEQUENCE) {
+			try {
+				try {
+					sequenceConcepts();
+				} catch (CsvDataTypeMismatchException | CsvRequiredFieldEmptyException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	
+	private static void sequenceConcepts() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+		
+		Map<String,String> conceptMap = new HashMap<String,String>();
+		List<ConceptDimension> concepts = new ArrayList<ConceptDimension>();
+		
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "ConceptDimension.csv"))){
+			
+			CsvToBean<ConceptDimension> csvToBean = 
+					Utils.readCsvToBean(ConceptDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);
+			
+			concepts = csvToBean.parse();
+			
+			concepts.forEach(concept ->{
+				
+				conceptMap.put(concept.getConceptCd(), String.valueOf(CONCEPT_CD_STARTING_SEQ));
+
+				concept.setConceptCd(String.valueOf(CONCEPT_CD_STARTING_SEQ));
+				
+				CONCEPT_CD_STARTING_SEQ++;
+			});
+			
+		}
+			
+		List<ObservationFact> facts = new ArrayList<ObservationFact>();
+		
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "ObservationFact.csv"))){
+			
+			CsvToBean<ObservationFact> csvToBean = 
+					Utils.readCsvToBean(ObservationFact.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);
+
+			
+			facts = csvToBean.parse();
+			
+			facts.stream().forEach(fact -> {
+				if(!conceptMap.containsKey(fact.getConceptCd())) {
+					System.err.println("Concept ( " + fact.getConceptCd() + " )  does not exist in concpept dimension");
+					return;
+			 	}
+				String conceptCd = conceptMap.get(fact.getConceptCd());
+				
+				fact.setConceptCd(conceptCd);
+			});
+		}
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(DATA_DIR + File.separatorChar + "ConceptDimension.csv"))){
+			
+			Utils.writeToCsv(buffer, concepts, DATA_QUOTED_STRING, DATA_SEPARATOR);
+
+		} 
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(DATA_DIR + File.separatorChar + "ObservationFact.csv"))){
+			
+			Utils.writeToCsv(buffer, facts, DATA_QUOTED_STRING, DATA_SEPARATOR);
+
+		} 
+	}
+
 	private static void sequencePatients() throws Exception {
 		// LOAD ALL POSSIBLE PATIENT NUMS INTO A MAP<STRING,STRING> 
 		Map<String,String> patientMap = new HashMap<String,String>();
 		List<PatientDimension> patients = new ArrayList<PatientDimension>();
 		
-		try(BufferedReader reader = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "PatientDimension.csv"))){
-			RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
-					.withSeparator(DATA_SEPARATOR)
-					.withQuoteChar(DATA_QUOTED_STRING);
-				
-			RFC4180Parser parser = parserbuilder.build();
-
-			CSVReaderBuilder builder = new CSVReaderBuilder(reader)
-					.withCSVParser(parser);
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "PatientDimension.csv"))){
 			
-			CSVReader csvreader = builder.build();
+			CsvToBean<PatientDimension> csvToBean = 
+					Utils.readCsvToBean(PatientDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);
 			
-			if(SKIP_HEADERS) csvreader.readNext();
-			
-			patients = PatientDimension.buildFromEntityFile(csvreader.readAll());
+			patients = csvToBean.parse();
 									
-			for(PatientDimension pd: patients) {
+			patients.forEach(pd ->{
 				
 				patientMap.put(pd.getPatientNum(), String.valueOf(PATIENT_NUM_STARTING_SEQ));
 				
@@ -116,32 +171,18 @@ public class Sequencer {
 				pd.setSourceSystemCD(TRIAL_ID + ":" + PATIENT_NUM_STARTING_SEQ);
 				
 				PATIENT_NUM_STARTING_SEQ++;
-			}
+			});
 		}
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(DATA_DIR + File.separatorChar + "PatientDimension.csv"))){
-			
-			Utils.writeToCsv(buffer, patients, DATA_QUOTED_STRING, DATA_SEPARATOR);
 
-		} 
-		// dump patients list
-		patients = null;
 		List<ObservationFact> facts = new ArrayList<ObservationFact>();
 		
-		try(BufferedReader reader = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "ObservationFact.csv"))){
-			RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
-					.withSeparator(DATA_SEPARATOR)
-					.withQuoteChar(DATA_QUOTED_STRING);
-				
-			RFC4180Parser parser = parserbuilder.build();
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "ObservationFact.csv"))){
+			
+			CsvToBean<ObservationFact> csvToBean = 
+					Utils.readCsvToBean(ObservationFact.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);
 
-			CSVReaderBuilder builder = new CSVReaderBuilder(reader)
-					.withCSVParser(parser);
 			
-			CSVReader csvreader = builder.build();
-			
-			if(SKIP_HEADERS) csvreader.readNext();
-			
-			facts = ObservationFact.buildFromEntityFile(csvreader.readAll());
+			facts = csvToBean.parse();
 			
 			for(ObservationFact fact: facts) {
 				if(!patientMap.containsKey(fact.getPatientNum())) {
@@ -152,12 +193,17 @@ public class Sequencer {
 				
 				fact.setPatientNum(patientNum);
 			}
-			try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(DATA_DIR + File.separatorChar + "ObservationFact.csv"))){
-				
-				Utils.writeToCsv(buffer, facts, DATA_QUOTED_STRING, DATA_SEPARATOR);
-
-			} 
 		}
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(DATA_DIR + File.separatorChar + "PatientDimension.csv"))){
+			
+			Utils.writeToCsv(buffer, patients, DATA_QUOTED_STRING, DATA_SEPARATOR);
+
+		} 
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(DATA_DIR + File.separatorChar + "ObservationFact.csv"))){
+			
+			Utils.writeToCsv(buffer, facts, DATA_QUOTED_STRING, DATA_SEPARATOR);
+
+		} 
 	}
 
 	public static void setVariables(String[] args) throws Exception {

@@ -31,13 +31,13 @@ import etl.utils.Utils;
 public class ConceptGenerator {
 	private static final List<LinkOption> options = null;
 	
-	private static boolean SKIP_HEADERS = false;
+	private static boolean SKIP_HEADERS = true;
 
 	private static String WRITE_DIR = "./completed/";
 	
 	private static String MAPPING_FILE = "./mappings/mapping.csv";
 
-	private static boolean MAPPING_SKIP_HEADER = false;
+	private static boolean MAPPING_SKIP_HEADER = true;
 
 	private static char MAPPING_DELIMITER = ',';
 
@@ -104,8 +104,10 @@ public class ConceptGenerator {
 	private static void doConceptReader(Set<ConceptDimension> setCds, List<Mapping> mappings) throws IOException {
 		Integer mappingSize = mappings.size();
 		
-		mappings.stream().parallel().forEach(mapping -> {
-
+		mappings.stream().forEach(mapping -> {
+			
+			if(mapping.getKey().split(":").length < 2) return;
+			
 			String fileName = mapping.getKey().split(":")[0];
 			Integer column = new Integer(mapping.getKey().split(":")[1]);
 			
@@ -125,7 +127,7 @@ public class ConceptGenerator {
 
 				List<String[]> records = csvreader.readAll();
 				
-				records.parallelStream().forEach(record ->{
+				records.forEach(record ->{
 					ConceptDimension cd = new ConceptDimension();
 					
 					String conceptCd = mapping.getDataType().equalsIgnoreCase("numeric") ?
