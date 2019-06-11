@@ -44,6 +44,7 @@
         <pathelement location="resources/json-simple.jar"/>
         <pathelement location="resources/log4j-api-2.11.0.jar"/>
         <pathelement location="resources/log4j-core-2.11.0.jar"/>
+		<pathelement location="resources/commons-csv-1.7.jar"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
@@ -79,6 +80,22 @@
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 	  	</jar>
+		<jar destfile="/Users/sharra/github/ETL-MissionControl-dbgap-submodule/jars/StudiesConsentsGenerator.jar">
+    				<manifest>
+    				<attribute name="Main-Class" value="etl.jobs.csv.bdc.StudiesConsentsGenerator"/>
+    				</manifest>
+    			    <fileset dir="bin" includes="**/*.class" />
+    				<fileset dir="bin" includes="*.xml"></fileset>
+    		    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    	</jar>
+		<jar destfile="/Users/sharra/github/ETL-MissionControl-dbgap-submodule/jars/GenericMappingGenerator.jar">
+    				<manifest>
+    				<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenericMappingGenerator"/>
+    				</manifest>
+    			    <fileset dir="bin" includes="**/*.class" />
+    				<fileset dir="bin" includes="*.xml"></fileset>
+    	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    	 </jar>
 
 <!-- 		<jar destfile="jars/SampleIdGenerator.jar">
 			<manifest>
@@ -88,14 +105,7 @@
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 	  	</jar>
-		<jar destfile="jars/GenericMappingGenerator.jar">
-    				<manifest>
-    				<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenericMappingGenerator"/>
-    				</manifest>
-    			    <fileset dir="bin" includes="**/*.class" />
-    				<fileset dir="bin" includes="*.xml"></fileset>
-    	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
-    	    	</jar>
+		
 
 		<jar destfile="jars/HPDSPatientNumTracker.jar">
 			<manifest>
@@ -130,14 +140,7 @@
 			<fileset dir="bin" includes="*.xml"></fileset>
 		    <zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar>
-		<jar destfile="jars/StudiesConsentsGenerator.jar">
-    				<manifest>
-    				<attribute name="Main-Class" value="etl.jobs.csv.bdc.StudiesConsentsGenerator"/>
-    				</manifest>
-    			    <fileset dir="bin" includes="**/*.class" />
-    				<fileset dir="bin" includes="*.xml"></fileset>
-    		    		<zipgroupfileset dir="bin" includes="**/*.jar" />
-    	</jar>
+		
 		<jar destfile="jars/ConsentGroupGenerator.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.bdc.ConsentGroupGenerator"/>

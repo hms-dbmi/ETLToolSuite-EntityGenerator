@@ -81,7 +81,7 @@ public class DataAnalyzer extends Job {
 				mappingsMap.get(fileName).add(m);
 				
 			} else {
-				
+				System.out.println("Adding file" + fileName + "to file list");
 				mappingsMap.put(fileName, new ArrayList<Mapping>(Arrays.asList(m)));
 				
 			}
@@ -97,7 +97,7 @@ public class DataAnalyzer extends Job {
 				if(Files.exists(path)) { 
 
 					try {
-						
+						System.out.println("found path " + path);
 						newMappings.add(analyzeData(m,path));
 						
 					} catch (IOException e) {

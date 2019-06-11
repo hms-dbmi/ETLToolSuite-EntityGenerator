@@ -1,21 +1,25 @@
 package etl.jobs.newdictionary;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
+import org.apache.commons.collections4.iterators.IteratorIterable;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class Concept {
-    String dataset= "";
-    String conceptName="";
-    String displayName="";
-    String conceptType="";
-    String conceptPath="";
-    String parentConceptPath="";
-    String values="";
-    String description="";
-    Boolean stigmatized=false;
-
+    String dataset = "";
+    String conceptName = "";
+    String displayName = "";
+    String conceptType = "";
+    String conceptPath = "";
+    String parentConceptPath = "";
+    String values = "";
+    String description = "";
+    Boolean stigmatized = false;
 
     public Concept() {
-    }   
+    }
 
     public String getDataset() {
         return this.dataset;
@@ -93,11 +97,24 @@ public class Concept {
         this.stigmatized = stigmatized;
     }
 
-   
     public String[] getCsvEntry() {
-        String[] entry = {getDataset(),getConceptName(),getDisplayName(), getConceptType(), getConceptPath(),getParentConceptPath(), getValues() ,getDescription(), isStigmatized().toString()};
+        String[] entry = { getDataset(), getConceptName(), getDisplayName(), getConceptType(), getConceptPath(),
+                getParentConceptPath(), getValues(), getDescription(), isStigmatized().toString() };
         return entry;
     }
 
+    public ArrayList<String> getTsvEntry() {
+        ArrayList<String> tsvEntry = new ArrayList<>();
+        tsvEntry.add(getDataset());
+        tsvEntry.add(getConceptName());
+        tsvEntry.add(getDisplayName());
+        tsvEntry.add(getConceptType());
+        tsvEntry.add(getConceptPath());
+        tsvEntry.add(getParentConceptPath());
+        tsvEntry.add(getValues());
+        tsvEntry.add(getDescription());
+        tsvEntry.add(isStigmatized().toString());
+        return tsvEntry;
+    }
 
 }

@@ -8,10 +8,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.logging.log4j.core.util.JsonUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -92,25 +95,31 @@ public class NewDictionaryConverter extends BDCJob {
                 concept.setConceptType(varMeta.get("columnmeta_data_type").asText());
                 concept.setDescription(varMeta.get("columnmeta_description").asText());
                 concept.setStigmatized(varMeta.get("is_stigmatized").asBoolean());
-                concept.setConceptPath(varMeta.get("columnmeta_hpds_path").asText());
+                concept.setConceptPath(varMeta.get("columnmeta_hpds_path").asText().replace("\\", "\\\\"));
 
                 if (concept.getConceptType().equalsIgnoreCase("continuous")) {
                     concept.setValues("[" + varMeta.get("columnmeta_min").asText() + ","
                             + varMeta.get("columnmeta_max").asText() + "]");
                 } else {
-                    concept.setValues(varMeta.get("values").asText());
+                    JsonNode vals = variable.get("values");
+                    try {
+                        concept.setValues(om.writeValueAsString(vals));
+                    } catch (JsonProcessingException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                 }
                 if (name.startsWith("_")) {
                     // global var handling
-                    concept.setParentConceptPath("\\global_variables\\");
+                    concept.setParentConceptPath("\\\\global_variables\\\\");
                 } else if (name.endsWith("All Variables")) {
                     // study doesnt have tables
-                    concept.setParentConceptPath("\\" + studyMeta.get("columnmeta_study_id").asText() + "\\");
+                    concept.setParentConceptPath("\\\\" + studyMeta.get("columnmeta_study_id").asText() + "\\\\");
                     String studyId = studyMeta.get("columnmeta_study_id").asText();
                     if (!tableNames.contains(studyId)) {
                         tableNames.add(studyId);
                         Concept studyConcept = new Concept();
-                        studyConcept.setConceptPath("\\" + studyId + "\\");
+                        studyConcept.setConceptPath("\\\\" + studyId + "\\\\");
                         studyConcept.setDataset(variable.get("studyId").asText());
                         studyConcept.setConceptName(studyId);
                         studyConcept.setConceptType("categorical");
@@ -120,7 +129,7 @@ public class NewDictionaryConverter extends BDCJob {
                     // study has tables
                     String tableId = variable.get("dtId").asText();
                     String studyId = studyMeta.get("columnmeta_study_id").asText();
-                    concept.setParentConceptPath("\\" + studyId + "\\" + tableId + "\\");
+                    concept.setParentConceptPath("\\\\" + studyId + "\\\\" + tableId + "\\\\");
                     if (!tableNames.contains(tableId)) {
                         tableNames.add(tableId);
                         Concept tableConcept = new Concept();
@@ -130,13 +139,13 @@ public class NewDictionaryConverter extends BDCJob {
                         tableConcept.setDisplayName(varMeta.get("derived_group_name").asText());
                         tableConcept.setConceptType("categorical");
                         tableConcept.setDescription(varMeta.get("derived_group_description").asText());
-                        tableConcept.setParentConceptPath("\\" + studyId + "\\");
+                        tableConcept.setParentConceptPath("\\\\" + studyId + "\\\\");
                         concepts.add(tableConcept);
                     }
                     if (!tableNames.contains(studyId)) {
                         tableNames.add(studyId);
                         Concept studyConcept = new Concept();
-                        studyConcept.setConceptPath("\\" + studyId + "\\");
+                        studyConcept.setConceptPath("\\\\" + studyId + "\\\\");
                         studyConcept.setDataset(variable.get("studyId").asText());
                         studyConcept.setConceptName(studyId);
                         studyConcept.setConceptType("categorical");
@@ -148,19 +157,36 @@ public class NewDictionaryConverter extends BDCJob {
             });
 
         });
-        CSVWriter writer = new CSVWriter(new FileWriter(SUBSET_DIR + "concepts.csv"));
-        concepts.forEach(concept -> {
-            String[] entry = concept.getCsvEntry();
-            writer.writeNext(entry);
-        });
-        writer.close();
+        try (CSVPrinter printer = new CSVPrinter(new FileWriter(SUBSET_DIR + "concepts.tsv"), CSVFormat.TDF)) {
+            printer.printRecord("datasetRef", "name", "display", "conceptType", "conceptPath", "parentConceptPath",
+                    "values",
+                    "description", "stigmatized");
+            concepts.sort((a, b) -> {
+                return a.getConceptPath().compareTo(b.getConceptPath());
+            });
+            concepts.forEach(concept -> {
+                ArrayList<String> entry = concept.getTsvEntry();
+                try {
+                    printer.printRecord(entry);
+                } catch (IOException e) {
+                    System.out.println("Could not print line");
+                    e.printStackTrace();
+                }
+            });
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
     }
 
     public static void getStudyConsents(File studiesFile) throws IOException {
         System.out.println("Building consents for file " + studiesFile.getAbsolutePath());
         ObjectMapper om = new ObjectMapper();
-        CSVWriter writer = new CSVWriter(new FileWriter(SUBSET_DIR + "consents.csv"));
+        CSVPrinter printer = new CSVPrinter(new FileWriter(SUBSET_DIR + "consents.tsv"), CSVFormat.TDF);
         JsonNode studiesTree = om.readTree(studiesFile);
+        printer.printRecord("datasetRef", "consentCode", "description", "participantCount", "variableCount",
+                "sampleCount",
+                "authz");
         studiesTree.forEach(
                 node -> {
 
@@ -172,12 +198,15 @@ public class NewDictionaryConverter extends BDCJob {
                     String variable_count = node.get("clinical_variable_count").asText();
                     String sample_count = node.get("genetic_sample_size").asText();
                     String authz = node.get("authZ").asText();
-                    String[] consentLine = { studyId, consentCode, description, participant_count, variable_count,
-                            sample_count, authz };
-                    writer.writeNext(consentLine);
+                    try {
+                        printer.printRecord(studyId, consentCode, description, participant_count, variable_count,
+                                sample_count, authz);
+                    } catch (IOException e) {
+                        System.out.println("Could not print consent line");
+                        e.printStackTrace();
+                    }
                 });
-        writer.close();
-
+        printer.close();
     }
 
     private static void setLocalVariables(String[] args, JobProperties buildProperties) throws Exception {
