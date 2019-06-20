@@ -33,7 +33,6 @@ public class CountNode {
 	}
 	
 	public static void gatherPatientNums(Collection<ObservationFact> facts) {
-
 		Map<String,Set<String>> map = 
 			facts
 			.stream()
@@ -42,8 +41,6 @@ public class CountNode {
 						Collectors.mapping(ObservationFact::getPatientNum, Collectors.toSet())
 			)
 		);
-		
-		
 	}
 	
 }

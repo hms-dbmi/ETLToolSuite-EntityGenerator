@@ -95,15 +95,13 @@ public class Mapping implements Cloneable{
 			throw new IOException(filePath + " does not exist.");
 		}
 		
-		ArrayList<Mapping> list = new ArrayList<Mapping>();
+		List<Mapping> list = new ArrayList<Mapping>();
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(filePath))){
 			
 			CsvToBean<Mapping> beans = Utils.readCsvToBean(Mapping.class, buffer, quoteChar, separator, skipheader);
 
-			beans.forEach(bean ->{
-				list.add(bean);
-			});
+			list = beans.parse();
 			
 		}
 		

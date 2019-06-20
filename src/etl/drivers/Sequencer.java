@@ -18,6 +18,7 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import etl.job.entity.i2b2tm.ConceptDimension;
 import etl.job.entity.i2b2tm.ObservationFact;
 import etl.job.entity.i2b2tm.PatientDimension;
+import etl.job.entity.i2b2tm.PatientMapping;
 import etl.utils.Utils;
 
 public class Sequencer {
@@ -131,7 +132,8 @@ public class Sequencer {
 			
 			facts.stream().forEach(fact -> {
 				if(!conceptMap.containsKey(fact.getConceptCd())) {
-					System.err.println("Concept ( " + fact.getConceptCd() + " )  does not exist in concpept dimension");
+					if(!fact.getConceptCd().equalsIgnoreCase("SECURITY")) 
+						System.err.println("Concept ( " + fact.getConceptCd() + " )  does not exist in concpept dimension");
 					return;
 			 	}
 				String conceptCd = conceptMap.get(fact.getConceptCd());
@@ -149,12 +151,14 @@ public class Sequencer {
 			Utils.writeToCsv(buffer, facts, DATA_QUOTED_STRING, DATA_SEPARATOR);
 
 		} 
+
 	}
 
 	private static void sequencePatients() throws Exception {
 		// LOAD ALL POSSIBLE PATIENT NUMS INTO A MAP<STRING,STRING> 
 		Map<String,String> patientMap = new HashMap<String,String>();
 		List<PatientDimension> patients = new ArrayList<PatientDimension>();
+		List<PatientMapping> patientMapppings = new ArrayList<PatientMapping>();
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "PatientDimension.csv"))){
 			
@@ -167,8 +171,18 @@ public class Sequencer {
 				
 				patientMap.put(pd.getPatientNum(), String.valueOf(PATIENT_NUM_STARTING_SEQ));
 				
-				pd.setPatientNum(String.valueOf(PATIENT_NUM_STARTING_SEQ));
+				String sourcePatNum = pd.getPatientNum();
+				String mappedPatNum = String.valueOf(PATIENT_NUM_STARTING_SEQ);
+				
+				pd.setPatientNum(mappedPatNum);
 				pd.setSourceSystemCD(TRIAL_ID + ":" + PATIENT_NUM_STARTING_SEQ);
+				// Create mapping
+				PatientMapping pm = new PatientMapping();
+				
+				pm.setPatientIde(sourcePatNum);
+				pm.setPatientIdeSource(TRIAL_ID);
+				pm.setPatientNum(mappedPatNum);
+				patientMapppings.add(pm);
 				
 				PATIENT_NUM_STARTING_SEQ++;
 			});
@@ -202,6 +216,11 @@ public class Sequencer {
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(DATA_DIR + File.separatorChar + "ObservationFact.csv"))){
 			
 			Utils.writeToCsv(buffer, facts, DATA_QUOTED_STRING, DATA_SEPARATOR);
+
+		} 
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(DATA_DIR + File.separatorChar + "PatientMapping.csv"))){
+			
+			Utils.writeToCsv(buffer, patientMapppings, DATA_QUOTED_STRING, DATA_SEPARATOR);
 
 		} 
 	}

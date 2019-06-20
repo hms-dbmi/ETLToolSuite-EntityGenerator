@@ -2,7 +2,9 @@ package etl.utils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
@@ -10,10 +12,6 @@ import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
-
-import etl.job.entity.Mapping;
-import etl.job.entity.i2b2tm.ConceptDimension;
-import etl.job.entity.i2b2tm.ObservationFact;
 
 public class Utils {
 
@@ -40,5 +38,16 @@ public class Utils {
 				.build();
 		
 		writer.write(objectsToWrite);
+	}
+	
+	public static <T> void writeToCsv(BufferedWriter buffer,Collection<T> objectsToWrite,char quotedString,char dataSeparator) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+		@SuppressWarnings("unchecked")
+		StatefulBeanToCsv<T> writer = new StatefulBeanToCsvBuilder(buffer)
+				.withQuotechar(quotedString)
+				.withSeparator(dataSeparator)
+				.withEscapechar(ESCAPE_CHAR)
+				.build();
+		
+		writer.write(objectsToWrite.stream().collect(Collectors.toList()));
 	}
 }

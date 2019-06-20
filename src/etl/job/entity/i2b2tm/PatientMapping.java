@@ -30,29 +30,6 @@ public class PatientMapping {
 	@CsvBindByPosition(position = 9)
 	private String uploadId;
 	
-	public PatientMapping(String str, String patientIde, String patientIdeSource, String patientNum,
-			String patientIdeStatus, String projectId, String uploadDate, String downloadDate, String importDate,
-			String sourceSystemCd, String uploadId) throws Exception {
-		this.patientIde = patientIde;
-		this.patientIdeSource = patientIdeSource;
-		this.patientNum = patientNum;
-		this.patientIdeStatus = patientIdeStatus;
-		this.projectId = projectId;
-		this.uploadDate = uploadDate;
-		this.downloadDate = downloadDate;
-		this.importDate = importDate;
-		this.sourceSystemCd = sourceSystemCd;
-		this.uploadId = uploadId;
-	}
-	
-	public PatientMapping(String patientIde, String patientIdeSource, String patientNum,
-			String sourceSystemCd) {
-		this.patientIde = patientIde;
-		this.patientIdeSource = patientIdeSource;
-		this.patientNum = patientNum;
-		this.sourceSystemCd = sourceSystemCd;
-	}
-
 
 	public boolean isValid() {
 		return true;
