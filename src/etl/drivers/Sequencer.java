@@ -21,6 +21,12 @@ import etl.job.entity.i2b2tm.PatientDimension;
 import etl.job.entity.i2b2tm.PatientMapping;
 import etl.utils.Utils;
 
+/**
+ * @author Thomas DeSain
+ * 
+ * Generates sequences for the columns in the data file.
+ *
+ */
 public class Sequencer {
 	private static boolean SKIP_HEADERS = false;
 
@@ -65,14 +71,12 @@ public class Sequencer {
 			e.printStackTrace();
 		}
 	}
-
+	/**
+	 *  PATIENT NUM SEQUENCED IN OBSERVATIONFACT.CSV AND PATIENTDIMENSION.CSV
+	 *  WILL ALSO GENERATE THE PATIENT_MAPPING IS PATIENT NUM IS SEQUENCED.  
+	 *  IF THIS IS NOT SEQUENCE PATIENT_MAPPING WILL NOT BE GENERATED.
+	 */
 	private static void execute() {
-		
-		/**
-		 *  PATIENT NUM SEQUENCED IN OBSERVATIONFACT.CSV AND PATIENTDIMENSION.CSV
-		 *  WILL ALSO GENERATE THE PATIENT_MAPPING IS PATIENT NUM IS SEQUENCED.  
-		 *  IF THIS IS NOT SEQUENCE PATIENT_MAPPING WILL NOT BE GENERATED.
-		 */
 
 		if(DO_PATIENT_NUM_SEQUENCE) {
 			try {

@@ -1,4 +1,4 @@
-package etl.drivers;
+package etl.jobs.csv;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,9 +23,19 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import etl.job.entity.i2b2tm.ConceptCounts;
 import etl.job.entity.i2b2tm.ConceptDimension;
 import etl.job.entity.i2b2tm.ObservationFact;
+import etl.jobs.jobproperties.JobProperties;
 import etl.utils.Utils;
 
-public class CountGenerator {
+/**
+ * Generates Concept Counts Entity.
+ * 
+ * It required that concept dimension and fact entities are generated first and
+ * that they are located in the DATA_DIR directory.
+ * 
+ * @author Thomas DeSain
+ *
+ */
+public class CountGenerator extends Job{
 	private static boolean SKIP_HEADERS = false;
 
 	private static String DATA_DIR = "./completed/";
@@ -34,52 +43,69 @@ public class CountGenerator {
 	private static final char DATA_SEPARATOR = ',';
 
 	private static final char DATA_QUOTED_STRING = '"';
+
+	private static final CharSequence PATH_SEPARATOR = "\\";
 		
 	private static String TRIAL_ID = "DEFAULT";
 	
+	/**
+	 * Main method that executes subprocesses
+	 * Exception handled should happen here.
+	 * 
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		try {
-			setVariables(args);
+			setVariables(args, buildProperties(args));
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.err.println("Error processing variables");
+			System.err.println(e);
 		}
 		
 		try {
 			execute();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.err.println(e);
 		} catch (CsvDataTypeMismatchException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.err.println(e);
 		} catch (CsvRequiredFieldEmptyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.err.println(e);
 		}
 	}
 
+	/**
+	 * Wrapper that calls subprocesses
+	 * 
+	 * @throws IOException
+	 * @throws CsvDataTypeMismatchException
+	 * @throws CsvRequiredFieldEmptyException
+	 */
 	private static void execute() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 		// hashmap containing conceptcd and patientset
-		Map<String, Set<String>> factmap = null;
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "ObservationFact.csv"))){
-
-			CsvToBean<ObservationFact> csvToBean = Utils.readCsvToBean(ObservationFact.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);	
+		Map<String, Set<String>> factmap = new HashMap<String, Set<String>>();
 		
-			List<ObservationFact> facts = csvToBean.parse();
-			
-			factmap =
-					facts.stream().collect(Collectors.groupingBy(
-							ObservationFact::getConceptCd,
-								Collectors.mapping(ObservationFact::getPatientNum, Collectors.toSet())
-								)
-							);
-			
-			//CountNode.gatherPatientNums(facts);
-		}
-		// hashmap with conceptpath and merging all patients sets from the fact map
+		readFactFile(factmap);
 		
 		List<ConceptCounts> ccCounts = new ArrayList<ConceptCounts>();
+		
+		generateCounts(ccCounts, factmap);
+
+	}
+
+	/**
+	 * Generates the concept counts using the concept dimension file.
+	 * Will recursively break down all paths into smaller nodes and use the factmap to find all
+	 * associated conceptcds and patient sets.
+	 * Will merge all patient sets into a hashset to create a distinct collection of patient nums whom's
+	 * size will result in the concept counts
+	 * 
+	 * @param ccCounts
+	 * @param factmap
+	 * @throws IOException
+	 * @throws CsvDataTypeMismatchException
+	 * @throws CsvRequiredFieldEmptyException
+	 */
+	private static void generateCounts(List<ConceptCounts> ccCounts, Map<String, Set<String>> factmap) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "ConceptDimension.csv"))){
 			CsvToBean<ConceptDimension> csvToBean = Utils.readCsvToBean(ConceptDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);	
 			
@@ -95,15 +121,15 @@ public class CountGenerator {
 				String currentPath = concept;
 				conceptNodes.add(currentPath);
 
-				int x = StringUtils.countMatches(currentPath, '\\');
+				int x = StringUtils.countMatches(currentPath, PATH_SEPARATOR);
 				
 				while(x > 2) {
 					
-					currentPath = concept.substring(0, StringUtils.ordinalIndexOf(concept, "\\", (x - 1)) + 1);
+					currentPath = concept.substring(0, StringUtils.ordinalIndexOf(concept, PATH_SEPARATOR, (x - 1)) + 1);
 					
 					conceptNodes.add(currentPath);
 					
-					x = StringUtils.countMatches(currentPath, '\\');
+					x = StringUtils.countMatches(currentPath, PATH_SEPARATOR);
 				}
 			});
 			// ConceptPath and Patient Set
@@ -115,11 +141,42 @@ public class CountGenerator {
 
 			Utils.writeToCsv(buffer, ccCounts, DATA_QUOTED_STRING, DATA_SEPARATOR);
 
-		} 
+		} 		
 	}
 
+	/**
+	 * Method loads a map of concept codes with a set of associated patient nums.
+	 * This will be used as a lookup when generating counts.
+	 * 
+	 * @param factmap
+	 * @throws IOException
+	 */
+	private static void readFactFile(Map<String, Set<String>> factmap) throws IOException {
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "ObservationFact.csv"))){
+
+			CsvToBean<ObservationFact> csvToBean = Utils.readCsvToBean(ObservationFact.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);	
+		
+			List<ObservationFact> facts = csvToBean.parse();
+			
+			factmap = facts.stream().collect(Collectors.groupingBy(
+							ObservationFact::getConceptCd,
+								Collectors.mapping(ObservationFact::getPatientNum, Collectors.toSet())
+								)
+							);
+		}
+	}
+
+	/**
+	 * Methods takes concept nodes and generates an array list of concept counts.
+	 * 
+	 * @param conceptNodes
+	 * @param conceptCdSetMap
+	 * @param factmap
+	 * @return
+	 */
 	private static List<ConceptCounts> compileNodes(Set<String> conceptNodes, Map<String, String> conceptCdSetMap,
 			Map<String, Set<String>> factmap) {
+		
 		Map<String, Set<String>> conceptPatSetMap = new HashMap<String, Set<String>>();
 		List<ConceptCounts> ccList = new ArrayList<ConceptCounts>();
 		conceptNodes.stream().forEach(node ->{
@@ -138,62 +195,12 @@ public class CountGenerator {
 		conceptPatSetMap.entrySet().stream().forEach(entry ->{
 			ConceptCounts cc = new ConceptCounts();
 			cc.setConceptPath(entry.getKey());
-			int x = StringUtils.countMatches(entry.getKey(), '\\');
-			cc.setParentConceptPath(entry.getKey().substring(0, StringUtils.ordinalIndexOf(entry.getKey(), "\\", (x - 1)) + 1));
+			int x = StringUtils.countMatches(entry.getKey(), PATH_SEPARATOR);
+			cc.setParentConceptPath(entry.getKey().substring(0, StringUtils.ordinalIndexOf(entry.getKey(), PATH_SEPARATOR, (x - 1)) + 1));
 			cc.setPatientCount(entry.getValue().size());
 			ccList.add(cc);
 		});
 		
 		return ccList;
-	}
-
-	public static void setVariables(String[] args) throws Exception {
-		
-		for(String arg: args) {
-			if(arg.equalsIgnoreCase("-skipheaders")){
-				String skip = checkPassedArgs(arg, args);
-				if(skip.equalsIgnoreCase("Y")) {
-					SKIP_HEADERS = true;
-				} 
-			}
-
-			if(arg.equalsIgnoreCase( "-datadir" )){
-				DATA_DIR = checkPassedArgs(arg, args);
-			} 
-			if(arg.equalsIgnoreCase( "-trialid" )){
-				TRIAL_ID  = checkPassedArgs(arg, args);
-			} 
-		}
-	}
-	// checks passed arguments and sends back value for that argument
-	public static String checkPassedArgs(String arg, String[] args) throws Exception {
-		
-		int argcount = 0;
-		
-		String argv = new String();
-		
-		for(String thisarg: args) {
-			
-			if(thisarg.equals(arg)) {
-				
-				break;
-				
-			} else {
-				
-				argcount++;
-				
-			}
-		}
-		
-		if(args.length > argcount) {
-			
-			argv = args[argcount + 1];
-			
-		} else {
-			
-			throw new Exception("Error in argument: " + arg );
-			
-		}
-		return argv;
 	}
 }

@@ -58,13 +58,93 @@
             <classpath refid="classpath"/>
         </javac>
     
-	  	<jar destfile="EntityGenerator.jar">
+	  	<jar destfile="ConceptGenerator.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.drivers.TestDriver"/>
+				<attribute name="Main-Class" value="etl.drivers.ConceptGenerator"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 	  	</jar>
+	  	<jar destfile="CountGenerator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.drivers.CountGenerator"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>
+	  	<jar destfile="DataCleanUp.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.drivers.DataCleanUp"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>    	    	
+	  	<jar destfile="DataCurator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.drivers.DataCurator"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>    
+	  	<jar destfile="DataEvaluation.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.drivers.DataEvaluation"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>    
+	  	<jar destfile="FactGenerator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.drivers.FactGenerator"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>   
+	  	<jar destfile="FillInTree.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.drivers.FillInTree"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>    
+	  	<jar destfile="MetadataGenerator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.drivers.MetadataGenerator"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>    
+	  	<jar destfile="Partitioner.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.drivers.Partitioner"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>    
+	  	<jar destfile="PatientGenerator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.drivers.PatientGenerator"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>    
+	  	<jar destfile="Sequencer.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.drivers.Seqeuncer"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>    
     	</target>
 </project>

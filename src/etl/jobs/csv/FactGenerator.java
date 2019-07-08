@@ -1,4 +1,4 @@
-package etl.drivers;
+package etl.jobs.csv;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,7 +10,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,19 +19,21 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.RFC4180Parser;
 import com.opencsv.RFC4180ParserBuilder;
-import com.opencsv.bean.StatefulBeanToCsv;
-import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
-import etl.exceptions.RequiredFieldException;
 import etl.job.entity.Mapping;
 import etl.job.entity.i2b2tm.ObservationFact;
-import etl.job.entity.i2b2tm.PatientDimension;
-import etl.job.entity.patientgen.MappingHelper;
+import etl.jobs.jobproperties.JobProperties;
 import etl.utils.Utils;
 
-public class FactGenerator {	
+/**
+ * @author Thomas DeSain
+ * This class purpose is to process a data file and generate
+ * the Observation Fact entity file that can be loaded into a data store.
+ * 
+ */
+public class FactGenerator extends Job{	
 	private static boolean SKIP_HEADERS = true;
 
 	private static String WRITE_DIR = "./completed/";
@@ -65,32 +66,59 @@ public class FactGenerator {
 	
 	// hash map with patient dim attribute keyword and filename and column as value
 
-	public static void main(String[] args) throws Exception {
-		setVariables(args);
+	/**
+	 * Main method that executes subprocesses
+	 * Exception handling should happen here. Unless related to streams.
+	 * 
+	 * 
+	 * 
+	 * @param args
+	 * @param buildProperties 
+	 * @return 
+	 **/
+	public static Set<ObservationFact> main(String[] args, JobProperties buildProperties) {
+		try {
+			setVariables(args, buildProperties);
+		} catch (Exception e) {
+			System.err.println("Error processing variables");
+			System.err.println(e);
+		}
 		
-		execute();
+		try {
+			return execute();
+		} catch (CsvDataTypeMismatchException | CsvRequiredFieldEmptyException | IOException e) {
+			System.err.println(e);
+		}
+		return null;
+		
 	}
 	
-	private static void execute() throws RequiredFieldException {
+	/**
+	 * Wrapper for subprocesses
+	 * @return 
+	 * 
+	 * @throws IOException
+	 * @throws CsvDataTypeMismatchException
+	 * @throws CsvRequiredFieldEmptyException
+	 */
+	private static Set<ObservationFact> execute() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+
 		List<Mapping> mappings = new ArrayList<Mapping>();
 
-		try {
-			mappings = Mapping.generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
+		mappings = Mapping.generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
 
-		} catch (IOException e) {
-			System.err.println("Error generating mapping file!");
-			System.err.println(e.getMessage());
-		} 
-		
-		try {
-			doFactGenerator(mappings);
-			doPatientSecurityGenerator();
-		} catch (IOException e) {
-			System.err.println("Error generating facts!");
-			System.err.println(e.getMessage());		
-		}
+		return doFactGenerator(mappings);
+
 	}
-	private static void doPatientSecurityGenerator() throws IOException {
+	
+	/**
+	 * Generates the required security records in the observation fact table.
+	 * 
+	 * @throws IOException
+	 * @throws CsvDataTypeMismatchException
+	 * @throws CsvRequiredFieldEmptyException
+	 */
+	private static void doPatientSecurityGenerator() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 		String fileName = "PatientDimension.csv";
 		Set<ObservationFact> facts = new HashSet<ObservationFact>();
 		
@@ -133,25 +161,20 @@ public class FactGenerator {
 
 			Utils.writeToCsv(buffer, facts.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
 
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.err.println("Error writing Observation Facts");
-			System.err.println(e);
-		} catch (CsvDataTypeMismatchException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CsvRequiredFieldEmptyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} 
 	}
 
 	
-	private static void doFactGenerator(List<Mapping> mappings) throws IOException {
+	/**
+	 * Generates facts based on information contained in the passed mapping records.
+	 * 
+	 * @param mappings
+	 * @return 
+	 * @throws IOException
+	 */
+	private static Set<ObservationFact> doFactGenerator(List<Mapping> mappings) throws IOException {
 		
 		String defaultDate = new Date().toString();
-		BufferedWriter delete = new BufferedWriter(new FileWriter(WRITE_DIR + File.separatorChar + "ObservationFact.csv"));
-		delete.close();
 		Set<ObservationFact> facts = new HashSet<ObservationFact>();
 
 		mappings.forEach(mapping -> {
@@ -226,10 +249,16 @@ public class FactGenerator {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				System.err.println(e.getMessage());
-			}			
+			} 			
 		});	
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), StandardOpenOption.CREATE, StandardOpenOption.CREATE)){
+		
+		return facts;
+		
+
+	}
+
+	public static void writeFacts(Set<ObservationFact> facts) {
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), StandardOpenOption.CREATE, StandardOpenOption.APPEND )){
 			try {
 				Utils.writeToCsv(buffer, facts.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
 			} catch (CsvDataTypeMismatchException e) {
@@ -246,75 +275,4 @@ public class FactGenerator {
 		} 
 	}
 
-	public static void setVariables(String[] args) throws Exception {
-		
-		for(String arg: args) {
-			if(arg.equalsIgnoreCase( "-patientcol" )){
-				PATIENT_COL = new Integer(checkPassedArgs(arg, args));
-			} 
-			if(arg.equalsIgnoreCase("-skipheaders")){
-				String skip = checkPassedArgs(arg, args);
-				if(skip.equalsIgnoreCase("Y")) {
-					SKIP_HEADERS = true;
-				} 
-			}
-			if(arg.equalsIgnoreCase( "-mappingskipheaders" )){
-				String skip = checkPassedArgs(arg, args);
-				if(skip.equalsIgnoreCase("Y")) {
-					MAPPING_SKIP_HEADER = true;
-				} 
-			}
-			if(arg.equalsIgnoreCase( "-mappingquotedstring" )){
-				String qs = checkPassedArgs(arg, args);
-				MAPPING_QUOTED_STRING = qs.charAt(0);
-			}
-			if(arg.equalsIgnoreCase( "-mappingdelimiter" )){
-				String md = checkPassedArgs(arg, args);
-				MAPPING_DELIMITER = md.charAt(0);
-			}
-			if(arg.equalsIgnoreCase( "-mappingfile" )){
-				MAPPING_FILE = checkPassedArgs(arg, args);
-			} 
-			if(arg.equalsIgnoreCase( "-datadir" )){
-				DATA_DIR = checkPassedArgs(arg, args);
-			} 
-			if(arg.equalsIgnoreCase( "-writedir" )){
-				WRITE_DIR = checkPassedArgs(arg, args);
-			} 
-			if(arg.equalsIgnoreCase( "-trialid" )){
-				TRIAL_ID  = checkPassedArgs(arg, args);
-			} 
-		}
-	}
-	// checks passed arguments and sends back value for that argument
-	public static String checkPassedArgs(String arg, String[] args) throws Exception {
-		
-		int argcount = 0;
-		
-		String argv = new String();
-		
-		for(String thisarg: args) {
-			
-			if(thisarg.equals(arg)) {
-				
-				break;
-				
-			} else {
-				
-				argcount++;
-				
-			}
-		}
-		
-		if(args.length > argcount) {
-			
-			argv = args[argcount + 1];
-			
-		} else {
-			
-			throw new Exception("Error in argument: " + arg );
-			
-		}
-		return argv;
-	}
 }

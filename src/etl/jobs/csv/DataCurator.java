@@ -1,4 +1,4 @@
-package etl.drivers;
+package etl.jobs.csv;
 
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
@@ -17,6 +17,15 @@ import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+/** 
+ * @author Thomas DeSain
+ *
+ * This process will clean any data file in the DATA_DIR.
+ * This will purge all non ascii characeters as well as a set
+ * of unsupported basic latin characters below.
+ * 
+ * This is a requirement for I2B2/TM to function.
+ */
 public class DataCurator {
 
 	private static String DATA_DIR = "./data/";
@@ -65,15 +74,17 @@ public class DataCurator {
 		};
 	}
 
+	/**
+	 * Iterate over each char in file.  Purge all non Basic Latin chars and 
+	 * Illegal application chars.  See badChars variable.
+	 * @param entry
+	 */
 	private static void cleanFile(Path entry) {
 		if(!Files.isDirectory(entry)) {
 			if(Files.isReadable(entry)) {
 				StringBuilder out = new StringBuilder();
 				try {
-					/*
-					 * Iterate over each char in file.  Purge all non Basic Latin chars and 
-					 * Illegal application chars.  See badChars variable.
-					 */
+
 					Files.lines(entry).forEach(line -> {
 						line = line.trim();
 						for(char c: line.toCharArray()) {
@@ -86,14 +97,14 @@ public class DataCurator {
 						}
 						out.append('\n');
 					});
+					
 					Files.write(entry, out.toString().getBytes(StandardCharsets.US_ASCII), WRITE_OPTIONS);
+					
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					System.err.println(e);					
 				}
 			}
-		}
-		
+		}		
 	}
 	public static void setVariables(String[] args) throws Exception {
 		

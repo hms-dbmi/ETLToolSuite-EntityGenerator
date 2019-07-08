@@ -1,7 +1,9 @@
 package etl.job.entity.i2b2tm;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -89,9 +91,6 @@ public class I2B2 implements Cloneable{
 	}
 
 	public void setcFullName(String cFullName) {
-		cFullName = cFullName.replaceAll("[*|/<\\?%>\":]", "");
-		
-		cFullName = cFullName.replaceAll(" \\\\", "\\\\");		
 		this.cFullName = cFullName;
 	}
 
@@ -100,10 +99,6 @@ public class I2B2 implements Cloneable{
 	}
 
 	public void setcName(String cName) {
-		cName = cName.replaceAll("[*|/<\\?%>\":]", "");
-		
-		cName = cName.replaceAll(" \\\\", "\\\\");
-		cName = cName.trim();
 		this.cName = cName;
 	}
 
@@ -309,12 +304,42 @@ public class I2B2 implements Cloneable{
 				+ mExclusionCd + ", cPath=" + cPath + ", cSymbol=" + cSymbol
 				+ "]";
 	}
-
-	public static void fillTree(Set<I2B2> nodes) throws Exception{
+	/**
+	 * Fill in tree by taking all clevel where the most diversity occurs base nodes then recursively back fill them
+	 *  
+	 * @param nodes
+	 * @throws Exception
+	 */
+	public static void fillTree(Set<I2B2> nodes, int clevelBegOccurance, int clevelEndOccurance) throws Exception{
 		
 		Set<I2B2> set = new HashSet<I2B2>();
+		/*
+		ConcurrentHashMap<CharSequence,Set<CharSequence>> trees = new ConcurrentHashMap<CharSequence, Set<CharSequence>>();
 		
 		nodes.forEach(node ->{
+			
+			CharSequence cfullname = node.getcFullName();
+			if(StringUtils.countMatches(cfullname, "\\") <= 2) return; // is empty node or only base node.  No need to fill.
+
+			int clevelBegIndex = StringUtils.ordinalIndexOf(cfullname, "\\", clevelBegOccurance);
+			
+			int clevelEndIndex = StringUtils.ordinalIndexOf(cfullname, "\\", clevelEndOccurance);
+			
+			CharSequence clevelName = cfullname.subSequence(clevelBegIndex, clevelEndIndex + 1);
+			
+			if(trees.containsKey(clevelName)) {
+				trees.get(clevelName).add(cfullname);
+			} else {
+				trees.put(clevelName, new HashSet<CharSequence>(Arrays.asList(cfullname)));
+			}
+			
+		});
+		
+		trees.entrySet().parallelStream()
+		*/
+		
+		nodes.forEach(node ->{
+			
 			Integer x = StringUtils.countMatches(node.getcFullName(),"\\") - 1;
 					
 			while(x > 1){
@@ -323,8 +348,7 @@ public class I2B2 implements Cloneable{
 				try {
 					i2b2 = (I2B2) node.clone();
 				} catch (CloneNotSupportedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					System.err.println(e);
 				}
 				if(i2b2 == null) {
 					break;
@@ -355,6 +379,7 @@ public class I2B2 implements Cloneable{
 				x--;
 			}
 		});
+		
 		nodes.addAll(set);
 	}
 	@Override

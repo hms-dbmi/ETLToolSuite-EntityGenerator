@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,33 +13,24 @@ import com.opencsv.bean.CsvToBean;
 
 import etl.job.entity.i2b2tm.I2B2;
 import etl.job.entity.i2b2tm.TableAccess;
+import etl.jobs.csv.Job;
 import etl.utils.Utils;
 
-public class FillInTree {
+/**
+ * @author Thomas DeSain
+ * Take metadata generated from metadatagenerator and replicates 
+ * parent nodes to fill out metadata records.
+ *
+ */
+public class FillInTree extends Job{
 	
 	private static boolean SKIP_HEADERS = false;
 
-	private static String WRITE_DIR = "./completed/";
-	
-	private static String MAPPING_FILE = "./mappings/mapping.csv";
-
-	private static boolean MAPPING_SKIP_HEADER = false;
-
-	private static char MAPPING_DELIMITER = ',';
-
-	private static char MAPPING_QUOTED_STRING = '"';
-
-	private static final char DATA_SEPARATOR = ',';
-
-	private static final char DATA_QUOTED_STRING = '"';
-	
-	private static String DATA_DIR = "./data/";
-
-	private static String TRIAL_ID = "DEFAULT";
+	private static int clevel = 1; 
 	
 	public static void main(String[] args) {
 		try {
-			setVariables(args);
+			setVariables(args, buildProperties(args));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -70,7 +60,7 @@ public class FillInTree {
 			
 			nodes = new HashSet<I2B2>(csvToBean.parse());
 			
-			I2B2.fillTree(nodes);
+			I2B2.fillTree(nodes, clevel + 1, clevel + 2);
 			
 			// build tableaccess entities
 			tableAccess.addAll(TableAccess.createTableAccess(nodes));

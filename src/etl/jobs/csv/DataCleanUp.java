@@ -1,4 +1,4 @@
-package etl.drivers;
+package etl.jobs.csv;
 
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
@@ -21,12 +21,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+/**
+ * This app clean up the issues with partitioning
+ * Will be a temp process until I rewrite EntityGenerator
+ * @param args
+ */
 public class DataCleanUp {
-	/**
-	 * This is a simple app that will clean up the issues with partitioning
-	 * Will be a temp process until I rewrite EntityGenerator
-	 * @param args
-	 */
+
 	private static String DATA_DIR = "./completed/";
 	
 	private static String QUOTED_STRING = "`";

@@ -50,4 +50,36 @@ public class Utils {
 		
 		writer.write(objectsToWrite.stream().collect(Collectors.toList()));
 	}
+	
+	// checks passed arguments and sends back value for that argument
+	public static String checkPassedArgs(String arg, String[] args) throws Exception {
+		
+		int argcount = 0;
+		
+		String argv = new String();
+		
+		for(String thisarg: args) {
+			
+			if(thisarg.equals(arg)) {
+				
+				break;
+				
+			} else {
+				
+				argcount++;
+				
+			}
+		}
+		
+		if(args.length > argcount) {
+			
+			argv = args[argcount + 1];
+			
+		} else {
+			
+			throw new Exception("Error in argument: " + arg );
+			
+		}
+		return argv;
+	}	
 }

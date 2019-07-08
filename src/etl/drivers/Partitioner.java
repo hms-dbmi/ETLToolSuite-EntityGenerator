@@ -21,12 +21,14 @@ import etl.job.entity.ConfigFile;
 import etl.job.entity.Mapping;
 
 /**
+ * @author Thomas DeSain
+ * 
  * Will generate a mapping part file, config file and a sh script to execute the partition jobs
  * First iteration will separate all files.
  * Using algorithms in data evaluation should be able to create a more intelligent version of this after poc.
- * @author Tom
  *
  */
+
 public class Partitioner {
 	
 	private static final List<LinkOption> options = null;
@@ -59,13 +61,31 @@ public class Partitioner {
 	
 	private static String MAPPING_OUTPUT_DIR = "./mappings/";
 	
-	public static void main(String[] args) throws Exception {
-		setVariables(args);
+	public static void main(String[] args) {
+		try {
+			setVariables(args);
+		} catch (Exception e) {
+			System.err.println("Error processing variables");
+			System.err.println(e);
+		}
 
-		doMethod1();
+		try {
+			execute();
+		} catch (InstantiationException | IllegalAccessException | IOException | CloneNotSupportedException e) {
+			System.err.println(e);
+		}
 	}
-	//Each record in the mapping file becomes its own job
-	private static void doMethod1() throws InstantiationException, IllegalAccessException, IOException, CloneNotSupportedException {
+	
+	/**
+	 * Partitions data and config file split into a record per mapping.
+	 * This will be used to create multiple jobs that can be hyperthreaded.
+	 * 
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws IOException
+	 * @throws CloneNotSupportedException
+	 */
+	private static void execute() throws InstantiationException, IllegalAccessException, IOException, CloneNotSupportedException {
 		deleteOldConfigs();
 		if(DELETE_ONLY.equalsIgnoreCase("Y")) return;
 		
@@ -130,7 +150,9 @@ public class Partitioner {
             ex.printStackTrace();
         }		
 	}
-
+	/**
+	 * deletes old partition configs
+	 */
 	private static void deleteOldConfigs() {
 		  File dir = new File(CONFIG_OUTPUT_DIR);
 		  File[] directoryListing = dir.listFiles();
@@ -143,6 +165,15 @@ public class Partitioner {
 		  } 	
 	}
 
+	/**
+	 * Reads the evaluation file to find the expected concept size for this mapping.
+	 * This is important to properly sequence the data.
+	 * 
+	 * @param mappingKey
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
 	private static Integer getEstimatedConcepts(String mappingKey) throws FileNotFoundException, IOException {
 		Path path = Paths.get(EVALUATION_FILE_CONCEPTS);
 		try (CSVReader reader = new CSVReader(Files.newBufferedReader(path))) {
