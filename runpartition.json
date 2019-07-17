@@ -1,0 +1,22 @@
+{
+    "resourcesdir": "resources/",
+    "datadir": "data/",
+    "studybucket": "s3://<bucket_name>",
+    "mappingdir": "mappings/",
+    "jobconfig": "resources/job.config",
+    "writedir": "completed/",
+    "mappingfilename": "mapping.csv",
+    "patientmappingfilename": "mapping.csv.patient",
+    "patientconfig": "resources/patient.config",
+    "maxjobs": 3,
+    "jobmemory": "4g",
+    "runcurator": "Y",
+    "rundataeval": "Y",
+    "runpartitioning": "Y",
+    "rungenerator": "Y",
+    "loglevel": "DEBUG",
+    "logdir": "/var/logs/",
+    "syncproject": "Y",
+    "clearlogs": "Y",
+    "archivelogs": "Y"
+}
