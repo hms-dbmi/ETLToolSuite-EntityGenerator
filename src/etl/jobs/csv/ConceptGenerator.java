@@ -5,14 +5,12 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.opencsv.CSVReader;
@@ -34,8 +32,29 @@ import etl.utils.Utils;
  * 
  */
 public class ConceptGenerator extends Job{
-
-	
+	/**
+	 * Standalone Main so this class can generate concepts alone.
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		try {
+			setVariables(args, buildProperties(args));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			System.err.println("Error processing variables");
+			System.err.println(e);
+		}
+		
+		try {
+			writeConcepts(execute());
+		} catch (CsvDataTypeMismatchException e) {
+			System.err.println(e);
+		} catch (CsvRequiredFieldEmptyException e) {
+			System.err.println(e);
+		} catch (IOException e) {
+			System.err.println(e);
+		}
+	}
 	/**
 	 * Main method that drives Concept Generation Process
 	 * 
@@ -134,9 +153,7 @@ public class ConceptGenerator extends Job{
 					cds.add(cd);
 				});
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				System.err.println(e.getMessage());
+				System.err.println(e);
 			}
 			
 		});	

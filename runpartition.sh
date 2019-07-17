@@ -12,7 +12,7 @@ esac
 done
 
 for filename in ${resdir}${configfile}; do
-        nohup java -jar EntityGenerator.jar -jobtype CSVToI2b2TM -propertiesfile $filename -Xmx${memory} & 
+        nohup java -jar EntityGenerator.jar -propertiesfile $filename -Xmx${memory} & 
 
         if [ $(ps aux | grep EntityGenerator.jar | wc -l) -gt ${maxjobs} ]
            then

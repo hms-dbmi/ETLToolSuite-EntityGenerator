@@ -34,43 +34,39 @@ import etl.utils.Utils;
  * 
  */
 public class FactGenerator extends Job{	
-	private static boolean SKIP_HEADERS = true;
-
-	private static String WRITE_DIR = "./completed/";
-	
-	private static String MAPPING_FILE = "./mappings/mapping.csv";
-
-	private static boolean MAPPING_SKIP_HEADER = true;
-
-	private static char MAPPING_DELIMITER = ',';
-
-	private static char MAPPING_QUOTED_STRING = '"';
-
-	private static final char DATA_SEPARATOR = ',';
-
-	private static final char DATA_QUOTED_STRING = '"';
 
 	private static Integer START_DATE_COL = null;
 
 	private static Integer END_DATE_COL = null;
 	
 	private static Integer PATIENT_COL = 0;
-
-	private static String DATA_DIR = "./data/";
-
-	private static String TRIAL_ID = "DEFAULT";
-		
+	
 	private static Integer ENCOUNTER_COL = -1;
 	
 	private static Integer INSTANCE_COL = -1;
 	
-	// hash map with patient dim attribute keyword and filename and column as value
-
+	/**
+	 * Standalone main method
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		try {
+			setVariables(args, buildProperties(args));
+		} catch (Exception e) {
+			System.err.println("Error processing variables");
+			System.err.println(e);
+		}
+		
+		try {
+			execute();
+		} catch (CsvDataTypeMismatchException | CsvRequiredFieldEmptyException | IOException e) {
+			System.err.println(e);
+		}
+		
+	}
 	/**
 	 * Main method that executes subprocesses
 	 * Exception handling should happen here. Unless related to streams.
-	 * 
-	 * 
 	 * 
 	 * @param args
 	 * @param buildProperties 
@@ -157,6 +153,7 @@ public class FactGenerator extends Job{
 					
 			}
 		}
+		
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), StandardOpenOption.APPEND)){
 
 			Utils.writeToCsv(buffer, facts.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
@@ -251,7 +248,7 @@ public class FactGenerator extends Job{
 				e.printStackTrace();
 			} 			
 		});	
-		
+
 		return facts;
 		
 

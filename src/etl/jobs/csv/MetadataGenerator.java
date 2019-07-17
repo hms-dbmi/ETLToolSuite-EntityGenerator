@@ -38,7 +38,28 @@ import etl.utils.Utils;
  *
  */
 public class MetadataGenerator extends Job {
-
+	
+	public static void main(String[] args) {
+		try {
+			setVariables(args, buildProperties(args));
+		} catch (Exception e) {
+			System.err.println("Error processing variables");
+			System.err.println(e);
+		}
+		
+		try {
+			execute();
+		} catch (Exception e) {
+			System.err.println(e);
+		}
+	}
+	/**
+	 * Main method if concepts are already loaded into memory.
+	 * @param args
+	 * @param concepts
+	 * @param jobProperties
+	 * @return
+	 */
 	public static Set<I2B2> main(String[] args, Collection<ConceptDimension> concepts, JobProperties jobProperties) {
 		try {
 			setVariables(args, jobProperties);
@@ -56,6 +77,26 @@ public class MetadataGenerator extends Job {
 		
 	}
 	
+	private static void execute() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+		
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "ConceptDimension.csv"))){
+	
+			CsvToBean<ConceptDimension> csvToBean = Utils.readCsvToBean(ConceptDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);	
+			
+			List<ConceptDimension> inputconcepts = csvToBean.parse();		
+			// creates map of root node and data type
+			Map<String,String> mappings = createMappings();
+			// creates map of concept path and concept cd 
+			Map<String,String> concepts = createConcepts(inputconcepts);
+	
+			Set<I2B2> metadata = new HashSet<I2B2>();
+			// generate leaf nodes
+			generateMetadata(mappings, concepts, metadata);
+			
+			writeMetadata(metadata);
+		}
+		
+	}
 	/**
 	 * Wrapper for subprocesses
 	 * @return 
@@ -193,10 +234,7 @@ public class MetadataGenerator extends Job {
 	 * @throws IOException
 	 */
 	private static Map<String, String> createConcepts(Collection<ConceptDimension> concepts) throws IOException {
-		//try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "ConceptDimension.csv"))){
-		//	CsvToBean<ConceptDimension> csvToBean = Utils.readCsvToBean(ConceptDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);	
-			
-		//	List<ConceptDimension> concepts = csvToBean.parse();
+
 
 		Map<String, String> map = concepts.stream().collect(
 					Collectors.toMap(ConceptDimension::getConceptPath, ConceptDimension::getConceptCd)

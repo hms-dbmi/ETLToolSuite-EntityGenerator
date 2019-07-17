@@ -43,6 +43,7 @@ public class EntityGenerator extends Job {
 		if(metadata == null) throw new Exception("No metadata exists");
 		
 		System.out.println("Sequencing Data");
+		CEIsequencer.main(args, facts, setCds, jobProperties);
 		
 		System.out.println("Writing Entities");
 	

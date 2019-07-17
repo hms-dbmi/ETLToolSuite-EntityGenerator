@@ -36,17 +36,7 @@ import etl.utils.Utils;
  *
  */
 public class CountGenerator extends Job{
-	private static boolean SKIP_HEADERS = false;
 
-	private static String DATA_DIR = "./completed/";
-	
-	private static final char DATA_SEPARATOR = ',';
-
-	private static final char DATA_QUOTED_STRING = '"';
-
-	private static final CharSequence PATH_SEPARATOR = "\\";
-		
-	private static String TRIAL_ID = "DEFAULT";
 	
 	/**
 	 * Main method that executes subprocesses

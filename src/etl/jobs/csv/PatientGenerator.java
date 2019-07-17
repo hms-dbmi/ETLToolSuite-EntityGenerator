@@ -41,8 +41,15 @@ import etl.utils.Utils;
  *
  */
 public class PatientGenerator extends Job{
+	/**
+	 * Attribute map that contains mapping for columns between patientmapping.csv file key names 
+	 * and link them to the fields in the patient dimension entity.
+	 * These keys have to be fixed names in order to properly map and generate the patient dimension table.
+	 * 
+	 * patientnum is the only required attribute that must be given in the patient mapping file in order to generate 
+	 * patient dimension entity.
+	 */
 	
-	// hash map with patient dim attribute keyword and filename and column as value
 	private static HashMap<String, MappingHelper> attributemap = new HashMap<String,MappingHelper>();
 	static {
 		attributemap.put("patientnum", new MappingHelper());
@@ -59,6 +66,27 @@ public class PatientGenerator extends Job{
 		attributemap.put("incomecd", new MappingHelper());
 	}
 	
+	/**
+	 * This method is the standalone main method. 
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// Set application variables
+		try {
+			setVariables(args, buildProperties(args));
+		// Execute patient generation
+			execute();
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+	}
+	/**
+	 * This main method is included in order to build scripts that may create
+	 * properties in a different manner than the buildProperties method.
+	 * 
+	 * @param args
+	 * @param jobProperties
+	 */
 	public static void main(String[] args, JobProperties jobProperties) {
 		// Set application variables
 		try {
@@ -69,7 +97,18 @@ public class PatientGenerator extends Job{
 			System.err.println(e.getMessage());
 		}
 	}
-	
+	/**
+	 * The main execution method.
+	 * This will push subprocesses that will generate patient dimension entity and any other related
+	 * security data.
+	 * 
+	 * @throws RequiredFieldException
+	 * @throws IOException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws CsvDataTypeMismatchException
+	 * @throws CsvRequiredFieldEmptyException
+	 */
 	private static void execute() throws RequiredFieldException, IOException, InstantiationException, IllegalAccessException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 			// load patient mapping
 			List<PatientMapping> patientMappings = !PATIENT_MAPPING_FILE.isEmpty() ? PatientMapping.class.newInstance().generateMappingList(PATIENT_MAPPING_FILE, MAPPING_DELIMITER): new ArrayList<PatientMapping>();
@@ -133,7 +172,12 @@ public class PatientGenerator extends Job{
 
 		} 
 	}
-
+/**
+ * Helper method that will find the patientnum key and build initial patient records.
+ * @param fileName
+ * @param attributemap
+ * @return
+ */
 	private static Integer lookupPatientNumCol(String fileName, HashMap<String, MappingHelper> attributemap) {
 		if(attributemap.containsKey("patientnum")) {
 			MappingHelper mh = attributemap.get("patientnum");
@@ -193,7 +237,14 @@ public class PatientGenerator extends Job{
 			System.err.println(e);
 		}		
 	}
-
+/**
+ * builds the patientdimension object
+ * @param pd
+ * @param attrkey
+ * @param record
+ * @param colindex
+ */
+	
 	private static void setAttribute(PatientDimension pd, String attrkey, String[] record, Integer colindex) {
 
 		if(attrkey.equalsIgnoreCase("patientnum")) pd.setPatientNum(record[colindex]);
@@ -210,7 +261,12 @@ public class PatientGenerator extends Job{
 		if(attrkey.equalsIgnoreCase("incomecd")) pd.setIncomeCD(record[colindex]);
 		
 	}
-
+/**
+ * Looks up all key fields in the attribute map if given.
+ * 
+ * @param pm
+ * @param attrKeys
+ */
 	private static void buildAttributes(PatientMapping pm, Set<String> attrKeys) {
 		
 		MappingHelper mh = attributemap.get(pm.getPatientColumn().toLowerCase());

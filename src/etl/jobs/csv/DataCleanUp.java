@@ -24,8 +24,11 @@ import java.util.stream.Stream;
 /**
  * This app clean up the issues with partitioning
  * Will be a temp process until I rewrite EntityGenerator
+ * 
+ * No longer needed in new engine
  * @param args
  */
+@Deprecated
 public class DataCleanUp {
 
 	private static String DATA_DIR = "./completed/";

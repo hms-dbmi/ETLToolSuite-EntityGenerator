@@ -144,12 +144,12 @@ if rungenerator == 'Y':
     mainlogger.info('Finished: ' + ' '.join(args))
 
 ## Run data cleanup
-    args = ['java', '-jar', 'DataCleanUp.jar', '-datadir', datadir ]
+#    args = ['java', '-jar', 'DataCleanUp.jar', '-datadir', datadir ]
     
-    mainlogger.info('Starting: ' + ' '.join(args))
-    stdout,stderr = cmdWrapper(*args)
-    logmsgs(mainlogger, stdout, stderr)
-    mainlogger.info('Finished: ' + ' '.join(args))
+#    mainlogger.info('Starting: ' + ' '.join(args))
+#    stdout,stderr = cmdWrapper(*args)
+#    logmsgs(mainlogger, stdout, stderr)
+#    mainlogger.info('Finished: ' + ' '.join(args))
 
 if rundataload == 'Y':
     args = ['sh', 'LoadTables.sh', '-u', str(dburl), '-o', dbuser, '-p', dbpass, '-c', writedir, '-s', dbscriptdir]        

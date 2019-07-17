@@ -35,26 +35,8 @@ import etl.job.entity.PatientMapping;
  * @author Thomas DeSain
  *
  */
-public class DataEvaluation {
-	
-	private static final List<LinkOption> options = null;
-	
-	private static final boolean SKIP_HEADERS = true;
+public class DataEvaluation extends Job{
 
-	private static String WRITE_DIR = "./resources/";
-	
-	private static String MAPPING_FILE = "./mappings/mapping.csv";
-
-	private static final boolean MAPPING_SKIP_HEADER = false;
-
-	private static final char MAPPING_DELIMITER = ',';
-
-	private static final char MAPPING_QUOTED_STRING = '"';
-
-	private static String PATIENT_MAPPING_FILE = "./mappings/mapping.csv.patient";
-	
-	private static String DATA_DIR = "./data/";
-	
 	private static ArrayList<String> strings = new ArrayList<String>();
 	
 	private static ArrayList<String> cstrings = new ArrayList<String>();

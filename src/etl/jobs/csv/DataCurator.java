@@ -26,12 +26,8 @@ import java.util.stream.StreamSupport;
  * 
  * This is a requirement for I2B2/TM to function.
  */
-public class DataCurator {
-
-	private static String DATA_DIR = "./data/";
-	
-	private static String DATA_TYPE = "json";
-	
+public class DataCurator extends Job{
+		
 	private static OpenOption[] WRITE_OPTIONS = new OpenOption[] { WRITE, CREATE, TRUNCATE_EXISTING };	
 	/**
 	 * List of all Basic Latin characters not supported by I2B2 / TM
@@ -64,6 +60,8 @@ public class DataCurator {
 	
 	public static void main(String[] args) throws Exception {
 		
+		setVariables(args, buildProperties(args));
+		
 		try(DirectoryStream<Path> dirstream = Files.newDirectoryStream(Paths.get(DATA_DIR))){
 			Stream<Path> stream = StreamSupport.stream(dirstream.spliterator(), true);
 
@@ -90,10 +88,7 @@ public class DataCurator {
 						for(char c: line.toCharArray()) {
 							if( c <= '\u007f' ) {
 								if(!BAD_CHARS.contains(c)) out.append(c);
-								//else System.err.println(c);
-							} else {
-								//System.err.println(c);
-							}
+							} 
 						}
 						out.append('\n');
 					});
@@ -105,51 +100,6 @@ public class DataCurator {
 				}
 			}
 		}		
-	}
-	public static void setVariables(String[] args) throws Exception {
-		
-		for(String arg: args) {
-			if(arg.equalsIgnoreCase( "-datadir" )){
-				
-				DATA_DIR = checkPassedArgs(arg, args);
-				
-			}
-		
-		}
-	}
-	
-	
-	// checks passed arguments and sends back value for that argument
-	public static String checkPassedArgs(String arg, String[] args) throws Exception {
-		
-		int argcount = 0;
-		
-		String argv = new String();
-		
-		for(String thisarg: args) {
-			
-			if(thisarg.equals(arg)) {
-				
-				break;
-				
-			} else {
-				
-				argcount++;
-				
-			}
-		}
-		
-		if(args.length > argcount) {
-			
-			argv = args[argcount + 1];
-			
-		} else {
-			
-			throw new Exception("Error in argument: " + arg );
-			
-		}
-		return argv;
-
 	}
 	
 }
