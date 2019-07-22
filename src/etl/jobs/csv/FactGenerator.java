@@ -33,7 +33,7 @@ import etl.utils.Utils;
  * the Observation Fact entity file that can be loaded into a data store.
  * 
  */
-public class FactGenerator extends Job{	
+public class FactGenerator extends Job {	
 
 	private static Integer START_DATE_COL = null;
 
@@ -107,59 +107,6 @@ public class FactGenerator extends Job{
 
 	}
 	
-	/**
-	 * Generates the required security records in the observation fact table.
-	 * 
-	 * @throws IOException
-	 * @throws CsvDataTypeMismatchException
-	 * @throws CsvRequiredFieldEmptyException
-	 */
-	private static void doPatientSecurityGenerator() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
-		String fileName = "PatientDimension.csv";
-		Set<ObservationFact> facts = new HashSet<ObservationFact>();
-		
-		try(BufferedReader reader = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + fileName))){
-			RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
-					.withSeparator(DATA_SEPARATOR)
-					.withQuoteChar(DATA_QUOTED_STRING);
-				
-			RFC4180Parser parser = parserbuilder.build();
-
-			CSVReaderBuilder builder = new CSVReaderBuilder(reader)
-					.withCSVParser(parser);
-			
-			CSVReader csvreader = builder.build();		
-			
-			List<String[]> recs = csvreader.readAll();
-						
-			for(String[] rec: recs) {
-				String patientNum = rec[0];
-				if(!patientNum.isEmpty()) {
-					ObservationFact obs = new ObservationFact();
-					obs.setPatientNum(patientNum);
-					obs.setConceptCd("SECURITY");
-					obs.setEncounterNum("-1");
-					obs.setInstanceNum("-1");
-					obs.setModifierCd(TRIAL_ID);
-					obs.setTvalChar("EXP:PUBLIC");
-					
-					obs.setValueFlagCd("@");
-					obs.setQuantityNum("1");
-					obs.setLocationCd("@");
-					obs.setSourceSystemCd(TRIAL_ID);
-					
-					facts.add(obs);
-				}
-					
-			}
-		}
-		
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), StandardOpenOption.APPEND)){
-
-			Utils.writeToCsv(buffer, facts.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
-
-		} 
-	}
 
 	
 	/**

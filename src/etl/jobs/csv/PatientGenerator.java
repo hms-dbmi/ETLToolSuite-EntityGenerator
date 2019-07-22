@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +29,7 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 import etl.exceptions.RequiredFieldException;
 import etl.job.entity.PatientMapping;
+import etl.job.entity.i2b2tm.ObservationFact;
 import etl.job.entity.i2b2tm.PatientDimension;
 import etl.job.entity.i2b2tm.PatientTrial;
 import etl.job.entity.patientgen.MappingHelper;
@@ -164,7 +166,10 @@ public class PatientGenerator extends Job{
 			}
 						
 			List<PatientDimension> patients = pdCollection.values().stream().collect(Collectors.toList());
+			
 			Utils.writeToCsv(buffer, patients, DATA_QUOTED_STRING, DATA_SEPARATOR);
+			
+			doPatientSecurityGenerator(patients);
 		} 		
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "PatientTrial.csv"))){
 			
@@ -172,6 +177,85 @@ public class PatientGenerator extends Job{
 
 		} 
 	}
+	private static void doPatientSecurityGenerator(List<PatientDimension> patients) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+		Set<ObservationFact> facts = new HashSet<ObservationFact>();
+		
+		for(PatientDimension rec: patients) {
+				ObservationFact obs = new ObservationFact();
+				obs.setPatientNum(rec.getPatientNum());
+				obs.setConceptCd("SECURITY");
+				obs.setEncounterNum("-1");
+				obs.setInstanceNum("-1");
+				obs.setModifierCd(TRIAL_ID);
+				obs.setTvalChar("EXP:PUBLIC");
+				
+				obs.setValueFlagCd("@");
+				obs.setQuantityNum("1");
+				obs.setLocationCd("@");
+				obs.setSourceSystemCd(TRIAL_ID);
+				
+				facts.add(obs);
+		}
+	
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), StandardOpenOption.APPEND)){
+	
+				Utils.writeToCsv(buffer, facts.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
+	
+		} 		
+	}
+/**
+ * Generates the required security records in the observation fact table.
+ * 
+ * @throws IOException
+ * @throws CsvDataTypeMismatchException
+ * @throws CsvRequiredFieldEmptyException
+ */
+public static void doPatientSecurityGenerator() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+	String fileName = "PatientDimension.csv";
+	Set<ObservationFact> facts = new HashSet<ObservationFact>();
+	
+	try(BufferedReader reader = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + fileName))){
+		RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
+				.withSeparator(DATA_SEPARATOR)
+				.withQuoteChar(DATA_QUOTED_STRING);
+			
+		RFC4180Parser parser = parserbuilder.build();
+
+		CSVReaderBuilder builder = new CSVReaderBuilder(reader)
+				.withCSVParser(parser);
+		
+		CSVReader csvreader = builder.build();		
+		
+		List<String[]> recs = csvreader.readAll();
+					
+		for(String[] rec: recs) {
+			String patientNum = rec[0];
+			if(!patientNum.isEmpty()) {
+				ObservationFact obs = new ObservationFact();
+				obs.setPatientNum(patientNum);
+				obs.setConceptCd("SECURITY");
+				obs.setEncounterNum("-1");
+				obs.setInstanceNum("-1");
+				obs.setModifierCd(TRIAL_ID);
+				obs.setTvalChar("EXP:PUBLIC");
+				
+				obs.setValueFlagCd("@");
+				obs.setQuantityNum("1");
+				obs.setLocationCd("@");
+				obs.setSourceSystemCd(TRIAL_ID);
+				
+				facts.add(obs);
+			}
+				
+		}
+	}
+	
+	try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), StandardOpenOption.APPEND)){
+
+		Utils.writeToCsv(buffer, facts.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
+
+	} 
+}
 /**
  * Helper method that will find the patientnum key and build initial patient records.
  * @param fileName
@@ -237,7 +321,8 @@ public class PatientGenerator extends Job{
 			System.err.println(e);
 		}		
 	}
-/**
+
+	/**
  * builds the patientdimension object
  * @param pd
  * @param attrkey

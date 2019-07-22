@@ -27,7 +27,7 @@ import etl.jobs.jobproperties.JobProperties;
 import etl.utils.Utils;
 
 /**
- * Generates Concept Counts Entity.
+ * Generates Concept Counts Entity file.
  * 
  * It required that concept dimension and fact entities are generated first and
  * that they are located in the DATA_DIR directory.
@@ -37,7 +37,6 @@ import etl.utils.Utils;
  */
 public class CountGenerator extends Job{
 
-	
 	/**
 	 * Main method that executes subprocesses
 	 * Exception handled should happen here.

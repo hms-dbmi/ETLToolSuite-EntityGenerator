@@ -28,33 +28,7 @@ import etl.utils.Utils;
  *
  */
 public class PatientSequencer extends Job {
-	private static boolean SKIP_HEADERS = false;
 
-	private static String DATA_DIR = "./completed/";
-	
-	private static char DATA_SEPARATOR = ',';
-
-	private static char DATA_QUOTED_STRING = '"';
-		
-	private static String TRIAL_ID = "DEFAULT";
-	
-	private static boolean DO_SEQUENCING = true;
-	
-	private static boolean DO_PATIENT_NUM_SEQUENCE = true;
-	
-	private static boolean DO_CONCEPT_CD_SEQUENCE = true;
-	
-	private static boolean DO_ENCOUNTER_NUM_SEQUENCE = true;
-	
-	private static boolean DO_INSTANCE_NUM_SEQUENCE = true;
-	
-	private static Integer CONCEPT_CD_STARTING_SEQ = 1;
-
-	private static Integer ENCOUNTER_NUM_STARTING_SEQ = 1;
-
-	private static Integer PATIENT_NUM_STARTING_SEQ = 1;
-	
-	private static Integer INSTANCE_NUM_STARTING_SEQ = 1;
 	
 	public static void main(String[] args) {
 		try {
@@ -119,41 +93,13 @@ public class PatientSequencer extends Job {
 				PATIENT_NUM_STARTING_SEQ++;
 			});
 		}
-		/*
-		List<ObservationFact> facts = new ArrayList<ObservationFact>();
-		
-		
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "ObservationFact.csv"))){
-			
-			CsvToBean<ObservationFact> csvToBean = 
-					Utils.readCsvToBean(ObservationFact.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);
 
-			
-			facts = csvToBean.parse();
-			
-			for(ObservationFact fact: facts) {
-				if(!patientMap.containsKey(fact.getPatientNum())) {
-					System.err.println("Patient Num ( " + fact.getPatientNum() + " )  does not exist in patient dimension");
-					continue;
-				}
-				String patientNum = patientMap.get(fact.getPatientNum());
-				
-				fact.setPatientNum(patientNum);
-			}
-		}
-		*/
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(DATA_DIR + File.separatorChar + "PatientDimension.csv"))){
 			
 			Utils.writeToCsv(buffer, patients, DATA_QUOTED_STRING, DATA_SEPARATOR);
 
 		} 
-		/*
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(DATA_DIR + File.separatorChar + "ObservationFact.csv"))){
-			
-			Utils.writeToCsv(buffer, facts, DATA_QUOTED_STRING, DATA_SEPARATOR);
 
-		} 
-		*/
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(DATA_DIR + File.separatorChar + "PatientMapping.csv"))){
 			
 			Utils.writeToCsv(buffer, patientMapppings, DATA_QUOTED_STRING, DATA_SEPARATOR);

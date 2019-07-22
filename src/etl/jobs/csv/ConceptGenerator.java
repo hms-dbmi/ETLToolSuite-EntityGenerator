@@ -175,6 +175,5 @@ public class ConceptGenerator extends Job{
 			
 		} 		
 	}
-	public static int mappingcount = 0;
 	
 }

@@ -131,6 +131,15 @@ if rungenerator == 'Y':
     stdout,stderr = cmdWrapper(*args)
     logmsgs(mainlogger, stdout, stderr)
     mainlogger.info('Finished: ' + ' '.join(args))
+
+## Sequence Patients
+    args = ['java', '-jar', 'PatientSequencer.jar', '-patientmappingfile', patientmappingfilename, '-writedir', writedir, '-trialid', trialid, '-datadir', datadir ]
+    
+    mainlogger.info('Starting: ' + ' '.join(args))
+    stdout,stderr = cmdWrapper(*args)
+    logmsgs(mainlogger, stdout, stderr)
+    mainlogger.info('Finished: ' + ' '.join(args))
+
     
 ## Process partitions this will generate the rest of the entities.
     #for file in os.listdir(resourcesdir):
@@ -142,6 +151,15 @@ if rungenerator == 'Y':
     stdout,stderr = cmdWrapper(*args)
     logmsgs(mainlogger, stdout, stderr)
     mainlogger.info('Finished: ' + ' '.join(args))
+
+## Process Concept Counts
+    args = ['java', '-jar', 'CountGenerator.jar', '-datadir', datadir ]
+    
+    mainlogger.info('Starting: ' + ' '.join(args))
+    stdout,stderr = cmdWrapper(*args)
+    logmsgs(mainlogger, stdout, stderr)
+    mainlogger.info('Finished: ' + ' '.join(args))
+
 
 ## Run data cleanup
 #    args = ['java', '-jar', 'DataCleanUp.jar', '-datadir', datadir ]
