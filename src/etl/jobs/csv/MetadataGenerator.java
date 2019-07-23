@@ -81,7 +81,7 @@ public class MetadataGenerator extends Job {
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "ConceptDimension.csv"))){
 	
-			CsvToBean<ConceptDimension> csvToBean = Utils.readCsvToBean(ConceptDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);	
+			CsvToBean<ConceptDimension> csvToBean = Utils.readCsvToBean(ConceptDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, false);	
 			
 			List<ConceptDimension> inputconcepts = csvToBean.parse();		
 			// creates map of root node and data type
@@ -118,10 +118,10 @@ public class MetadataGenerator extends Job {
 		// 
 	}
 
-	public static void writeMetadata(Set<I2B2> metadata) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+	public static void writeMetadata(Set<I2B2> metadata, StandardOpenOption... options) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 		// write to disk
 		try(BufferedWriter buffer = Files.newBufferedWriter(
-				Paths.get(WRITE_DIR + File.separatorChar + "I2B2.csv"),StandardOpenOption.CREATE, StandardOpenOption.APPEND)){
+				Paths.get(WRITE_DIR + File.separatorChar + "I2B2.csv"), options)){
 
 			Utils.writeToCsv(buffer, metadata, DATA_QUOTED_STRING, DATA_SEPARATOR);
 		} 

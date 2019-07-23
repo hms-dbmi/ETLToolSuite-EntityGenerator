@@ -152,8 +152,16 @@ if rungenerator == 'Y':
     logmsgs(mainlogger, stdout, stderr)
     mainlogger.info('Finished: ' + ' '.join(args))
 
+## Process Fill in Tree
+    args = ['java', '-jar', 'FillInTree.jar', '-writedir', writedir ]
+    
+    mainlogger.info('Starting: ' + ' '.join(args))
+    stdout,stderr = cmdWrapper(*args)
+    logmsgs(mainlogger, stdout, stderr)
+    mainlogger.info('Finished: ' + ' '.join(args))
+
 ## Process Concept Counts
-    args = ['java', '-jar', 'CountGenerator.jar', '-datadir', datadir ]
+    args = ['java', '-jar', 'CountGenerator.jar', '-datadir', datadir, '-writedir', writedir ]
     
     mainlogger.info('Starting: ' + ' '.join(args))
     stdout,stderr = cmdWrapper(*args)

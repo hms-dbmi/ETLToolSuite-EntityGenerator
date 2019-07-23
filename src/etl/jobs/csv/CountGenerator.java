@@ -71,9 +71,7 @@ public class CountGenerator extends Job{
 	 */
 	private static void execute() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 		// hashmap containing conceptcd and patientset
-		Map<String, Set<String>> factmap = new HashMap<String, Set<String>>();
-		
-		readFactFile(factmap);
+		Map<String, Set<String>> factmap = readFactFile();
 		
 		List<ConceptCounts> ccCounts = new ArrayList<ConceptCounts>();
 		
@@ -95,8 +93,8 @@ public class CountGenerator extends Job{
 	 * @throws CsvRequiredFieldEmptyException
 	 */
 	private static void generateCounts(List<ConceptCounts> ccCounts, Map<String, Set<String>> factmap) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "ConceptDimension.csv"))){
-			CsvToBean<ConceptDimension> csvToBean = Utils.readCsvToBean(ConceptDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);	
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "ConceptDimension.csv"))){
+			CsvToBean<ConceptDimension> csvToBean = Utils.readCsvToBean(ConceptDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, false);	
 			
 			List<ConceptDimension> concepts = csvToBean.parse();
 
@@ -126,7 +124,7 @@ public class CountGenerator extends Job{
 			ccCounts = compileNodes(conceptNodes,conceptCdSetMap,factmap);
 			
 		}		
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(DATA_DIR + File.separatorChar + "ConceptCounts.csv"))){
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ConceptCounts.csv"))){
 
 			Utils.writeToCsv(buffer, ccCounts, DATA_QUOTED_STRING, DATA_SEPARATOR);
 
@@ -138,20 +136,22 @@ public class CountGenerator extends Job{
 	 * This will be used as a lookup when generating counts.
 	 * 
 	 * @param factmap
+	 * @return 
 	 * @throws IOException
 	 */
-	private static void readFactFile(Map<String, Set<String>> factmap) throws IOException {
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "ObservationFact.csv"))){
+	private static Map<String, Set<String>> readFactFile() throws IOException {
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"))){
 
-			CsvToBean<ObservationFact> csvToBean = Utils.readCsvToBean(ObservationFact.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);	
+			CsvToBean<ObservationFact> csvToBean = Utils.readCsvToBean(ObservationFact.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, false);	
 		
 			List<ObservationFact> facts = csvToBean.parse();
 			
-			factmap = facts.stream().collect(Collectors.groupingBy(
+			Map<String, Set<String>> factmap = facts.stream().collect(Collectors.groupingBy(
 							ObservationFact::getConceptCd,
 								Collectors.mapping(ObservationFact::getPatientNum, Collectors.toSet())
 								)
 							);
+			return factmap;
 		}
 	}
 

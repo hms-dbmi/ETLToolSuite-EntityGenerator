@@ -40,6 +40,7 @@ public class CEIsequencer extends Job{
 			setVariables(args, buildProperties(args));
 		} catch (Exception e) {
 			System.err.println(e);
+			e.printStackTrace();
 		}
 		
 		try {
@@ -47,6 +48,7 @@ public class CEIsequencer extends Job{
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			System.err.println(e);
+			e.printStackTrace();
 		}
 	}
 	/**
@@ -79,12 +81,14 @@ public class CEIsequencer extends Job{
 			setVariables(args, buildProperties);
 		} catch (Exception e) {
 			System.err.println(e);
+			e.printStackTrace();
 		}
 		
 		try {
 			if(DO_SEQUENCING) execute(facts, setCds);
 		} catch (Exception e) {
 			System.err.println(e);
+			e.printStackTrace();
 		}
 	}
 	/**
@@ -127,25 +131,39 @@ public class CEIsequencer extends Job{
 	 * generated facts
 	 * @param facts 
 	 * @throws IOException 
+	 * @throws CsvRequiredFieldEmptyException 
+	 * @throws CsvDataTypeMismatchException 
 	 */
-	private static void sequencePatients() throws IOException {
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "PatientMapping.csv"))){
+	private static void sequencePatients() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "PatientMapping.csv"))){
 		
 			CsvToBean<PatientMapping> csvToBean = 
 					Utils.readCsvToBean(PatientMapping.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);		
 			
-			Map<String, String> idlookup = csvToBean.parse().stream().collect(Collectors.toMap(PatientMapping::getPatientIde, PatientMapping::getPatientNum));
+			Map<String, String> idlookup = csvToBean.parse().stream().collect(
+					Collectors.toMap(
+							PatientMapping::getPatientIde,
+							PatientMapping::getPatientNum)
+					);
 			
-			try(BufferedReader bufferfacts = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "PatientMapping.csv"))){
+			try(BufferedReader bufferfacts = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"))){
 			
 				CsvToBean<ObservationFact> facts = 
-						Utils.readCsvToBean(ObservationFact.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);		
-							
-				facts.parse().stream().forEach(fact ->{
+						Utils.readCsvToBean(ObservationFact.class, bufferfacts, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);		
+				
+				List<ObservationFact> factsl = facts.parse();
+				
+				factsl.stream().forEach(fact ->{
 					if(idlookup.containsKey(fact.getPatientNum())) {
 						fact.setPatientNum(idlookup.get(fact.getPatientNum()));
 					} 
 				});
+				bufferfacts.close();			
+				try(BufferedWriter buffer2 = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"))){
+					
+					Utils.writeToCsv(buffer2, factsl, DATA_QUOTED_STRING, DATA_SEPARATOR);
+			
+				} 
 			}
 		}
 	}
@@ -155,19 +173,23 @@ public class CEIsequencer extends Job{
 	 * @param facts 
 	 * @throws IOException 
 	 */
-	private static void sequencePatients(Collection<ObservationFact> facts) throws IOException {
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "PatientMapping.csv"))){
+	public static void sequencePatients(Collection<ObservationFact> facts) throws IOException {
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "PatientMapping.csv"))){
 		
 			CsvToBean<PatientMapping> csvToBean = 
-					Utils.readCsvToBean(PatientMapping.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);		
+					Utils.readCsvToBean(PatientMapping.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, false);		
 			
-			Map<String, String> idlookup = csvToBean.parse().stream().collect(Collectors.toMap(PatientMapping::getPatientIde, PatientMapping::getPatientNum));
-			
+			Map<String, String> idlookup = csvToBean.parse().stream().collect(
+					Collectors.toMap(PatientMapping::getPatientIde, 
+							PatientMapping::getPatientNum)
+					);
 			
 			facts.stream().forEach(fact ->{
 				if(idlookup.containsKey(fact.getPatientNum())) {
 					fact.setPatientNum(idlookup.get(fact.getPatientNum()));
-				} 
+				} else {
+					System.err.println("Patient Does not exist: " + fact.getPatientNum());
+				}
 			});
 		}
 	}
@@ -182,18 +204,18 @@ public class CEIsequencer extends Job{
 		Map<String,String> conceptMap = new HashMap<String,String>();
 		List<ConceptDimension> concepts = new ArrayList<ConceptDimension>();
 		
-		if(!Files.exists(Paths.get(DATA_DIR + File.separatorChar + "ConceptDimension.csv"))) {
+		if(!Files.exists(Paths.get(WRITE_DIR + File.separatorChar + "ConceptDimension.csv"))) {
 			throw new IOException("Concept Dimension file does not exist. Run Concept Generator.");
 		}
 		
-		if(!Files.exists(Paths.get(DATA_DIR + File.separatorChar + "ObservationFact.csv"))) {
+		if(!Files.exists(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"))) {
 			throw new IOException("Observation Fact file does not exist. Run Fact Generator.");
 		}
 		
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "ConceptDimension.csv"))){
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "ConceptDimension.csv"))){
 			
 			CsvToBean<ConceptDimension> csvToBean = 
-					Utils.readCsvToBean(ConceptDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);
+					Utils.readCsvToBean(ConceptDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, false);
 			
 			concepts = csvToBean.parse();
 			
@@ -210,10 +232,10 @@ public class CEIsequencer extends Job{
 			
 		List<ObservationFact> facts = new ArrayList<ObservationFact>();
 		
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + "ObservationFact.csv"))){
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"))){
 			
 			CsvToBean<ObservationFact> csvToBean = 
-					Utils.readCsvToBean(ObservationFact.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);
+					Utils.readCsvToBean(ObservationFact.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, false );
 	
 			
 			facts = csvToBean.parse();
@@ -229,12 +251,12 @@ public class CEIsequencer extends Job{
 				fact.setConceptCd(conceptCd);
 			});
 		}
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(DATA_DIR + File.separatorChar + "ConceptDimension.csv"))){
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ConceptDimension.csv"))){
 			
 			Utils.writeToCsv(buffer, concepts, DATA_QUOTED_STRING, DATA_SEPARATOR);
 	
 		} 
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(DATA_DIR + File.separatorChar + "ObservationFact.csv"))){
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"))){
 			
 			Utils.writeToCsv(buffer, facts, DATA_QUOTED_STRING, DATA_SEPARATOR);
 	
@@ -249,7 +271,7 @@ public class CEIsequencer extends Job{
 	 * @throws CsvDataTypeMismatchException
 	 * @throws CsvRequiredFieldEmptyException
 	 */
-	private static void sequenceConcepts(Collection<ObservationFact> facts, Collection<ConceptDimension> setCds) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+	public static void sequenceConcepts(Collection<ObservationFact> facts, Collection<ConceptDimension> setCds) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 		
 		Map<String,String> conceptMap = new HashMap<String,String>();
 
@@ -265,7 +287,7 @@ public class CEIsequencer extends Job{
 		facts.stream().forEach(fact -> {
 			if(!conceptMap.containsKey(fact.getConceptCd())) {
 				if(!fact.getConceptCd().equalsIgnoreCase("SECURITY")) 
-					System.err.println("Concept ( " + fact.getConceptCd() + " )  does not exist in concpept dimension");
+					System.err.println("Concept ( " + fact.getConceptCd() + " )  does not exist in concept dimension");
 				return;
 		 	}
 			String conceptCd = conceptMap.get(fact.getConceptCd());

@@ -1,4 +1,4 @@
-package etl.drivers;
+package etl.jobs.csv;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -13,7 +13,6 @@ import com.opencsv.bean.CsvToBean;
 
 import etl.job.entity.i2b2tm.I2B2;
 import etl.job.entity.i2b2tm.TableAccess;
-import etl.jobs.csv.Job;
 import etl.utils.Utils;
 
 /**

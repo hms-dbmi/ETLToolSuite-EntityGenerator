@@ -18,7 +18,6 @@ public class Utils {
 	private static char ESCAPE_CHAR = '≈';
 	
 	public static <T> CsvToBean<T> readCsvToBean(Class<T> _class, BufferedReader buffer, char quoteChar, char separator, boolean skipheader) {
-		@SuppressWarnings("unchecked")
 		CsvToBean<T> beans = new CsvToBeanBuilder<T>(buffer)
 				.withSkipLines(skipheader ? 1 : 0)
 				.withQuoteChar(quoteChar)
@@ -30,8 +29,7 @@ public class Utils {
 		
 	}
 	public static <T> void writeToCsv(BufferedWriter buffer,List<T> objectsToWrite,char quotedString,char dataSeparator) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
-		@SuppressWarnings("unchecked")
-		StatefulBeanToCsv<T> writer = new StatefulBeanToCsvBuilder(buffer)
+		StatefulBeanToCsv<T> writer = new StatefulBeanToCsvBuilder<T>(buffer)
 				.withQuotechar(quotedString)
 				.withSeparator(dataSeparator)
 				.withEscapechar(ESCAPE_CHAR)
@@ -42,7 +40,7 @@ public class Utils {
 	
 	public static <T> void writeToCsv(BufferedWriter buffer,Collection<T> objectsToWrite,char quotedString,char dataSeparator) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 		@SuppressWarnings("unchecked")
-		StatefulBeanToCsv<T> writer = new StatefulBeanToCsvBuilder(buffer)
+		StatefulBeanToCsv<T> writer = new StatefulBeanToCsvBuilder<T>(buffer)
 				.withQuotechar(quotedString)
 				.withSeparator(dataSeparator)
 				.withEscapechar(ESCAPE_CHAR)

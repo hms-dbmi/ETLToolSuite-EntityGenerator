@@ -5,7 +5,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
@@ -14,16 +13,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.RFC4180Parser;
 import com.opencsv.RFC4180ParserBuilder;
-import com.opencsv.bean.StatefulBeanToCsv;
-import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
@@ -113,7 +109,7 @@ public class PatientGenerator extends Job{
 	 */
 	private static void execute() throws RequiredFieldException, IOException, InstantiationException, IllegalAccessException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 			// load patient mapping
-			List<PatientMapping> patientMappings = !PATIENT_MAPPING_FILE.isEmpty() ? PatientMapping.class.newInstance().generateMappingList(PATIENT_MAPPING_FILE, MAPPING_DELIMITER): new ArrayList<PatientMapping>();
+			List<PatientMapping> patientMappings = !PATIENT_MAPPING_FILE.isEmpty() ? PatientMapping.generateMappingList(PATIENT_MAPPING_FILE, MAPPING_DELIMITER): new ArrayList<PatientMapping>();
 								
 			for(PatientMapping pm: patientMappings) {
 				Set<String> attrKeys = attributemap.keySet();
@@ -171,39 +167,58 @@ public class PatientGenerator extends Job{
 			
 			doPatientSecurityGenerator(patients);
 		} 		
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "PatientTrial.csv"))){
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "PatientTrial.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 			
 			Utils.writeToCsv(buffer, setPt.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
 
 		} 
 	}
-	private static void doPatientSecurityGenerator(List<PatientDimension> patients) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
-		Set<ObservationFact> facts = new HashSet<ObservationFact>();
+	private static void doPatientReader(String attrkey, String fileName, Integer colindex,
+			Integer patientIndex, Map<String, PatientDimension> pdCollection) {
 		
-		for(PatientDimension rec: patients) {
-				ObservationFact obs = new ObservationFact();
-				obs.setPatientNum(rec.getPatientNum());
-				obs.setConceptCd("SECURITY");
-				obs.setEncounterNum("-1");
-				obs.setInstanceNum("-1");
-				obs.setModifierCd(TRIAL_ID);
-				obs.setTvalChar("EXP:PUBLIC");
+		try(BufferedReader reader = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + fileName))){
+			
+			RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
+					.withSeparator(DATA_SEPARATOR)
+					.withQuoteChar(DATA_QUOTED_STRING);
 				
-				obs.setValueFlagCd("@");
-				obs.setQuantityNum("1");
-				obs.setLocationCd("@");
-				obs.setSourceSystemCd(TRIAL_ID);
+			RFC4180Parser parser = parserbuilder.build();
+	
+			CSVReaderBuilder builder = new CSVReaderBuilder(reader)
+					.withCSVParser(parser);
+			
+			CSVReader csvreader = builder.build();
+			
+			List<String[]> records = csvreader.readAll();
+			
+			records.parallelStream().forEach(record ->{
+				String patientnum = record[patientIndex];
 				
-				facts.add(obs);
-		}
-	
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), StandardOpenOption.APPEND)){
-	
-				Utils.writeToCsv(buffer, facts.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
-	
-		} 		
+				Set<String> patientNums = pdCollection.keySet();
+				
+				if(patientNums.contains(patientnum)) {
+					
+					PatientDimension pd = pdCollection.get(patientnum);
+					pd.setPatientNum(record[patientIndex]);
+					setAttribute(pd,attrkey,record,colindex);
+					pdCollection.put(record[patientIndex], pd);
+					
+				} else {
+					
+					PatientDimension pd = new PatientDimension();
+					pd.setPatientNum(record[patientIndex]);
+					setAttribute(pd,attrkey,record,colindex);
+					pdCollection.put(record[patientIndex], pd);
+					
+				}
+				
+			});;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.err.println(e);
+		}		
 	}
-/**
+	/**
  * Generates the required security records in the observation fact table.
  * 
  * @throws IOException
@@ -250,11 +265,46 @@ public static void doPatientSecurityGenerator() throws IOException, CsvDataTypeM
 		}
 	}
 	
-	try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), StandardOpenOption.APPEND)){
+	try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), StandardOpenOption.CREATE, StandardOpenOption.APPEND)){
 
 		Utils.writeToCsv(buffer, facts.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
 
 	} 
+}
+/**
+ * Creates patient security entries using a patients in current memory. 
+ * 
+ * @param patients
+ * @throws IOException
+ * @throws CsvDataTypeMismatchException
+ * @throws CsvRequiredFieldEmptyException
+ */
+
+private static void doPatientSecurityGenerator(List<PatientDimension> patients) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+	Set<ObservationFact> facts = new HashSet<ObservationFact>();
+	
+	for(PatientDimension rec: patients) {
+			ObservationFact obs = new ObservationFact();
+			obs.setPatientNum(rec.getPatientNum());
+			obs.setConceptCd("SECURITY");
+			obs.setEncounterNum("-1");
+			obs.setInstanceNum("-1");
+			obs.setModifierCd(TRIAL_ID);
+			obs.setTvalChar("EXP:PUBLIC");
+			
+			obs.setValueFlagCd("@");
+			obs.setQuantityNum("1");
+			obs.setLocationCd("@");
+			obs.setSourceSystemCd(TRIAL_ID);
+			
+			facts.add(obs);
+	}
+
+	try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), StandardOpenOption.CREATE, StandardOpenOption.APPEND)){
+
+			Utils.writeToCsv(buffer, facts.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
+
+	} 		
 }
 /**
  * Helper method that will find the patientnum key and build initial patient records.
@@ -274,52 +324,6 @@ public static void doPatientSecurityGenerator() throws IOException, CsvDataTypeM
 			}
 		}
 		return null;
-	}
-
-	private static void doPatientReader(String attrkey, String fileName, Integer colindex,
-			Integer patientIndex, Map<String, PatientDimension> pdCollection) {
-		
-		try(BufferedReader reader = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + fileName))){
-			
-			RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
-					.withSeparator(DATA_SEPARATOR)
-					.withQuoteChar(DATA_QUOTED_STRING);
-				
-			RFC4180Parser parser = parserbuilder.build();
-
-			CSVReaderBuilder builder = new CSVReaderBuilder(reader)
-					.withCSVParser(parser);
-			
-			CSVReader csvreader = builder.build();
-			
-			List<String[]> records = csvreader.readAll();
-			
-			records.parallelStream().forEach(record ->{
-				String patientnum = record[patientIndex];
-				
-				Set<String> patientNums = pdCollection.keySet();
-				
-				if(patientNums.contains(patientnum)) {
-					
-					PatientDimension pd = pdCollection.get(patientnum);
-					pd.setPatientNum(record[patientIndex]);
-					setAttribute(pd,attrkey,record,colindex);
-					pdCollection.put(record[patientIndex], pd);
-					
-				} else {
-					
-					PatientDimension pd = new PatientDimension();
-					pd.setPatientNum(record[patientIndex]);
-					setAttribute(pd,attrkey,record,colindex);
-					pdCollection.put(record[patientIndex], pd);
-					
-				}
-				
-			});;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.err.println(e);
-		}		
 	}
 
 	/**

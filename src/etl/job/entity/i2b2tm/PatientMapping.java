@@ -1,13 +1,9 @@
 package etl.job.entity.i2b2tm;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.opencsv.bean.CsvBindByPosition;
 
 
 public class PatientMapping {
-	private static final Logger logger = LogManager.getLogger(PatientMapping.class);
 
 	@CsvBindByPosition(position = 0)
 	private String patientIde;
@@ -154,10 +150,4 @@ public class PatientMapping {
 	public void setUploadId(String uploadId) {
 		this.uploadId = uploadId;
 	}
-
-	public static Logger getLogger() {
-		return logger;
-	}
-	
-	
 }

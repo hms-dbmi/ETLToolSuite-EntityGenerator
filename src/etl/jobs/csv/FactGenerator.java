@@ -58,7 +58,7 @@ public class FactGenerator extends Job {
 		}
 		
 		try {
-			execute();
+			writeFacts(execute());
 		} catch (CsvDataTypeMismatchException | CsvRequiredFieldEmptyException | IOException e) {
 			System.err.println(e);
 		}
@@ -118,7 +118,7 @@ public class FactGenerator extends Job {
 	 */
 	private static Set<ObservationFact> doFactGenerator(List<Mapping> mappings) throws IOException {
 		
-		String defaultDate = new Date().toString();
+		String defaultDate = new java.sql.Date(new java.util.Date().getTime()).toString();
 		Set<ObservationFact> facts = new HashSet<ObservationFact>();
 
 		mappings.forEach(mapping -> {
@@ -201,15 +201,13 @@ public class FactGenerator extends Job {
 
 	}
 
-	public static void writeFacts(Set<ObservationFact> facts) {
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), StandardOpenOption.CREATE, StandardOpenOption.APPEND )){
+	public static void writeFacts(Set<ObservationFact> facts, StandardOpenOption... options) {
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), options)){
 			try {
 				Utils.writeToCsv(buffer, facts.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
 			} catch (CsvDataTypeMismatchException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (CsvRequiredFieldEmptyException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} catch (IOException e) {

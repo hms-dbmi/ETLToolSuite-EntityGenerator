@@ -1,5 +1,6 @@
 package etl.drivers;
 
+import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.Set;
 
@@ -35,24 +36,23 @@ public class EntityGenerator extends Job {
 		
 		if(facts == null) throw new Exception("No facts exists");
 		
+		System.out.println("Sequencing Data");
 		CEIsequencer.main(args, facts, setCds, jobProperties);
+		
 		System.out.println("Processing metadata");
 	
 		Set<I2B2> metadata = MetadataGenerator.main(args, setCds, jobProperties);
 		
 		if(metadata == null) throw new Exception("No metadata exists");
 		
-		System.out.println("Sequencing Data");
-		CEIsequencer.main(args, facts, setCds, jobProperties);
-		
 		System.out.println("Writing Entities");
 	
 		// write data
-		ConceptGenerator.writeConcepts(setCds);
+		ConceptGenerator.writeConcepts(setCds, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 		
-		FactGenerator.writeFacts(facts);
+		FactGenerator.writeFacts(facts, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 		
-		MetadataGenerator.writeMetadata(metadata);		
+		MetadataGenerator.writeMetadata(metadata, StandardOpenOption.CREATE, StandardOpenOption.APPEND);		
 	}
 	
 }
