@@ -126,14 +126,14 @@ if runpartitioning == 'Y':
 
 ## Generate Patients
 if rungenerator == 'Y':
-    args = ['java', '-jar', 'PatientGenerator.jar', '-patientmappingfile', patientmappingfilename, '-writedir', writedir, '-trialid', trialid, '-datadir', datadir ]
+    args = ['java', '-jar', 'PatientGenerator.jar', '-patientmappingfile', mappingdir + '/' + patientmappingfilename, '-writedir', writedir, '-trialid', trialid, '-datadir', datadir ]
     mainlogger.info('Starting: ' + ' '.join(args))
     stdout,stderr = cmdWrapper(*args)
     logmsgs(mainlogger, stdout, stderr)
     mainlogger.info('Finished: ' + ' '.join(args))
 
 ## Sequence Patients
-    args = ['java', '-jar', 'PatientSequencer.jar', '-patientmappingfile', patientmappingfilename, '-writedir', writedir, '-trialid', trialid, '-datadir', datadir ]
+    args = ['java', '-jar', 'PatientSequencer.jar', '-patientmappingfile', mappingdir + '/' + patientmappingfilename, '-writedir', writedir, '-trialid', trialid, '-datadir', datadir ]
     
     mainlogger.info('Starting: ' + ' '.join(args))
     stdout,stderr = cmdWrapper(*args)
