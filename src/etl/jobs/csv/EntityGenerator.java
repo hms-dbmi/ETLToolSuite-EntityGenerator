@@ -1,4 +1,4 @@
-package etl.drivers;
+package etl.jobs.csv;
 
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
@@ -7,11 +7,6 @@ import java.util.Set;
 import etl.job.entity.i2b2tm.ConceptDimension;
 import etl.job.entity.i2b2tm.I2B2;
 import etl.job.entity.i2b2tm.ObservationFact;
-import etl.jobs.csv.CEIsequencer;
-import etl.jobs.csv.ConceptGenerator;
-import etl.jobs.csv.FactGenerator;
-import etl.jobs.csv.Job;
-import etl.jobs.csv.MetadataGenerator;
 import etl.jobs.jobproperties.JobProperties;
 
 public class EntityGenerator extends Job {
