@@ -137,7 +137,15 @@
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
-	  	</jar>    
+	  	</jar>   
+	  	<jar destfile="PatientSequencer.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.PatientSequencer"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>
 	  	<jar destfile="Sequencer.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.Seqeuncer"/>
