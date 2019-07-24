@@ -96,21 +96,25 @@ public class DataEvaluation extends Job{
 
 			@Override
 			public int compare(Mapping o1, Mapping o2) {
-				String o1fn = o1.getKey().split(":")[0];
-				Integer o1col = new Integer(o1.getKey().split(":")[1]);
-				
-				String o2fn = o2.getKey().split(":")[0];
-				Integer o2col = new Integer(o2.getKey().split(":")[1]);
-				if(o1fn.equals(o2fn)) {
+				if(o1.getKey().split(":").length == 2 && o2.getKey().split(":").length == 2) {
+					String o1fn = o1.getKey().split(":")[0];
+					Integer o1col = new Integer(o1.getKey().split(":")[1]);
 					
-					if(o1col == o2col) return 0;
-					else if(o1col < o2col) return 1;
-					else return - 1; 
-					
+					String o2fn = o2.getKey().split(":")[0];
+					Integer o2col = new Integer(o2.getKey().split(":")[1]);
+					if(o1fn.equals(o2fn)) {
+						
+						if(o1col == o2col) return 0;
+						else if(o1col < o2col) return 1;
+						else return - 1; 
+						
+					} else {
+						
+						return 0;	
+						
+					}
 				} else {
-					
-					return 0;	
-					
+					return 0;
 				}
 			}
 		});		
