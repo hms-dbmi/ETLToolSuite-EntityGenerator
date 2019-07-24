@@ -60,7 +60,7 @@
     
 	  	<jar destfile="ConceptGenerator.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.drivers.ConceptGenerator"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.ConceptGenerator"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
@@ -68,7 +68,7 @@
 	  	</jar>
 	  	<jar destfile="CountGenerator.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.drivers.CountGenerator"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.CountGenerator"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
@@ -76,7 +76,7 @@
 	  	</jar>
 	  	<jar destfile="DataCleanUp.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.drivers.DataCleanUp"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.DataCleanUp"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
@@ -84,7 +84,7 @@
 	  	</jar>    	    	
 	  	<jar destfile="DataCurator.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.drivers.DataCurator"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.DataCurator"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
@@ -92,7 +92,7 @@
 	  	</jar>    
 	  	<jar destfile="DataEvaluation.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.drivers.DataEvaluation"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.DataEvaluation"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
@@ -100,7 +100,7 @@
 	  	</jar>    
 	  	<jar destfile="FactGenerator.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.drivers.FactGenerator"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.FactGenerator"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
@@ -108,7 +108,7 @@
 	  	</jar>   
 	  	<jar destfile="FillInTree.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.drivers.FillInTree"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.FillInTree"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
@@ -116,7 +116,7 @@
 	  	</jar>    
 	  	<jar destfile="MetadataGenerator.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.drivers.MetadataGenerator"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.MetadataGenerator"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
@@ -124,7 +124,7 @@
 	  	</jar>    
 	  	<jar destfile="Partitioner.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.drivers.Partitioner"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.Partitioner"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
@@ -132,7 +132,7 @@
 	  	</jar>    
 	  	<jar destfile="PatientGenerator.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.drivers.PatientGenerator"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.PatientGenerator"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
@@ -140,7 +140,15 @@
 	  	</jar>    
 	  	<jar destfile="Sequencer.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.drivers.Seqeuncer"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.Seqeuncer"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>    
+	  	<jar destfile="EntityGenerator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.EntityGenerator.jar"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
