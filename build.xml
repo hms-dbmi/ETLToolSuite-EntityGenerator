@@ -156,7 +156,7 @@
 	  	</jar>    
 	  	<jar destfile="EntityGenerator.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.jobs.csv.EntityGenerator.jar"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.EntityGenerator"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
