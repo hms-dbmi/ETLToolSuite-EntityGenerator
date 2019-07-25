@@ -38,14 +38,15 @@ public class ConceptGenerator extends Job{
 	 */
 	public static void main(String[] args) {
 		try {
+			System.out.println("setting variables");
 			setVariables(args, buildProperties(args));
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			System.err.println("Error processing variables");
 			System.err.println(e);
 		}
 		
 		try {
+			System.out.println("writing concepts");
 			writeConcepts(execute());
 		} catch (CsvDataTypeMismatchException e) {
 			System.err.println(e);
@@ -93,11 +94,11 @@ public class ConceptGenerator extends Job{
 	 */
 	private static Collection<ConceptDimension> execute() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 		List<Mapping> mappings = new ArrayList<Mapping>();
-
+		System.out.println("building mapping");
 		mappings = Mapping.generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
 		
 		HashSet<ConceptDimension> setCds = new HashSet<ConceptDimension>();
-				
+		System.out.println("building concepts");		
 		doConceptReader(setCds, mappings);
 		
 		return setCds;
