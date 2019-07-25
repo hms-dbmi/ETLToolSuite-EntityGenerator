@@ -115,7 +115,7 @@ public class ConceptGenerator extends Job{
 	private static void doConceptReader(Collection<ConceptDimension> cds, List<Mapping> mappings) throws IOException {
 			
 		mappings.stream().forEach(mapping -> {
-			
+			System.out.println(mapping);
 			if(mapping.getKey().split(":").length < 2) return;
 			
 			String fileName = mapping.getKey().split(":")[0];
@@ -138,6 +138,7 @@ public class ConceptGenerator extends Job{
 				List<String[]> records = csvreader.readAll();
 				
 				records.forEach(record ->{
+					System.out.println(record);
 					ConceptDimension cd = new ConceptDimension();
 					
 					String conceptCd = mapping.getDataType().equalsIgnoreCase("numeric") ?
