@@ -17,8 +17,13 @@ public abstract class JobProperties extends Properties{
 		
 	
 	
+	public JobProperties() {
+		super();
+	}
+
 	public JobProperties buildProperties(String propertiesFile) throws Exception {
-				
+			
+		
 		List<String> requiredfields = new ArrayList<String>();
 		
 		List<String> availableKeys = new ArrayList<String>();

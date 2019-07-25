@@ -66,8 +66,8 @@ public class ConceptGenerator extends Job{
 		try {
 			setVariables(args, jobProperties);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			System.err.println("Error processing variables");
+			
 			e.printStackTrace();
 		}
 		
