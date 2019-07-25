@@ -38,7 +38,6 @@ public class ConceptGenerator extends Job{
 	 */
 	public static void main(String[] args) {
 		try {
-			System.out.println("setting variables");
 			setVariables(args, buildProperties(args));
 		} catch (Exception e) {
 			System.err.println("Error processing variables");
@@ -46,7 +45,6 @@ public class ConceptGenerator extends Job{
 		}
 		
 		try {
-			System.out.println("writing concepts");
 			writeConcepts(execute());
 		} catch (CsvDataTypeMismatchException e) {
 			System.err.println(e);
@@ -115,7 +113,6 @@ public class ConceptGenerator extends Job{
 	private static void doConceptReader(Collection<ConceptDimension> cds, List<Mapping> mappings) throws IOException {
 			
 		mappings.stream().forEach(mapping -> {
-			System.out.println(mapping);
 			if(mapping.getKey().split(":").length < 2) return;
 			
 			String fileName = mapping.getKey().split(":")[0];
@@ -138,7 +135,6 @@ public class ConceptGenerator extends Job{
 				List<String[]> records = csvreader.readAll();
 				
 				records.forEach(record ->{
-					System.out.println(record);
 					ConceptDimension cd = new ConceptDimension();
 					
 					String conceptCd = mapping.getDataType().equalsIgnoreCase("numeric") ?
