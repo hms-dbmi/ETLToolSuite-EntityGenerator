@@ -15,7 +15,6 @@ public abstract class JobProperties extends Properties{
 	 */
 	private static final long serialVersionUID = 5987407489240934574L;
 		
-	private static final String JOB_TYPE_PACKAGE = "etl.job.jobtype.properties.";
 	
 	
 	public JobProperties buildProperties(String propertiesFile) throws Exception {

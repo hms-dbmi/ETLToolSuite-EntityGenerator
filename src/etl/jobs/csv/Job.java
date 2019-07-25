@@ -1,9 +1,7 @@
 package etl.jobs.csv;
 
-import static etl.jobs.csv.Job.PATIENT_MAPPING_FILE;
-
-import java.nio.file.LinkOption;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -258,6 +256,12 @@ public abstract class Job {
 				propPath = Utils.checkPassedArgs(arg, args);
 			}
 		}
-		return null;
+		if(propPath.isEmpty()) {
+			return null;
+		}
+		if(!Files.exists(Paths.get(propPath))){
+			return null;
+		};
+		return JobProperties.class.newInstance().buildProperties(propPath);
 	}
 }
