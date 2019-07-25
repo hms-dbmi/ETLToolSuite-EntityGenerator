@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public abstract class JobProperties extends Properties{
+public class JobProperties extends Properties{
 	
 	public List<String> REQUIRED_PROPERTIES;
 	/**
