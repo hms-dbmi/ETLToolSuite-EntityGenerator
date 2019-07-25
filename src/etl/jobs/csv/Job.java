@@ -262,6 +262,8 @@ public abstract class Job {
 		if(!Files.exists(Paths.get(propPath))){
 			return null;
 		};
-		return JobProperties.class.newInstance().buildProperties(propPath);
+		Class<?> jobPropClass = Class.forName("etl.jobs.jobproperties.JobProperties");
+		JobProperties newInstance = (JobProperties) jobPropClass.newInstance();
+		return newInstance.buildProperties(propPath);
 	}
 }
