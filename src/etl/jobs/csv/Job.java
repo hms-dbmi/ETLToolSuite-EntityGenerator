@@ -77,8 +77,8 @@ public abstract class Job {
 			}
 			///////////////////////
 			// Mapping Variables //
-			if(properties.contains("mappingskipheaders")) {
-				if(new String(StringUtils.substring(properties.getProperty("mappingskipheaders"),0,1)).equalsIgnoreCase("N")){
+			if(properties.contains("skipmapperheader")) {
+				if(new String(StringUtils.substring(properties.getProperty("skipmapperheader"),0,1)).equalsIgnoreCase("N")){
 					MAPPING_SKIP_HEADER = false;
 				}
 			}

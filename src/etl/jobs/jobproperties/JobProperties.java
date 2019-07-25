@@ -9,7 +9,7 @@ import java.util.Properties;
 
 public class JobProperties extends Properties{
 	
-	public List<String> REQUIRED_PROPERTIES;
+	public List<String> REQUIRED_PROPERTIES = new ArrayList<String>();
 	/**
 	 * 
 	 */

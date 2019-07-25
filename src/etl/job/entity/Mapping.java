@@ -98,7 +98,7 @@ public class Mapping implements Cloneable{
 		List<Mapping> list = new ArrayList<Mapping>();
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(filePath))){
-			
+
 			CsvToBean<Mapping> beans = Utils.readCsvToBean(Mapping.class, buffer, quoteChar, separator, skipheader);
 
 			list = beans.parse();
