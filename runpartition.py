@@ -100,7 +100,7 @@ if syncproject == 'Y':
 ## main
 # Data Curator
 if runcurator == 'Y':
-    args = ['java', '-jar', 'DataCurator.jar', '-datadir', datadir]
+    args = ['java', '-jar', 'DataCurator.jar', '-configfile', jobconfig]
     mainlogger.info('Starting: ' + ' '.join(args))
     stdout,stderr = cmdWrapper(*args)
     logmsgs(mainlogger, stdout, stderr)
@@ -109,7 +109,7 @@ if runcurator == 'Y':
     #mainlogger.error(''.join(stderr))      
 ## Data Evaluations
 if rundataeval == 'Y':
-    args = ['java', '-jar', 'DataEvaluation.jar', '-datadir', datadir, '-mappingfile', mappingdir + '/' + mappingfilename, '-writedir', resourcesdir]
+    args = ['java', '-jar', 'DataEvaluation.jar', '-configfile', jobconfig]
     mainlogger.info('Starting: ' + ' '.join(args))
     stdout,stderr = cmdWrapper(*args)
     logmsgs(mainlogger, stdout, stderr)
@@ -126,14 +126,14 @@ if runpartitioning == 'Y':
 
 ## Generate Patients
 if rungenerator == 'Y':
-    args = ['java', '-jar', 'PatientGenerator.jar', '-patientmappingfile', mappingdir + '/' + patientmappingfilename, '-writedir', writedir, '-trialid', trialid, '-datadir', datadir ]
+    args = ['java', '-jar', 'PatientGenerator.jar', '-configfile', jobconfig ]
     mainlogger.info('Starting: ' + ' '.join(args))
     stdout,stderr = cmdWrapper(*args)
     logmsgs(mainlogger, stdout, stderr)
     mainlogger.info('Finished: ' + ' '.join(args))
 
 ## Sequence Patients
-    args = ['java', '-jar', 'PatientSequencer.jar', '-patientmappingfile', mappingdir + '/' + patientmappingfilename, '-writedir', writedir, '-trialid', trialid, '-datadir', datadir ]
+    args = ['java', '-jar', 'PatientSequencer.jar', '-configfile', jobconfig ]
     
     mainlogger.info('Starting: ' + ' '.join(args))
     stdout,stderr = cmdWrapper(*args)
@@ -153,7 +153,7 @@ if rungenerator == 'Y':
     mainlogger.info('Finished: ' + ' '.join(args))
 
 ## Process Fill in Tree
-    args = ['java', '-jar', 'FillInTree.jar', '-writedir', writedir ]
+    args = ['java', '-jar', 'FillInTree.jar', '-configfile', jobconfig ]
     
     mainlogger.info('Starting: ' + ' '.join(args))
     stdout,stderr = cmdWrapper(*args)
@@ -161,7 +161,7 @@ if rungenerator == 'Y':
     mainlogger.info('Finished: ' + ' '.join(args))
 
 ## Process Concept Counts
-    args = ['java', '-jar', 'CountGenerator.jar', '-datadir', datadir, '-writedir', writedir ]
+    args = ['java', '-jar', 'CountGenerator.jar', '-configfile', jobconfig ]
     
     mainlogger.info('Starting: ' + ' '.join(args))
     stdout,stderr = cmdWrapper(*args)
