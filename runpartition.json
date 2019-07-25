@@ -18,5 +18,6 @@
     "logdir": "/var/logs/",
     "syncproject": "Y",
     "clearlogs": "Y",
-    "archivelogs": "Y"
+    "archivelogs": "Y",
+    "dbscriptdir": "oracle/ctl/TRUNCATE/"
 }
