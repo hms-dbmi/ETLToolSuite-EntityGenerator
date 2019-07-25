@@ -9,8 +9,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.opencsv.bean.CsvToBean;
@@ -103,15 +105,15 @@ public class PatientSequencer extends Job {
 	private static void sequencePatients() throws Exception {
 		// LOAD ALL POSSIBLE PATIENT NUMS INTO A MAP<STRING,STRING> 
 		Map<String,String> patientMap = new HashMap<String,String>();
-		List<PatientDimension> patients = new ArrayList<PatientDimension>();
-		List<PatientMapping> patientMappings = new ArrayList<PatientMapping>();
+		Set<PatientDimension> patients = new HashSet<PatientDimension>();
+		Set<PatientMapping> patientMappings = new HashSet<PatientMapping>();
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "PatientDimension.csv"))){
 			
 			CsvToBean<PatientDimension> csvToBean = 
 					Utils.readCsvToBean(PatientDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);
 			
-			patients = csvToBean.parse();
+			patients = new HashSet<>(csvToBean.parse());
 									
 			patients.forEach(pd ->{
 				
