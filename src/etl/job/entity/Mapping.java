@@ -105,10 +105,6 @@ public class Mapping implements Cloneable{
 			
 		}
 		
-		if(skipheader) {
-			list.remove(0);
-		}			
-		
 		return list;
 		
 	}

@@ -4,18 +4,36 @@ import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Date;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.CSVWriterBuilder;
+import com.opencsv.ICSVWriter;
+import com.opencsv.RFC4180Parser;
+import com.opencsv.RFC4180ParserBuilder;
+
+import etl.job.entity.Mapping;
 
 /** 
  * @author Thomas DeSain
@@ -48,8 +66,8 @@ public class DataCurator extends Job{
 			'\u007C', 
 			'\u002F', 
 			'\u003C',
-			'\u005C\u005C',
-			'\u0022',
+			//'\u005C\u005C',
+			//'\u0022',
 			'\u005C\u0027',
 			'\u003A',
 			'\u00a0',
@@ -66,7 +84,13 @@ public class DataCurator extends Job{
 			Stream<Path> stream = StreamSupport.stream(dirstream.spliterator(), true);
 
 			stream.parallel().forEach(path ->{
-				cleanFile(path); 	
+				cleanFile(path); 
+				try {
+					validateRecordLength(path);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			});
 
 		};
@@ -102,4 +126,78 @@ public class DataCurator extends Job{
 		}		
 	}
 	
+	private static void validateRecordLength(Path path) throws IOException {
+		List<String[]> badRecords = new ArrayList<String[]>();
+		List<String[]> records = new ArrayList<String[]>();
+		
+		if(!Files.isDirectory(path)) {
+			if(Files.isReadable(path)) {
+				try(BufferedReader reader = Files.newBufferedReader(path)){
+					RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
+							.withSeparator(DATA_SEPARATOR)
+							.withQuoteChar(DATA_QUOTED_STRING);
+						
+					RFC4180Parser parser = parserbuilder.build();
+
+					CSVReaderBuilder builder = new CSVReaderBuilder(reader)
+							.withCSVParser(parser);
+					
+					CSVReader csvreader = builder.build();
+					
+					records = csvreader.readAll();
+					
+					//if(SKIP_HEADERS) badRecords.add(records.get(0));
+					
+					if(records.isEmpty()) return;
+					
+					int expectedLength = records.get(0).length;
+					
+					for(String[] record: records) {
+						if(record.length != expectedLength) {
+							badRecords.add(record);
+						}
+					}
+				}
+			}
+		}
+		
+		if(!badRecords.isEmpty()) {
+			try(BufferedWriter buffer = Files.newBufferedWriter(path, StandardOpenOption.TRUNCATE_EXISTING)){
+				RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
+						.withSeparator(DATA_SEPARATOR)
+						.withQuoteChar(DATA_QUOTED_STRING);
+				
+				CSVWriterBuilder builder = new CSVWriterBuilder(buffer)
+						.withParser(parserbuilder.build());
+				
+				
+				ICSVWriter writer = builder.build();
+				
+				records.removeAll(badRecords);
+				
+				writer.writeAll(records);
+				writer.flush();
+				writer.close();
+			}
+			String badpathstr = StringUtils.replace(path.toAbsolutePath().toString(), ".csv", ".bad");
+			
+			
+			try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(badpathstr), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
+				
+				RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
+						.withSeparator(DATA_SEPARATOR)
+						.withQuoteChar(DATA_QUOTED_STRING);
+				
+				CSVWriterBuilder builder = new CSVWriterBuilder(buffer)
+						.withParser(parserbuilder.build());
+				
+				ICSVWriter writer = builder.build();
+				
+				writer.writeAll(badRecords);
+				
+				writer.flush();
+				writer.close();
+			}
+		}
+	}
 }

@@ -14,6 +14,8 @@ public abstract class Job {
 
 	protected static String WRITE_DIR = "./completed/";
 	
+	protected static String RESOURCE_DIR = "./resources/";
+	
 	protected static String MAPPING_FILE = "./mappings/mapping.csv";
 
 	protected static boolean MAPPING_SKIP_HEADER = true;
@@ -69,7 +71,8 @@ public abstract class Job {
 			// File and Directory Variables //
 			DATA_DIR = properties.contains("datadir") ? properties.getProperty("datadir").toString() : DATA_DIR;
 			WRITE_DIR = properties.contains("writedir") ? properties.getProperty("writedir").toString() : WRITE_DIR;
-			
+			RESOURCE_DIR = properties.contains("resourcedir") ? properties.getProperty("resourcedir").toString() : RESOURCE_DIR;
+
 			if(properties.contains("dataskipheaders")) {
 				if(new String(StringUtils.substring(properties.getProperty("dataskipheaders"),0,1)).equalsIgnoreCase("N")){
 					SKIP_HEADERS = false;
@@ -157,6 +160,9 @@ public abstract class Job {
 			} 
 			if(arg.equalsIgnoreCase( "-mappingfile" )){
 				MAPPING_FILE = checkPassedArgs(arg, args);
+			} 
+			if(arg.equalsIgnoreCase( "-resourcedir" )){
+				RESOURCE_DIR = checkPassedArgs(arg, args);
 			} 
 			if(arg.equalsIgnoreCase( "-datadir" )){
 				DATA_DIR = checkPassedArgs(arg, args);

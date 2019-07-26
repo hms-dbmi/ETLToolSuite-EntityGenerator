@@ -172,7 +172,8 @@ public class ConceptGenerator extends Job{
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ConceptDimension.csv"),options)){
 			
 			Utils.writeToCsv(buffer, setCds.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
-			
+			buffer.flush();
+			buffer.close();
 		} 		
 	}
 	

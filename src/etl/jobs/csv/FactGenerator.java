@@ -58,7 +58,7 @@ public class FactGenerator extends Job {
 		}
 		
 		try {
-			writeFacts(execute());
+			writeFacts(execute(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 		} catch (CsvDataTypeMismatchException | CsvRequiredFieldEmptyException | IOException e) {
 			System.err.println(e);
 		}

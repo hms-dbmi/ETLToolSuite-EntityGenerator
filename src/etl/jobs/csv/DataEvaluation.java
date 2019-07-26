@@ -1,12 +1,12 @@
 package etl.jobs.csv;
 
-import java.io.FileNotFoundException;
+import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,7 +57,7 @@ public class DataEvaluation extends Job{
 	 */
 	public static void main(String[] args) {
 		try {
-			setVariables(args);
+			setVariables(args, buildProperties(args));
 		} catch (Exception e) {
 			System.err.println("Error processing variables");
 			System.err.println(e);
@@ -128,7 +128,7 @@ public class DataEvaluation extends Job{
 				CSVReader reader = new CSVReader(Files.newBufferedReader(
 						Paths.get(DATA_DIR + pfile)
 						));
-				if(SKIP_HEADERS) reader.readNext();
+				if(MAPPING_SKIP_HEADER) reader.readNext();
 				Iterator<String[]> iter = reader.iterator();
 				
 				while(iter.hasNext()) {
@@ -170,7 +170,7 @@ public class DataEvaluation extends Job{
 	
 				CSVReader reader = new CSVReader(Files.newBufferedReader(path));
 							
-				if(SKIP_HEADERS) reader.readNext();
+				//if(SKIP_HEADERS) reader.readNext();
 						
 				int nonnullvals = 0;
 				
@@ -246,7 +246,7 @@ public class DataEvaluation extends Job{
 					strings.add(path.getFileName() + " Facts = " + estimatedFacts);
 				}
 								*/
-		        try(OutputStream output = new FileOutputStream( WRITE_DIR + "conceptevaluation.txt", true)) {
+		        try(OutputStream output = new FileOutputStream( RESOURCE_DIR + "conceptevaluation.txt", true)) {
 		        		for(Entry<String, Integer> entry : estimatedconcepts.entrySet()) {
 		        			String str2 = entry.getKey() + ",concepts," + entry.getValue() + "\n";	
 		        			//output.write(str1.getBytes());
@@ -256,7 +256,7 @@ public class DataEvaluation extends Job{
 		        		}
 		        }
 
-		        try(OutputStream output = new FileOutputStream(WRITE_DIR + "factevaluation.txt", true)) {
+		        try(OutputStream output = new FileOutputStream(RESOURCE_DIR + "factevaluation.txt", true)) {
 	        		for(Entry<String, Integer> entry : estimatedfacts.entrySet()) {
 	        			String str2 = entry.getKey() + ",facts," + entry.getValue() + "\n";	
 	        			//output.write(str1.getBytes());
@@ -271,18 +271,17 @@ public class DataEvaluation extends Job{
 			}
 			
 		});
-        try(OutputStream output = new FileOutputStream(WRITE_DIR + "dataevaluation.txt", true)) {
-        		String fout = "Total expected facts: " + (totalFacts + patientids.size() ) + "\n\n";
-        		String cout = "Total expected concepts: " + totalConcepts + "\n\n";
-        		String pout = "Total expected patients: " + patientids.size() + "\n\n";
-        		
-    			output.write(fout.getBytes());
-    			output.flush();
-    			output.write(cout.getBytes());
-    			output.flush();
-    			output.write(pout.getBytes());
-    			output.flush();
-    			output.close();
+        try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(RESOURCE_DIR + "dataevaluation.txt"),StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) { //(Paths.get(WRITE_DIR + "dataevaluation.txt"), StandardOpenOptions.CREATE, ) {
+        		List<String> lines = Arrays.asList(
+	        		 "Total expected facts: " + (totalFacts + patientids.size()),
+	        		 "Total expected concepts: " + totalConcepts,
+	        		 "Total expected patients: " + patientids.size()
+        		);
+        		for(String line: lines) {
+        			writer.write(line + '\n');
+        		}
+        		writer.flush();
+        		writer.close();
         }
 		
 	}

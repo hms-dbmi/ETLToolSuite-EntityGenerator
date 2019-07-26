@@ -144,7 +144,7 @@ public class PatientGenerator extends Job{
 			
 		Set<PatientTrial> setPt = new HashSet<PatientTrial>();
 		
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "PatientDimension.csv"))){
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "PatientDimension.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 			
 			pdCollection.entrySet();
 			for(Entry<String, PatientDimension> entry: pdCollection.entrySet()) {
@@ -166,11 +166,17 @@ public class PatientGenerator extends Job{
 			Utils.writeToCsv(buffer, patients, DATA_QUOTED_STRING, DATA_SEPARATOR);
 			
 			doPatientSecurityGenerator(patients);
+			
+			buffer.flush();
+			buffer.close();
+			
 		} 		
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "PatientTrial.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 			
 			Utils.writeToCsv(buffer, setPt.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
-
+			buffer.flush();
+			buffer.close();
+			
 		} 
 	}
 	private static void doPatientReader(String attrkey, String fileName, Integer colindex,
@@ -191,7 +197,7 @@ public class PatientGenerator extends Job{
 			
 			List<String[]> records = csvreader.readAll();
 			
-			records.parallelStream().forEach(record ->{
+			records.forEach(record ->{
 				String patientnum = record[patientIndex];
 				
 				Set<String> patientNums = pdCollection.keySet();
@@ -265,10 +271,11 @@ public static void doPatientSecurityGenerator() throws IOException, CsvDataTypeM
 		}
 	}
 	
-	try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), StandardOpenOption.CREATE, StandardOpenOption.APPEND)){
+	try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 
 		Utils.writeToCsv(buffer, facts.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
-
+		buffer.flush();
+		buffer.close();
 	} 
 }
 /**
@@ -300,10 +307,11 @@ private static void doPatientSecurityGenerator(List<PatientDimension> patients) 
 			facts.add(obs);
 	}
 
-	try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), StandardOpenOption.CREATE, StandardOpenOption.APPEND)){
+	try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 
 			Utils.writeToCsv(buffer, facts.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
-
+			buffer.flush();
+			buffer.close();
 	} 		
 }
 /**
