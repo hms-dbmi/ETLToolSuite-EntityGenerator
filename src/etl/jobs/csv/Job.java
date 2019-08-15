@@ -1,5 +1,6 @@
 package etl.jobs.csv;
 
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -8,13 +9,20 @@ import org.apache.commons.lang3.StringUtils;
 import etl.jobs.jobproperties.JobProperties;
 import etl.utils.Utils;
 
-public abstract class Job {
+public abstract class Job implements Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4280736713043802649L;
+
 	protected static boolean SKIP_HEADERS = true;
 
 	protected static String WRITE_DIR = "./completed/";
 	
 	protected static String RESOURCE_DIR = "./resources/";
+
+	protected static String PROCESSING_FOLDER = "./processing/";
 	
 	protected static String MAPPING_FILE = "./mappings/mapping.csv";
 
@@ -55,6 +63,11 @@ public abstract class Job {
 
 	protected static String PATIENT_MAPPING_FILE = "./mappings/mapping.csv.patient";
 
+	protected static boolean IS_SEGMENTED = false;
+	
+	protected static String CONFIG_FILENAME = "";
+	
+	protected static String FACT_FILENAME = "ObservationFact.csv";
 	// Metadata for Numerics
 	protected static final String C_METADATAXML_NUMERIC = "<?xml version=\"1.0\"?><ValueMetadata><Version>3.02</Version><CreationDateTime>08/14/2008 01:22:59</CreationDateTime><TestID></TestID><TestName></TestName><DataType>PosFloat</DataType><CodeType></CodeType><Loinc></Loinc><Flagstouse></Flagstouse><Oktousevalues>Y</Oktousevalues><MaxStringLength></MaxStringLength><LowofLowValue>0</LowofLowValue><HighofLowValue>0</HighofLowValue><LowofHighValue>100</LowofHighValue>100<HighofHighValue>100</HighofHighValue><LowofToxicValue></LowofToxicValue><HighofToxicValue></HighofToxicValue><EnumValues></EnumValues><CommentsDeterminingExclusion><Com></Com></CommentsDeterminingExclusion><UnitValues><NormalUnits>ratio</NormalUnits><EqualUnits></EqualUnits><ExcludingUnits></ExcludingUnits><ConvertingUnits><Units></Units><MultiplyingFactor></MultiplyingFactor></ConvertingUnits></UnitValues><Analysis><Enums /><Counts /><New /></Analysis></ValueMetadata>";
 	
@@ -73,8 +86,14 @@ public abstract class Job {
 			WRITE_DIR = properties.contains("writedir") ? properties.getProperty("writedir").toString() : WRITE_DIR;
 			RESOURCE_DIR = properties.contains("resourcedir") ? properties.getProperty("resourcedir").toString() : RESOURCE_DIR;
 
-			if(properties.contains("dataskipheaders")) {
-				if(new String(StringUtils.substring(properties.getProperty("dataskipheaders"),0,1)).equalsIgnoreCase("N")){
+			if(properties.contains("segmentfacts")) {
+				if(new String(StringUtils.substring(properties.getProperty("segmentfacts"),0,1)).equalsIgnoreCase("Y")){
+					IS_SEGMENTED = false;
+				}
+			}
+			
+			if(properties.contains("skipdataheader")) {
+				if(new String(StringUtils.substring(properties.getProperty("skipdataheader"),0,1)).equalsIgnoreCase("N")){
 					SKIP_HEADERS = false;
 				}
 			}
@@ -126,10 +145,10 @@ public abstract class Job {
 				}
 			}
 			
-			CONCEPT_CD_STARTING_SEQ = properties.contains("concepstartseqnum") ? Integer.valueOf(properties.getProperty("concepstartseqnum")) : CONCEPT_CD_STARTING_SEQ;
-			ENCOUNTER_NUM_STARTING_SEQ = properties.contains("encounterstartseqnum") ? Integer.valueOf(properties.getProperty("encounterstartseqnum")) : ENCOUNTER_NUM_STARTING_SEQ;
-			PATIENT_NUM_STARTING_SEQ = properties.contains("patientstartseqnum") ? Integer.valueOf(properties.getProperty("patientstartseqnum")) : PATIENT_NUM_STARTING_SEQ;
-			INSTANCE_NUM_STARTING_SEQ = properties.contains("instancestartseqnum") ? Integer.valueOf(properties.getProperty("instancestartseqnum")) : INSTANCE_NUM_STARTING_SEQ;
+			CONCEPT_CD_STARTING_SEQ = properties.contains("conceptcdstartseq") ? Integer.valueOf(properties.getProperty("conceptcdstartseq")) : CONCEPT_CD_STARTING_SEQ;
+			ENCOUNTER_NUM_STARTING_SEQ = properties.contains("encounternumstartseq") ? Integer.valueOf(properties.getProperty("encounternumstartseq")) : ENCOUNTER_NUM_STARTING_SEQ;
+			PATIENT_NUM_STARTING_SEQ = properties.contains("patientnumstartseq") ? Integer.valueOf(properties.getProperty("patientnumstartseq")) : PATIENT_NUM_STARTING_SEQ;
+			INSTANCE_NUM_STARTING_SEQ = properties.contains("instancenumstartseq") ? Integer.valueOf(properties.getProperty("instancenumstartseq")) : INSTANCE_NUM_STARTING_SEQ;
 		}
 		/**
 		 *  Flags override all settings
@@ -207,20 +226,38 @@ public abstract class Job {
 					DO_INSTANCE_NUM_SEQUENCE = false;
 				} 
 			}
-			if(arg.equalsIgnoreCase("-patientstartseqnum")){
+			if(arg.equalsIgnoreCase("-patientnumstartseq")){
 				PATIENT_NUM_STARTING_SEQ = Integer.valueOf(checkPassedArgs(arg, args));
 			}
-			if(arg.equalsIgnoreCase("-concepstartseqnum")){
+			if(arg.equalsIgnoreCase("-conceptcdstartseq")){
 				CONCEPT_CD_STARTING_SEQ = Integer.valueOf(checkPassedArgs(arg, args));
 			}
-			if(arg.equalsIgnoreCase("-encounterstartseqnum")){
+			if(arg.equalsIgnoreCase("-encounternumstartseq")){
 				ENCOUNTER_NUM_STARTING_SEQ = Integer.valueOf(checkPassedArgs(arg, args));
 			}
-			if(arg.equalsIgnoreCase("-instancestartseqnum")){
+			if(arg.equalsIgnoreCase("-instancenumstartseq")){
 				INSTANCE_NUM_STARTING_SEQ = Integer.valueOf(checkPassedArgs(arg, args));
 			}
 			
 		}		
+	}
+
+	public static JobProperties buildProperties(String[] args) throws Exception {
+		String propPath = "";
+		for(String arg: args) {
+			if(arg.equalsIgnoreCase("-propertiesfile")){
+				Utils.checkPassedArgs(arg, args);
+				CONFIG_FILENAME = Paths.get(Utils.checkPassedArgs(arg, args)).getFileName().toString();
+				propPath = Utils.checkPassedArgs(arg, args);
+			}
+		}
+		if(propPath.isEmpty()) {
+			return null;
+		}
+		if(!Files.exists(Paths.get(propPath))){
+			return null;
+		};
+		return JobProperties.class.newInstance().buildProperties(propPath);
 	}
 
 	// checks passed arguments and sends back value for that argument
@@ -253,21 +290,5 @@ public abstract class Job {
 			
 		}
 		return argv;
-	}
-	
-	public static JobProperties buildProperties(String[] args) throws Exception {
-		String propPath = "";
-		for(String arg: args) {
-			if(arg.equalsIgnoreCase("-propertiesfile")){
-				propPath = Utils.checkPassedArgs(arg, args);
-			}
-		}
-		if(propPath.isEmpty()) {
-			return null;
-		}
-		if(!Files.exists(Paths.get(propPath))){
-			return null;
-		};
-		return JobProperties.class.newInstance().buildProperties(propPath);
 	}
 }

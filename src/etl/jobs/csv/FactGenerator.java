@@ -3,28 +3,38 @@ package etl.jobs.csv;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.map.HashedMap;
+import org.apache.commons.lang3.StringUtils;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.RFC4180Parser;
 import com.opencsv.RFC4180ParserBuilder;
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 import etl.job.entity.Mapping;
+import etl.job.entity.i2b2tm.ConceptCounts;
 import etl.job.entity.i2b2tm.ObservationFact;
 import etl.jobs.jobproperties.JobProperties;
+import etl.utils.ReadWriteLock;
 import etl.utils.Utils;
 
 /**
@@ -120,9 +130,14 @@ public class FactGenerator extends Job {
 		
 		String defaultDate = new java.sql.Date(new java.util.Date().getTime()).toString();
 		Set<ObservationFact> facts = new HashSet<ObservationFact>();
-
+		List<ConceptCounts> counts = new ArrayList<ConceptCounts>();
+		// if text will be multiple nodes and associated patient sets
+		Map<String, Set<String>> countMap = new HashedMap<String, Set<String>>();
+		
 		mappings.forEach(mapping -> {
+			
 			String[] options = mapping.getOptions().split(":");
+			
 			for(String option: options) {
 				if(option.split("=").length != 2) continue;
 				String optionkey = option.split("=")[0];
@@ -135,12 +150,14 @@ public class FactGenerator extends Job {
 					END_DATE_COL = Integer.valueOf(option.split("=")[1]);
 				}
 			}
+			
 			String fileName = mapping.getKey().split(":")[0];
 			Integer column = new Integer(mapping.getKey().split(":")[1]);
 			if(!Files.exists(Paths.get(DATA_DIR + File.separatorChar + fileName))) {
 				System.err.println(DATA_DIR + File.separatorChar + fileName + " does not exist.");
 				return;
 			}
+			
 			try(BufferedReader reader = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + fileName))){
 				RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
 						.withSeparator(DATA_SEPARATOR)
@@ -156,7 +173,7 @@ public class FactGenerator extends Job {
 				if(SKIP_HEADERS) csvreader.readNext();
 
 				List<String[]> records = csvreader.readAll();
-								
+				// Dump the facts object and start a bufferwriter to the observationfact file.				
 				records.forEach(record ->{
 
 					ObservationFact obs = new ObservationFact();
@@ -187,22 +204,62 @@ public class FactGenerator extends Job {
 					obs.setEndDate(endDate);
 					
 					facts.add(obs);
-
+					
+					if(countMap.containsKey(conceptCd)) countMap.get(conceptCd).add(patientNum);
+					else countMap.put(conceptCd, new HashSet<String>( Arrays.asList(patientNum)));
+	
 				});
-
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				System.err.println(e);
 				e.printStackTrace();
 			} 			
 		});	
-
-		return facts;
 		
-
+		String countsProcessingFileName = PROCESSING_FOLDER + CONFIG_FILENAME.replace(".config", "").replace("config.", "") + "_ConceptCounts.csv";
+		
+		System.out.println(countsProcessingFileName);
+		
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(countsProcessingFileName), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
+			
+			for(Entry<String, Set<String>> entry: countMap.entrySet()) {
+				StatefulBeanToCsv<ConceptCounts> writer = new StatefulBeanToCsvBuilder<ConceptCounts>(buffer)
+						.withQuotechar(DATA_QUOTED_STRING)
+						.withSeparator(DATA_SEPARATOR)
+						.build();
+				
+				int x = StringUtils.countMatches(entry.getKey(), PATH_SEPARATOR);
+				
+				String parentConceptPath = entry.getKey().substring(0, StringUtils.ordinalIndexOf(entry.getKey(), PATH_SEPARATOR, (x - 1)) + 1);
+				
+				ConceptCounts cc = new ConceptCounts();
+				cc.setConceptPath(entry.getKey());
+				cc.setParentConceptPath(parentConceptPath);
+				cc.setPatientCount(entry.getValue().size());
+				
+				writer.write(cc);
+			}
+			
+			buffer.flush();
+			buffer.close();
+			
+		} catch (CsvDataTypeMismatchException | CsvRequiredFieldEmptyException e) {
+			
+			System.err.println(e);
+			
+			e.printStackTrace();
+			
+		}
+		
+		return facts;
 	}
-
+	
+	public static BufferedWriter openBufferedWriter(String fileName, StandardOpenOption... options) throws IOException {
+		return Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + fileName), options);
+	}
+	
 	public static void writeFacts(Set<ObservationFact> facts, StandardOpenOption... options) {
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"), options)){
+		
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(PROCESSING_FOLDER + File.separatorChar + CONFIG_FILENAME + '_' + FACT_FILENAME), options)){
 			try {
 				Utils.writeToCsv(buffer, facts.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
 			} catch (CsvDataTypeMismatchException e) {

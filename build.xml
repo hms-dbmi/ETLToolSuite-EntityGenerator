@@ -12,6 +12,7 @@
     <path id="classpath">
         <pathelement location="src"/>
     		<pathelement location="resources/log4j2.xml"/>
+    	    <pathelement location="resources/commons-collections4-4.3.jar"/>
         <pathelement location="resources/commons-lang3-3.8.jar"/>
         <pathelement location="resources/commons-lang-2.6.jar"/>
         <pathelement location="resources/gson-2.3.1.jar"/>
@@ -61,6 +62,22 @@
 	  	<jar destfile="ConceptGenerator.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.ConceptGenerator"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>
+	  	<jar destfile="CountGenerator3.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.CountGenerator3"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>
+	  	<jar destfile="CountGenerator2.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.CountGenerator2"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>

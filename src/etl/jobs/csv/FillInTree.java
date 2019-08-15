@@ -15,6 +15,8 @@ import etl.job.entity.i2b2tm.I2B2;
 import etl.job.entity.i2b2tm.TableAccess;
 import etl.utils.Utils;
 
+
+
 /**
  * @author Thomas DeSain
  * Take metadata generated from metadatagenerator and replicates 
@@ -23,6 +25,11 @@ import etl.utils.Utils;
  */
 public class FillInTree extends Job{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1357491618995356551L;
+
 	private static boolean SKIP_HEADERS = false;
 
 	private static int clevel = 1; 

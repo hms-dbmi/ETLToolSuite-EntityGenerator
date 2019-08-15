@@ -86,38 +86,13 @@ public class DataEvaluation extends Job{
 	 * @throws IllegalAccessException
 	 */
 	private static void execute() throws IOException, InstantiationException, IllegalAccessException {
-		cleanEvaluationFiles();
 		
 		List<Mapping> mappingFile = Mapping.class.newInstance().generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
 		
 		List<PatientMapping> patientMappingFile = !PATIENT_MAPPING_FILE.isEmpty() ? PatientMapping.class.newInstance().generateMappingList(PATIENT_MAPPING_FILE, MAPPING_DELIMITER): new ArrayList<PatientMapping>();
 		
-		Collections.sort(mappingFile, new Comparator<Mapping>() {
-
-			@Override
-			public int compare(Mapping o1, Mapping o2) {
-				if(o1.getKey().split(":").length == 2 && o2.getKey().split(":").length == 2) {
-					String o1fn = o1.getKey().split(":")[0];
-					Integer o1col = new Integer(o1.getKey().split(":")[1]);
-					
-					String o2fn = o2.getKey().split(":")[0];
-					Integer o2col = new Integer(o2.getKey().split(":")[1]);
-					if(o1fn.equals(o2fn)) {
-						
-						if(o1col == o2col) return 0;
-						else if(o1col < o2col) return 1;
-						else return - 1; 
-						
-					} else {
-						
-						return 0;	
-						
-					}
-				} else {
-					return 0;
-				}
-			}
-		});		
+		Collections.sort(mappingFile);
+		
 		Set<String> patientids = new HashSet<String>();
 
 		for(PatientMapping pm :patientMappingFile) {
@@ -285,24 +260,6 @@ public class DataEvaluation extends Job{
         }
 		
 	}
-
-	
-	/**
-	 * Method will clean all the previous evaluation files.
-	 * 
-	 * @throws IOException
-	 */
-	private static void cleanEvaluationFiles() throws IOException {
-		OutputStream clean = new FileOutputStream(WRITE_DIR + "dataevaluation.txt");
-		clean.close();
-		clean = new FileOutputStream(WRITE_DIR + "factevaluation.txt");
-		clean.close();
-		clean = new FileOutputStream(WRITE_DIR + "conceptevaluation.txt");
-		clean.close();
-		clean = new FileOutputStream(WRITE_DIR + "dataevaluation.txt");
-		clean.close();		
-	}
-
 
 	/**
 	 * Iterates over a mappings and returns 

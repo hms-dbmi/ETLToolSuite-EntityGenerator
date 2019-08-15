@@ -135,6 +135,7 @@ public class CEIsequencer extends Job{
 	 * @throws CsvDataTypeMismatchException 
 	 */
 	private static void sequencePatients() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+		if(!Files.exists(Paths.get(WRITE_DIR + File.separatorChar + "PatientMapping.csv"))) return;
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "PatientMapping.csv"))){
 		
 			CsvToBean<PatientMapping> csvToBean = 

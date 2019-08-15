@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.util.Strings;
 
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
@@ -25,9 +24,11 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import etl.job.entity.Mapping;
 import etl.job.entity.i2b2tm.ConceptDimension;
 import etl.job.entity.i2b2tm.I2B2;
-import etl.job.entity.i2b2tm.TableAccess;
+import etl.job.entity.i2b2tm.I2B2Secure;
 import etl.jobs.jobproperties.JobProperties;
 import etl.utils.Utils;
+
+
 
 /**
  * @author Thomas DeSain
@@ -115,13 +116,31 @@ public class MetadataGenerator extends Job {
 
 		return metadata;
 
-		// 
 	}
 
+	public static Set<I2B2Secure> generateI2B2Secure(Set<I2B2> metadata){
+		Set<I2B2Secure> i2b2Secure = new HashSet<I2B2Secure>();
+		
+		metadata.parallelStream().forEach(i2b2 -> {
+			i2b2Secure.add(new I2B2Secure(i2b2));
+		});
+		
+		return i2b2Secure;
+	}
+	
 	public static void writeMetadata(Set<I2B2> metadata, StandardOpenOption... options) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 		// write to disk
 		try(BufferedWriter buffer = Files.newBufferedWriter(
-				Paths.get(WRITE_DIR + File.separatorChar + "I2B2.csv"), options)){
+				Paths.get(PROCESSING_FOLDER + File.separatorChar + CONFIG_FILENAME + '_' + "I2B2.csv"), options)){
+
+			Utils.writeToCsv(buffer, metadata, DATA_QUOTED_STRING, DATA_SEPARATOR);
+		} 
+	}
+	
+	public static void writeMetadataSecure(Set<I2B2Secure> metadata, StandardOpenOption... options) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+		// write to disk
+		try(BufferedWriter buffer = Files.newBufferedWriter(
+				Paths.get(PROCESSING_FOLDER + File.separatorChar + CONFIG_FILENAME + '_' + "I2B2Secure.csv"), options)){
 
 			Utils.writeToCsv(buffer, metadata, DATA_QUOTED_STRING, DATA_SEPARATOR);
 		} 
@@ -181,7 +200,7 @@ public class MetadataGenerator extends Job {
 		node.setcDimCode(concept.getKey());
 		node.setcToolTip(concept.getKey());
 		String[] nodes = concept.getKey().split("\\\\");
-		node.setcName(nodes[nodes.length - 2]);
+		node.setcName(nodes[nodes.length - 1]);
 		node.setcColumnDataType("T");
 		node.setcSynonymCd("N");
 		node.setcVisualAttributes("LA");
@@ -212,7 +231,7 @@ public class MetadataGenerator extends Job {
 		node.setcToolTip(mapping.getKey());
 		node.setcMetaDataXML(C_METADATAXML_NUMERIC);
 		String[] nodes = mapping.getKey().split("\\\\");
-		node.setcName(nodes[nodes.length - 2]);
+		node.setcName(nodes[nodes.length - 1]);
 		node.setcColumnDataType("T");
 		node.setcSynonymCd("N");
 		node.setcVisualAttributes("LA");

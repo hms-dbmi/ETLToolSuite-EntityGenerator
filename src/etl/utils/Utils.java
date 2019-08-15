@@ -2,6 +2,7 @@ package etl.utils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.lang.instrument.Instrumentation;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,6 +18,19 @@ public class Utils {
 
 	private static char ESCAPE_CHAR = '≈';
 	
+	private static volatile Instrumentation globalInstrumentation;
+	 
+    public static void premain(final String agentArgs, final Instrumentation inst) {
+        globalInstrumentation = inst;
+    }
+ 
+    public static long getObjectSize(final Object object) {
+        if (globalInstrumentation == null) {
+            throw new IllegalStateException("Agent not initialized.");
+        }
+        return globalInstrumentation.getObjectSize(object);
+    }	
+    
 	public static <T> CsvToBean<T> readCsvToBean(Class<T> _class, BufferedReader buffer, char quoteChar, char separator, boolean skipheader) {
 		CsvToBean<T> beans = new CsvToBeanBuilder<T>(buffer)
 				.withSkipLines(skipheader ? 1 : 0)
@@ -48,7 +62,7 @@ public class Utils {
 		
 		writer.write(objectsToWrite.stream().collect(Collectors.toList()));
 	}
-	
+
 	// checks passed arguments and sends back value for that argument
 	public static String checkPassedArgs(String arg, String[] args) throws Exception {
 		
@@ -80,4 +94,7 @@ public class Utils {
 		}
 		return argv;
 	}	
+	
+
+	
 }

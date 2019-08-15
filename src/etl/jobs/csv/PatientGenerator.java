@@ -40,6 +40,10 @@ import etl.utils.Utils;
  */
 public class PatientGenerator extends Job{
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8079182760771652640L;
+	/**
 	 * Attribute map that contains mapping for columns between patientmapping.csv file key names 
 	 * and link them to the fields in the patient dimension entity.
 	 * These keys have to be fixed names in order to properly map and generate the patient dimension table.
@@ -187,10 +191,13 @@ public class PatientGenerator extends Job{
 			RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
 					.withSeparator(DATA_SEPARATOR)
 					.withQuoteChar(DATA_QUOTED_STRING);
-				
+					
 			RFC4180Parser parser = parserbuilder.build();
-	
+			
+			int skipHeader = SKIP_HEADERS ? 1:0;
+			
 			CSVReaderBuilder builder = new CSVReaderBuilder(reader)
+					.withSkipLines(skipHeader)
 					.withCSVParser(parser);
 			
 			CSVReader csvreader = builder.build();

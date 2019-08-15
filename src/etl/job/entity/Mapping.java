@@ -20,7 +20,7 @@ import com.opencsv.bean.CsvToBeanBuilder;
 
 import etl.utils.Utils;
 
-public class Mapping implements Cloneable{
+public class Mapping implements Cloneable, Comparable<Mapping>{
 	
 	public static String OPTIONS_DELIMITER = ";";
 	
@@ -276,4 +276,13 @@ public class Mapping implements Cloneable{
 		// return empty string not null
 		return ""; 
 	}
+
+	@Override
+	public int compareTo(Mapping o) {
+		
+		return this.getKey().compareTo(o.getKey());
+	}
+	
+	
+	
 }
