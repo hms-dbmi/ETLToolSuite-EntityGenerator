@@ -169,7 +169,7 @@ public class ConceptGenerator extends Job{
 	 * @throws CsvRequiredFieldEmptyException
 	 */
 	public static void writeConcepts(Collection<ConceptDimension> setCds,StandardOpenOption... options) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ConceptDimension.csv"),options)){
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(PROCESSING_FOLDER + File.separatorChar + CONFIG_FILENAME + '_' + "ConceptDimension.csv"),options)){
 			
 			Utils.writeToCsv(buffer, setCds.stream().collect(Collectors.toList()), DATA_QUOTED_STRING, DATA_SEPARATOR);
 			buffer.flush();
