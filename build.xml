@@ -14,7 +14,6 @@
     		<pathelement location="resources/log4j2.xml"/>
     	    <pathelement location="resources/commons-collections4-4.3.jar"/>
         <pathelement location="resources/commons-lang3-3.8.jar"/>
-        <pathelement location="resources/commons-lang-2.6.jar"/>
         <pathelement location="resources/gson-2.3.1.jar"/>
         <pathelement location="resources/guava-r05.jar"/>
         <pathelement location="resources/jackson-annotations-2.8.8.jar"/>
@@ -179,5 +178,13 @@
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 	  	</jar>    
+	  	<jar destfile="DataMerge.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.DataMerge"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>   
     	</target>
 </project>

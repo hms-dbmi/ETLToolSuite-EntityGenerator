@@ -13,6 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.RFC4180Parser;
@@ -137,20 +139,32 @@ public class ConceptGenerator extends Job{
 				List<String[]> records = csvreader.readAll();
 				
 				records.forEach(record ->{
+					
+					if(record[column].isEmpty()) {
+						return;
+					}
+					
 					ConceptDimension cd = new ConceptDimension();
 					
 					String conceptCd = mapping.getDataType().equalsIgnoreCase("numeric") ?
-							mapping.getRootNode() :mapping.getRootNode() + record[column] + "\\"; 
+							mapping.getRootNode() :mapping.getRootNode() + record[column] + PATH_SEPARATOR; 
 					
 					String conceptPath = mapping.getDataType().equalsIgnoreCase("numeric") ? 
-							mapping.getRootNode() :mapping.getRootNode() + record[column] + "\\"; 
+							mapping.getRootNode() :mapping.getRootNode() + record[column] + PATH_SEPARATOR; 
 							
 					cd.setConceptCd(conceptCd);
 					cd.setConceptPath(conceptPath);
-					cd.setNameChar(record[column]);
+
+					if(mapping.getDataType().equalsIgnoreCase("numeric")) {
+						String[] nodes = StringUtils.split(conceptPath, PATH_SEPARATOR.charAt(0));
+						cd.setNameChar(nodes[nodes.length -1]);
+					} else {
+						cd.setNameChar(record[column]);
+					}
 					cd.setSourceSystemCd(TRIAL_ID);
-					
+
 					cds.add(cd);
+					
 				});
 			} catch (IOException e) {
 				System.err.println(e);

@@ -19,6 +19,7 @@ import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 import etl.job.entity.i2b2tm.ConceptCounts;
+import etl.job.entity.i2b2tm.ConceptDimension;
 import etl.job.entity.i2b2tm.I2B2Secure;
 import etl.job.entity.i2b2tm.ObservationFact;
 import etl.utils.Utils;
@@ -31,6 +32,8 @@ public class DataMerge extends Job {
 			mergeCounts();
 			
 			mergeFacts();
+			
+			mergeConcepts();
 			
 			mergeMetadata();
 			
@@ -52,17 +55,17 @@ public class DataMerge extends Job {
 		
 	}
 	
-	private static void mergeMetadataSecure() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+	private static void mergeConcepts() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 		Stream<Path> paths = Files.list(Paths.get(PROCESSING_FOLDER));
 		
-		List<I2B2Secure> metadata = new ArrayList<I2B2Secure>();
+		List<ConceptDimension> concepts = new ArrayList<ConceptDimension>();
 		
 		paths.forEach(path -> {
-			if(path.getFileName().toString().contains("I2B2_Secure.csv")) {
+			if(path.getFileName().toString().contains("ConceptDimension.csv")) {
 				try(BufferedReader buffer = Files.newBufferedReader(path)){
-					CsvToBean<I2B2Secure> csvToBean = Utils.readCsvToBean(I2B2Secure.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, false);	
-	
-					metadata.addAll(csvToBean.parse());
+					CsvToBean<ConceptDimension> csvToBean = Utils.readCsvToBean(ConceptDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, false);	
+					
+					concepts.addAll(csvToBean.parse());
 					
 				} catch (IOException e) {
 					System.out.println(e);
@@ -70,7 +73,35 @@ public class DataMerge extends Job {
 			}
 		});
 		
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "I2B2_Secure.csv"), StandardOpenOption.CREATE, StandardOpenOption.APPEND)){
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "ConceptDimension.csv"), StandardOpenOption.CREATE, StandardOpenOption.APPEND)){
+			StatefulBeanToCsv<ConceptDimension> writer = new StatefulBeanToCsvBuilder<ConceptDimension>(buffer)
+					.withQuotechar(DATA_QUOTED_STRING)
+					.withSeparator(DATA_SEPARATOR)
+					.build();
+			
+			writer.write(concepts);
+		}				
+	}
+
+	private static void mergeMetadataSecure() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+		Stream<Path> paths = Files.list(Paths.get(PROCESSING_FOLDER));
+		
+		List<I2B2Secure> metadata = new ArrayList<I2B2Secure>();
+		
+		paths.forEach(path -> {
+			if(path.getFileName().toString().contains("I2B2Secure.csv")) {
+
+				try(BufferedReader buffer = Files.newBufferedReader(path)){
+					CsvToBean<I2B2Secure> csvToBean = Utils.readCsvToBean(I2B2Secure.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, false);	
+				
+					metadata.addAll(csvToBean.parse());
+				} catch (IOException e) {
+					System.out.println(e);
+				} 
+			}
+		});
+		
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "I2B2Secure.csv"), StandardOpenOption.CREATE, StandardOpenOption.APPEND)){
 			StatefulBeanToCsv<I2B2Secure> writer = new StatefulBeanToCsvBuilder<I2B2Secure>(buffer)
 					.withQuotechar(DATA_QUOTED_STRING)
 					.withSeparator(DATA_SEPARATOR)
@@ -86,12 +117,14 @@ public class DataMerge extends Job {
 		List<I2B2Secure> metadata = new ArrayList<I2B2Secure>();
 		
 		paths.forEach(path -> {
-			if(path.getFileName().toString().contains("I2B2SECURE.csv")) {
+			if(path.getFileName().toString().contains("I2B2.csv")) {
 				try(BufferedReader buffer = Files.newBufferedReader(path)){
 					CsvToBean<I2B2Secure> csvToBean = Utils.readCsvToBean(I2B2Secure.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, false);	
 	
-					metadata.addAll(csvToBean.parse());
-					
+					csvToBean.parse().forEach(i2b2 -> {
+
+						metadata.add(i2b2);
+					});							
 				} catch (IOException e) {
 					System.out.println(e);
 				} 

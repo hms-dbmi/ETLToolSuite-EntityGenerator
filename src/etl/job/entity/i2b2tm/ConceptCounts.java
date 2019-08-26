@@ -70,11 +70,7 @@ public class ConceptCounts {
 				return false;
 		} else if (!parentConceptPath.equals(other.parentConceptPath))
 			return false;
-		if (patientCount == null) {
-			if (other.patientCount != null)
-				return false;
-		} else if (!patientCount.equals(other.patientCount))
-			return false;
+		
 		return true;
 	}
 	

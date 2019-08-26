@@ -1,9 +1,7 @@
 package etl.job.entity.i2b2tm;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -65,13 +63,42 @@ public class I2B2 implements Cloneable{
 	
 		
 	@Override
-	protected Object clone() throws CloneNotSupportedException {
+	public Object clone() throws CloneNotSupportedException {
 		// TODO Auto-generated method stub
 		return super.clone();
 	}
 
 	public I2B2() {
 
+	}
+
+	public I2B2(String[] record) {
+		cHlevel = record[0];
+		cFullName = record[1];
+		cName = record[2];
+		cSynonymCd = record[3];
+		cVisualAttributes = record[4];
+		cTotalNum = record[5];
+		cBaseCode = record[6];
+		cMetaDataXML = record[7];
+		cFactTableColumn = record[8];
+		cTableName = record[9];
+		cColumnName = record[10];
+		cColumnDataType = record[11];
+		cOperator = record[12];
+		cDimCode = record[13];
+		cComment = record[14];
+		cToolTip = record[15];
+		updateDate = record[16];
+		downloadDate = record[17];
+		importDate = record[18];
+		sourceSystemCd = record[19];
+		valueTypeCd = record[20];
+		i2b2Id = record[21];
+		mAppliedPath = record[22];
+		mExclusionCd = record[23];
+		cPath = record[24];
+		cSymbol = record[25];	
 	}
 
 	public boolean isValid() {
@@ -286,6 +313,20 @@ public class I2B2 implements Cloneable{
 		this.cSymbol = cSymbol;
 	}
 
+	public String[] toStringArray() {
+		
+		String[] array = new String[] {
+				cHlevel,cFullName,cName,cSynonymCd,cVisualAttributes,
+				cTotalNum,cBaseCode,cMetaDataXML,cFactTableColumn,
+				cTableName,cColumnName,cColumnDataType,cOperator,
+				cDimCode,cComment,cToolTip,updateDate,downloadDate,
+				importDate,sourceSystemCd,valueTypeCd,i2b2Id,
+				mAppliedPath,mExclusionCd,cPath,cSymbol
+		};
+		
+		return array;
+	}
+	
 	@Override
 	public String toString() {
 		return "I2B2 [cHlevel=" + cHlevel + ", cFullName=" + cFullName
@@ -310,78 +351,7 @@ public class I2B2 implements Cloneable{
 	 * @param nodes
 	 * @throws Exception
 	 */
-	public static void fillTree(Set<I2B2> nodes, int clevelBegOccurance, int clevelEndOccurance) throws Exception{
-		
-		Set<I2B2> set = new HashSet<I2B2>();
-		/*
-		ConcurrentHashMap<CharSequence,Set<CharSequence>> trees = new ConcurrentHashMap<CharSequence, Set<CharSequence>>();
-		
-		nodes.forEach(node ->{
-			
-			CharSequence cfullname = node.getcFullName();
-			if(StringUtils.countMatches(cfullname, "\\") <= 2) return; // is empty node or only base node.  No need to fill.
 
-			int clevelBegIndex = StringUtils.ordinalIndexOf(cfullname, "\\", clevelBegOccurance);
-			
-			int clevelEndIndex = StringUtils.ordinalIndexOf(cfullname, "\\", clevelEndOccurance);
-			
-			CharSequence clevelName = cfullname.subSequence(clevelBegIndex, clevelEndIndex + 1);
-			
-			if(trees.containsKey(clevelName)) {
-				trees.get(clevelName).add(cfullname);
-			} else {
-				trees.put(clevelName, new HashSet<CharSequence>(Arrays.asList(cfullname)));
-			}
-			
-		});
-		
-		trees.entrySet().parallelStream()
-		*/
-		
-		nodes.forEach(node ->{
-			
-			Integer x = StringUtils.countMatches(node.getcFullName(),"\\") - 1;
-					
-			while(x > 1){
-				
-				I2B2 i2b2 = null;
-				try {
-					i2b2 = (I2B2) node.clone();
-				} catch (CloneNotSupportedException e) {
-					System.err.println(e);
-				}
-				if(i2b2 == null) {
-					break;
-				}
-				
-				i2b2.setcFullName(node.getcFullName().substring(0, StringUtils.ordinalIndexOf(node.getcFullName(), "\\", x) + 1 ));
-				
-				i2b2.setcDimCode(node.getcFullName().substring(0, StringUtils.ordinalIndexOf(node.getcFullName(), "\\", x) + 1 ));
-				
-				i2b2.setcToolTip(node.getcFullName().substring(0, StringUtils.ordinalIndexOf(node.getcFullName(), "\\", x) + 1 ));
-				
-				i2b2.setcHlevel(new Integer(x - 2).toString());
-				i2b2.setcBaseCode(null);
-				i2b2.setcVisualAttributes("FA");
-				
-				i2b2.setcMetaDataXML("");
-				
-				String[] fullNodes = i2b2.getcFullName().split("\\\\");
-				
-				i2b2.setcName(fullNodes[fullNodes.length - 1]);
-				
-				if(node.getcHlevel() != null) {
-					set.add(i2b2);
-				}
-				
-				
-				
-				x--;
-			}
-		});
-		
-		nodes.addAll(set);
-	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;

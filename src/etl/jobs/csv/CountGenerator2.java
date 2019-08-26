@@ -12,10 +12,10 @@ import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,14 +23,15 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.opencsv.CSVReader;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 import etl.job.entity.i2b2tm.ConceptCounts;
 import etl.job.entity.i2b2tm.ConceptDimension;
-import etl.job.entity.i2b2tm.ObservationFact;
 import etl.utils.Utils;
+
 
 /**
  * Generates Concept Counts Entity file.
@@ -42,7 +43,7 @@ import etl.utils.Utils;
  *
  */
 public class CountGenerator2 extends Job{
-
+ 
 	/**
 	 * Main method that executes subprocesses
 	 * Exception handled should happen here.
@@ -217,22 +218,25 @@ public class CountGenerator2 extends Job{
 	private static void readFactFile() throws IOException {
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "ObservationFact.csv"))){
 			System.out.println("building csvtobean");
-			CsvToBean<ObservationFact> csvToBean = Utils.readCsvToBean(ObservationFact.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, false);	
-			System.out.println("building processing streams");
-			csvToBean.parse().stream().forEach(fact -> {
-				System.out.println(x);
-				x++;
-				if(fact.getConceptCd().equalsIgnoreCase("security")) return;
+			
+			CSVReader reader = new CSVReader(buffer, DATA_SEPARATOR, DATA_QUOTED_STRING);
+			
+			Iterator<String[]> iter = reader.iterator();
+			
+			while(iter.hasNext()) {
 				
-				Set<String> patientNums = new HashSet<String>();
+				String[] arr = iter.next();
+				String conceptcd = arr[2];
+				String patientnum = arr[1];
 				
-				if(Files.exists(Paths.get(PROCESSING_FOLDER + File.separatorChar + fact.getConceptCd()))){
+				if(Files.exists(Paths.get(PROCESSING_FOLDER + File.separatorChar + conceptcd))){
 					boolean patientExistsAlready = true;
-					try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(PROCESSING_FOLDER + File.separatorChar + fact.getConceptCd()))){
+					Set<String> patientNums = new HashSet<String>();
+					try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(PROCESSING_FOLDER + File.separatorChar + conceptcd))){
 						patientNums = (Set<String>) ois.readObject();
-						if(patientNums.contains(fact.getPatientNum())) patientExistsAlready = true;
+						if(patientNums.contains(patientnum)) patientExistsAlready = true;
 						else {
-							patientNums.add(fact.getPatientNum());
+							patientNums.add(patientnum);
 							patientExistsAlready = false;
 						}
 						ois.close();
@@ -248,7 +252,7 @@ public class CountGenerator2 extends Job{
 					}
 					if(!patientExistsAlready){
 						try(ObjectOutputStream oos = new ObjectOutputStream(
-								new FileOutputStream(PROCESSING_FOLDER + File.separatorChar + fact.getConceptCd()))
+								new FileOutputStream(PROCESSING_FOLDER + File.separatorChar + conceptcd))
 								){
 							oos.writeObject((Set<String>) patientNums);
 							oos.close();
@@ -259,18 +263,19 @@ public class CountGenerator2 extends Job{
 					}
 				} else {
 					try(ObjectOutputStream oos = new ObjectOutputStream(
-							new FileOutputStream(PROCESSING_FOLDER + File.separatorChar + fact.getConceptCd()))
+							new FileOutputStream(PROCESSING_FOLDER + File.separatorChar + conceptcd))
 							){
-						patientNums.add(fact.getPatientNum());
-						oos.writeObject((Set<String>) patientNums);
+						oos.writeObject(new HashSet<String>( Arrays.asList(patientnum)));
 						oos.close();
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
-							
-			});/*
+			}
+			/*
+			CsvToBean<ObservationFact> csvToBean = Utils.readCsvToBean(ObservationFact.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, false);	
+			System.out.println("building processing streams");
 			csvToBean.forEach(fact -> {
 				System.out.println(x);
 				x++;

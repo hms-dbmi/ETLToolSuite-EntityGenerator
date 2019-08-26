@@ -39,7 +39,11 @@ import etl.utils.Utils;
  *
  */
 public class MetadataGenerator extends Job {
-	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5109126327540663739L;
+
 	public static void main(String[] args) {
 		try {
 			setVariables(args, buildProperties(args));
@@ -79,8 +83,10 @@ public class MetadataGenerator extends Job {
 	}
 	
 	private static void execute() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+
+		String conceptsProcessingFileName = PROCESSING_FOLDER + CONFIG_FILENAME.replace(".config", "").replace("config.", "") + "_ConceptDimension.csv";
 		
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "ConceptDimension.csv"))){
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(conceptsProcessingFileName))){
 	
 			CsvToBean<ConceptDimension> csvToBean = Utils.readCsvToBean(ConceptDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, false);	
 			
@@ -95,6 +101,8 @@ public class MetadataGenerator extends Job {
 			generateMetadata(mappings, concepts, metadata);
 			
 			writeMetadata(metadata);
+			
+			writeMetadataSecure(generateI2B2Secure(metadata), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 		}
 		
 	}
@@ -121,10 +129,9 @@ public class MetadataGenerator extends Job {
 	public static Set<I2B2Secure> generateI2B2Secure(Set<I2B2> metadata){
 		Set<I2B2Secure> i2b2Secure = new HashSet<I2B2Secure>();
 		
-		metadata.parallelStream().forEach(i2b2 -> {
+		metadata.stream().forEach(i2b2 -> {
 			i2b2Secure.add(new I2B2Secure(i2b2));
 		});
-		
 		return i2b2Secure;
 	}
 	
@@ -199,12 +206,12 @@ public class MetadataGenerator extends Job {
 		node.setcFullName(concept.getKey());
 		node.setcDimCode(concept.getKey());
 		node.setcToolTip(concept.getKey());
-		String[] nodes = concept.getKey().split("\\\\");
+		String[] nodes = concept.getKey().split(PATH_SEPARATOR.toString());
 		node.setcName(nodes[nodes.length - 1]);
 		node.setcColumnDataType("T");
 		node.setcSynonymCd("N");
 		node.setcVisualAttributes("LA");
-		node.setcHlevel(Integer.toString(StringUtils.countMatches(node.getcFullName(), '\\') - 2));
+		node.setcHlevel(Integer.toString(StringUtils.countMatches(node.getcFullName(), PATH_SEPARATOR) - 2));
 		node.setcFactTableColumn("CONCEPT_CD");
 		node.setcTableName("CONCEPT_DIMENSION");
 		node.setcColumnName("CONCEPT_PATH");
@@ -230,12 +237,12 @@ public class MetadataGenerator extends Job {
 		node.setcDimCode(mapping.getKey());
 		node.setcToolTip(mapping.getKey());
 		node.setcMetaDataXML(C_METADATAXML_NUMERIC);
-		String[] nodes = mapping.getKey().split("\\\\");
+		String[] nodes = mapping.getKey().split(PATH_SEPARATOR.toString());
 		node.setcName(nodes[nodes.length - 1]);
 		node.setcColumnDataType("T");
 		node.setcSynonymCd("N");
 		node.setcVisualAttributes("LA");
-		node.setcHlevel(Integer.toString(StringUtils.countMatches(node.getcFullName(), '\\') - 2));
+		node.setcHlevel(Integer.toString(StringUtils.countMatches(node.getcFullName(), PATH_SEPARATOR) - 2));
 		node.setcFactTableColumn("CONCEPT_CD");
 		node.setcTableName("CONCEPT_DIMENSION");
 		node.setcColumnName("CONCEPT_PATH");

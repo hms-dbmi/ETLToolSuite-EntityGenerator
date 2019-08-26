@@ -48,21 +48,23 @@ public class EntityGenerator extends Job {
 	 * @throws Exception
 	 */
 	private static void execute(String[] args, JobProperties jobProperties) throws Exception {
+		
 		Collection<ConceptDimension> setCds = ConceptGenerator.main(args, jobProperties);
 		
 		if(setCds == null) throw new Exception("No concepts exists"); 
+		
 		Set<ObservationFact> facts = FactGenerator.main(args, jobProperties);
 		
 		if(facts == null) throw new Exception("No facts exists");
 		
 		CEIsequencer.main(args, facts, setCds, jobProperties);
-	
+		
 		Set<I2B2> metadata = MetadataGenerator.main(args, setCds, jobProperties);
 		
 		Set<I2B2Secure> metadataSecure = MetadataGenerator.generateI2B2Secure(metadata);
 		
 		if(metadata == null) throw new Exception("No metadata exists");
-
+		
 		ConceptGenerator.writeConcepts(setCds, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 		
 		FactGenerator.writeFacts(facts, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
@@ -70,7 +72,6 @@ public class EntityGenerator extends Job {
 		MetadataGenerator.writeMetadata(metadata, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 		
 		MetadataGenerator.writeMetadataSecure(metadataSecure, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-		
 	}
 	
 }

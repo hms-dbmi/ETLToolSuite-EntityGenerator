@@ -16,7 +16,7 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 public class Utils {
 
-	private static char ESCAPE_CHAR = '≈';
+	public static char ESCAPE_CHAR = '\\';
 	
 	private static volatile Instrumentation globalInstrumentation;
 	 

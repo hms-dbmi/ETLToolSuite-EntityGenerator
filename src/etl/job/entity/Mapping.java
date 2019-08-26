@@ -99,10 +99,18 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(filePath))){
 
-			CsvToBean<Mapping> beans = Utils.readCsvToBean(Mapping.class, buffer, quoteChar, separator, skipheader);
-
-			list = beans.parse();
+			CsvToBean<Mapping> beans = new CsvToBeanBuilder<Mapping>(buffer)
+					.withSkipLines(skipheader ? 1 : 0)
+					.withQuoteChar(quoteChar)
+					.withSeparator(separator)
+					.withEscapeChar('¶')
+					.withType(Mapping.class)
+					.build();			
 			
+			list = beans.parse();
+			for(Mapping m: list) {
+				m.setRootNode(m.getRootNode().replace('\\', '/'));
+			}
 		}
 		
 		return list;

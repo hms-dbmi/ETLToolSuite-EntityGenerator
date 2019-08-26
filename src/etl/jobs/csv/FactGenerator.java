@@ -139,9 +139,13 @@ public class FactGenerator extends Job {
 			String[] options = mapping.getOptions().split(":");
 			
 			for(String option: options) {
+				
 				if(option.split("=").length != 2) continue;
+				
 				String optionkey = option.split("=")[0];
+				
 				optionkey = optionkey.replace(String.valueOf(MAPPING_QUOTED_STRING), "");
+				
 				if(optionkey.equalsIgnoreCase("patientcol")) {
 					PATIENT_COL = Integer.valueOf(option.split("=")[1]);
 				} else if(optionkey.equalsIgnoreCase("startdatecol")) {
@@ -178,9 +182,13 @@ public class FactGenerator extends Job {
 
 					ObservationFact obs = new ObservationFact();
 					
+					if(record[column].isEmpty()) return;
+					
 					String conceptCd = mapping.getDataType().equalsIgnoreCase("numeric") ?
-							mapping.getRootNode() :mapping.getRootNode() + record[column] + "\\"; 
+							mapping.getRootNode() :mapping.getRootNode() + record[column] + PATH_SEPARATOR; 
 
+					conceptCd = conceptCd.replace("//", "/");
+							
 					String encounterNum = ENCOUNTER_COL == -1 ? "-1" : record[ENCOUNTER_COL];
 					String startDate = START_DATE_COL == null ? defaultDate : record[START_DATE_COL];
 					String endDate = END_DATE_COL == null ? defaultDate : record[END_DATE_COL];
@@ -188,6 +196,8 @@ public class FactGenerator extends Job {
 					String instanceNum = INSTANCE_COL == -1 ? "-1" : record[INSTANCE_COL];
 					String tvalChar = mapping.getDataType().equalsIgnoreCase("TEXT") ? record[column]: "E";
 					String nvalNum = mapping.getDataType().equalsIgnoreCase("TEXT") ? "": record[column];
+					String valTypeCd = mapping.getDataType().equalsIgnoreCase("TEXT") ? "T": "N";
+					
 					String patientNum = record[PATIENT_COL].isEmpty() ? null: record[PATIENT_COL];
 												
 					if(patientNum == null) return;
@@ -197,6 +207,7 @@ public class FactGenerator extends Job {
 					obs.setEncounterNum(encounterNum);
 					obs.setInstanceNum(instanceNum);
 					obs.setModifierCd("@");
+					obs.setValtypeCd(valTypeCd);
 					obs.setTvalChar(tvalChar);
 					obs.setNvalNum(nvalNum);
 					obs.setSourceSystemCd(TRIAL_ID);
@@ -216,17 +227,18 @@ public class FactGenerator extends Job {
 		});	
 		
 		String countsProcessingFileName = PROCESSING_FOLDER + CONFIG_FILENAME.replace(".config", "").replace("config.", "") + "_ConceptCounts.csv";
-		
-		System.out.println(countsProcessingFileName);
-		
+				
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(countsProcessingFileName), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 			
+			StatefulBeanToCsv<ConceptCounts> writer = new StatefulBeanToCsvBuilder<ConceptCounts>(buffer)
+					.withQuotechar(DATA_QUOTED_STRING)
+					.withSeparator(DATA_SEPARATOR)
+					.build();
+			
+			Set<ConceptCounts> cnts = new HashSet<ConceptCounts>();
+			
 			for(Entry<String, Set<String>> entry: countMap.entrySet()) {
-				StatefulBeanToCsv<ConceptCounts> writer = new StatefulBeanToCsvBuilder<ConceptCounts>(buffer)
-						.withQuotechar(DATA_QUOTED_STRING)
-						.withSeparator(DATA_SEPARATOR)
-						.build();
-				
+
 				int x = StringUtils.countMatches(entry.getKey(), PATH_SEPARATOR);
 				
 				String parentConceptPath = entry.getKey().substring(0, StringUtils.ordinalIndexOf(entry.getKey(), PATH_SEPARATOR, (x - 1)) + 1);
@@ -236,8 +248,10 @@ public class FactGenerator extends Job {
 				cc.setParentConceptPath(parentConceptPath);
 				cc.setPatientCount(entry.getValue().size());
 				
-				writer.write(cc);
+				cnts.add(cc);
 			}
+			
+			Utils.writeToCsv(buffer, cnts, DATA_QUOTED_STRING, DATA_SEPARATOR);
 			
 			buffer.flush();
 			buffer.close();
