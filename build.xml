@@ -185,6 +185,14 @@
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
-	  	</jar>   
+	  	</jar>	  	
+    		<jar destfile="FixPaths.jar">
+		<manifest>
+			<attribute name="Main-Class" value="etl.jobs.csv.FixPaths"/>
+		</manifest>
+  	    <fileset dir="bin" includes="**/*.class" />
+  		<fileset dir="bin" includes="*.xml"></fileset>
+  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+  	</jar>      
     	</target>
 </project>
