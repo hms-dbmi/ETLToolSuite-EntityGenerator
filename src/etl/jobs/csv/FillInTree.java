@@ -75,7 +75,6 @@ public class FillInTree extends Job{
 		}
 		try(BufferedWriter buffer = Files.newBufferedWriter(
 				Paths.get(WRITE_DIR + File.separatorChar + "I2B2.csv"))){
-
 			Utils.writeToCsv(buffer, nodes, DATA_QUOTED_STRING, DATA_SEPARATOR);
 		} 		
 		try(BufferedWriter buffer = Files.newBufferedWriter(
@@ -85,43 +84,7 @@ public class FillInTree extends Job{
 		} 		
 	}
 
-	public static void setVariables(String[] args) throws Exception {
-		
-		for(String arg: args) {
-			if(arg.equalsIgnoreCase("-skipheaders")){
-				String skip = checkPassedArgs(arg, args);
-				if(skip.equalsIgnoreCase("Y")) {
-					SKIP_HEADERS = true;
-				} 
-			}
-			if(arg.equalsIgnoreCase( "-mappingskipheaders" )){
-				String skip = checkPassedArgs(arg, args);
-				if(skip.equalsIgnoreCase("Y")) {
-					MAPPING_SKIP_HEADER = true;
-				} 
-			}
-			if(arg.equalsIgnoreCase( "-mappingquotedstring" )){
-				String qs = checkPassedArgs(arg, args);
-				MAPPING_QUOTED_STRING = qs.charAt(0);
-			}
-			if(arg.equalsIgnoreCase( "-mappingdelimiter" )){
-				String md = checkPassedArgs(arg, args);
-				MAPPING_DELIMITER = md.charAt(0);
-			}
-			if(arg.equalsIgnoreCase( "-mappingfile" )){
-				MAPPING_FILE = checkPassedArgs(arg, args);
-			} 
-			if(arg.equalsIgnoreCase( "-datadir" )){
-				DATA_DIR = checkPassedArgs(arg, args);
-			} 
-			if(arg.equalsIgnoreCase( "-writedir" )){
-				WRITE_DIR = checkPassedArgs(arg, args);
-			} 
-			if(arg.equalsIgnoreCase( "-trialid" )){
-				TRIAL_ID  = checkPassedArgs(arg, args);
-			} 
-		}
-	}
+
 	// checks passed arguments and sends back value for that argument
 	public static String checkPassedArgs(String arg, String[] args) throws Exception {
 		
@@ -184,9 +147,8 @@ public class FillInTree extends Job{
 		nodes.forEach(node ->{
 			
 			Integer x = StringUtils.countMatches(node.getcFullName(), PATH_SEPARATOR) - 1;
-					
+			
 			while(x > 1){
-				
 				I2B2 i2b2 = null;
 				try {
 					i2b2 = (I2B2) node.clone();
@@ -222,7 +184,7 @@ public class FillInTree extends Job{
 				x--;
 			}
 		});
-		
+
 		nodes.addAll(set);
 	}
 }
