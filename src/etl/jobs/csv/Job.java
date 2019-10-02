@@ -32,9 +32,9 @@ public abstract class Job implements Serializable {
 
 	protected static char MAPPING_QUOTED_STRING = '"';
 
-	protected static final char DATA_SEPARATOR = ',';
+	protected static char DATA_SEPARATOR = ',';
 
-	protected static final char DATA_QUOTED_STRING = '"';
+	protected static char DATA_QUOTED_STRING = '"';
 	
 	protected static String DATA_DIR = "./data/";
 
@@ -107,6 +107,8 @@ public abstract class Job implements Serializable {
 			
 			PATIENT_MAPPING_FILE = properties.contains("patientmappingfile") ? properties.getProperty("patientmappingfile").toString() : PATIENT_MAPPING_FILE;
 			
+			DATA_QUOTED_STRING = properties.contains("dataquotedstring") ? properties.getProperty("dataquotedstring").toCharArray()[0] : DATA_QUOTED_STRING;
+			DATA_SEPARATOR = properties.contains("datadelimiter") ? properties.getProperty("datadelimiter").toCharArray()[0] : DATA_SEPARATOR;
 			
 			MAPPING_QUOTED_STRING = properties.contains("mappingquotedstring") ? properties.getProperty("mappingquotedstring").toCharArray()[0] : MAPPING_QUOTED_STRING;
 			MAPPING_DELIMITER = properties.contains("mappingdelimiter") ? properties.getProperty("mappingdelimiter").toCharArray()[0] : MAPPING_DELIMITER;

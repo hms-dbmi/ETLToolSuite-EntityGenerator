@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Spliterator;
 
 import com.opencsv.CSVReader;
 
@@ -144,46 +145,82 @@ public class DataEvaluation extends Job{
 				}
 	
 				CSVReader reader = new CSVReader(Files.newBufferedReader(path));
-							
+				System.out.println(path);
+			
 				//if(SKIP_HEADERS) reader.readNext();
 						
 				int nonnullvals = 0;
-				
-				Iterator<String[]> iter = reader.iterator();
+				List<String[]> list = reader.readAll();
+				Spliterator<String[]> iter = reader.spliterator();
 				
 				uniqueVals = new HashMap<String, Set<String>>();
 				totalVals = new HashMap<String, List<String>>();
-				
+				for(String[] array : list){
+					int colIndex = 0;
+					if(array == null) return;
+					if(array.length > 1) {
+						for(String v: array) {
+							if(!nonOmittedColumns.contains(colIndex)) {
+								colIndex++;
+								continue;
+							}
+							if(v == null) {
+								colIndex++;
+								continue;
+							}
+							if(v.isEmpty()) {
+								colIndex++;
+								continue;
+							}
+							if(uniqueVals.containsKey(path.getFileName() + ":" + colIndex)) {
+								uniqueVals.get(path.getFileName() + ":" + colIndex).add(v);
+							} else {
+								uniqueVals.put(path.getFileName() + ":" + colIndex, new HashSet<String>(Arrays.asList(v)));
+							}
+							if(totalVals.containsKey(path.getFileName() + ":" + colIndex)) {
+								totalVals.get(path.getFileName() + ":" + colIndex).add(v);
+							} else {
+								totalVals.put(path.getFileName() + ":" + colIndex, new ArrayList<String>(Arrays.asList(v)));
+							}					
+							colIndex++;
+						}
+					}
+				};
+				/*
 				while(iter.hasNext()) {
 					int colIndex = 0;
-					for(String v: iter.next()) {
-						if(!nonOmittedColumns.contains(colIndex)) {
+					String[] array = iter.next();
+					if(array == null) continue;
+					if(array.length > 1) {
+						for(String v: array) {
+							if(!nonOmittedColumns.contains(colIndex)) {
+								colIndex++;
+								continue;
+							}
+							if(v == null) {
+								colIndex++;
+								continue;
+							}
+							if(v.isEmpty()) {
+								colIndex++;
+								continue;
+							}
+							if(uniqueVals.containsKey(path.getFileName() + ":" + colIndex)) {
+								uniqueVals.get(path.getFileName() + ":" + colIndex).add(v);
+							} else {
+								uniqueVals.put(path.getFileName() + ":" + colIndex, new HashSet<String>(Arrays.asList(v)));
+							}
+							if(totalVals.containsKey(path.getFileName() + ":" + colIndex)) {
+								totalVals.get(path.getFileName() + ":" + colIndex).add(v);
+							} else {
+								totalVals.put(path.getFileName() + ":" + colIndex, new ArrayList<String>(Arrays.asList(v)));
+							}					
 							colIndex++;
-							continue;
 						}
-						if(v == null) {
-							colIndex++;
-							continue;
-						}
-						if(v.isEmpty()) {
-							colIndex++;
-							continue;
-						}
-						if(uniqueVals.containsKey(path.getFileName() + ":" + colIndex)) {
-							uniqueVals.get(path.getFileName() + ":" + colIndex).add(v);
-						} else {
-							uniqueVals.put(path.getFileName() + ":" + colIndex, new HashSet<String>(Arrays.asList(v)));
-						}
-						if(totalVals.containsKey(path.getFileName() + ":" + colIndex)) {
-							totalVals.get(path.getFileName() + ":" + colIndex).add(v);
-						} else {
-							totalVals.put(path.getFileName() + ":" + colIndex, new ArrayList<String>(Arrays.asList(v)));
-						}					
-						colIndex++;
 					}
 				}
-
-				iter = reader.iterator();
+*/
+				//Iterator iter = reader.iterator();
 														
 				// filename and col with values
 				Map<String, Integer> estimatedconcepts = new HashMap<String, Integer>();

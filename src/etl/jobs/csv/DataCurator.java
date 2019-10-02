@@ -62,28 +62,29 @@ public class DataCurator extends Job{
 	 *  ? - \u003F
 	 *  % - \u0025
 	 */
-	private static List<Character> BAD_CHARS = Arrays.asList( '\u002A', 
+	private static List<Character> BAD_CHARS = new ArrayList<Character>(Arrays.asList( '\u002A', 
 			'\u007C', 
 			'\u002F', 
 			'\u003C',
-			//'\u005C\u005C',
-			//'\u0022',
+			'\u005C\u005C',
+			'\u0022',
 			'\u005C\u0027',
 			'\u003A',
 			'\u00a0',
 			'\u003F',
 			'\u003e',
 			'\u0025'
-		);
+		));
 	
 	public static void main(String[] args) throws Exception {
 		
 		setVariables(args, buildProperties(args));
-		
+		BAD_CHARS.remove(new Character(DATA_QUOTED_STRING));
 		try(DirectoryStream<Path> dirstream = Files.newDirectoryStream(Paths.get(DATA_DIR))){
 			Stream<Path> stream = StreamSupport.stream(dirstream.spliterator(), true);
 
 			stream.parallel().forEach(path ->{
+
 				cleanFile(path); 
 				try {
 					validateRecordLength(path);
@@ -104,23 +105,40 @@ public class DataCurator extends Job{
 	private static void cleanFile(Path entry) {
 		if(!Files.isDirectory(entry)) {
 			if(Files.isReadable(entry)) {
+				
 				StringBuilder out = new StringBuilder();
+				
+				System.out.println(entry);
+				
 				try {
-
-					Files.lines(entry).forEach(line -> {
-						line = line.trim();
-						for(char c: line.toCharArray()) {
-							if( c <= '\u007f' ) {
-								if(!BAD_CHARS.contains(c)) out.append(c);
-							} 
-						}
-						out.append('\n');
-					});
+					try(BufferedReader reader = Files.newBufferedReader(entry)){
+						reader.lines().forEach(line -> {
+							
+							line = line.trim();
+							
+							for(char c: line.toCharArray()) {
+								
+								if( c <= '\u007f' ) {
+									
+									if(!BAD_CHARS.contains(c)) out.append(c);
+									
+								} 
+								
+							}
+							
+							out.append('\n');
+							
+						});
+					}
 					
 					Files.write(entry, out.toString().getBytes(StandardCharsets.US_ASCII), WRITE_OPTIONS);
 					
 				} catch (IOException e) {
-					System.err.println(e);					
+					
+					System.err.println("error processing " + entry);
+					System.err.println(e);		
+					e.printStackTrace();
+					
 				}
 			}
 		}		

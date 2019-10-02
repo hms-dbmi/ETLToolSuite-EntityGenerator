@@ -8,12 +8,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 import com.opencsv.CSVReader;
 
@@ -29,41 +34,23 @@ import etl.job.entity.Mapping;
  *
  */
 
-public class Partitioner {
-	
-	private static final List<LinkOption> options = null;
-	
-	private static final boolean SKIP_HEADERS = true;
-
-	private static String MAPPING_FILE = "./mappings/mapping.csv";
-
-	private static final boolean MAPPING_SKIP_HEADER = false;
-
-	private static final char MAPPING_DELIMITER = ',';
-
-	private static final char MAPPING_QUOTED_STRING = '"';
-
-	private static final String PATIENT_MAPPING_FILE = "./mappings/mapping.csv.patient";
-	
+public class Partitioner extends Job {
+			
 	private static String CONFIG_FILE = "./resources/job.config";
 	
 	private static String EVALUATIONS_DIR = "./resources/";
 	
 	private static final String EVALUATION_FILE_CONCEPTS = EVALUATIONS_DIR + "conceptevaluation.txt";
 	
-	private static final String EVALUATION_FILE_FACTS = EVALUATIONS_DIR + "factevaluation.txt";
-
 	private static final String DELETE_ONLY = "N";
-	
-	private static String DATA_DIR = "./data/";
-	
+		
 	private static String CONFIG_OUTPUT_DIR = "./resources/";
 	
 	private static String MAPPING_OUTPUT_DIR = "./mappings/";
 	
 	public static void main(String[] args) {
 		try {
-			setVariables(args);
+			setVariables(args, buildProperties(args));
 		} catch (Exception e) {
 			System.err.println("Error processing variables");
 			System.err.println(e);
@@ -89,8 +76,22 @@ public class Partitioner {
 		deleteOldConfigs();
 		if(DELETE_ONLY.equalsIgnoreCase("Y")) return;
 		
+		List<Mapping> mappingFile = Mapping.generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
+		// map
+    	// key = concept path
+    	// value = set of mapping key
+		Map<String,Set<Mapping>> mappings = new HashMap<String,Set<Mapping>>();
+		
+		for(Mapping m: mappingFile) {
+			if(mappings.containsKey(m.getRootNode())){
+				mappings.get(m.getRootNode()).add(m);
+ 			} else {
+ 				mappings.put(m.getRootNode(), new HashSet<Mapping>(Arrays.asList(m)));
+ 			}
+		}
+		
         try (InputStream input = new FileInputStream(CONFIG_FILE)) {
-
+        	
             Properties prop = new Properties();
 
             // load a properties file
@@ -98,22 +99,25 @@ public class Partitioner {
 
     			int partition = 1;
     			
-    			int currentConceptSeq = 1;
+    			int currentConceptSeq = CONCEPT_CD_STARTING_SEQ;
+    			
+    			System.out.println(CONCEPT_CD_STARTING_SEQ);
     			
     			MAPPING_FILE = prop.getProperty("mappingfile");
     			
-    			List<Mapping> mappingFile = Mapping.generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
-    			
-            for(Mapping m: mappingFile) {
-
-            		Integer estimatedconcepts = getEstimatedConcepts(m.getKey());
-            		if(estimatedconcepts == null ) {
-            			System.err.println("No concepts for " + m.getKey());
+    			for(Entry<String,Set<Mapping>> entry: mappings.entrySet()) {
+    				Integer estimatedconcepts = 0;
+    				for(Mapping m: entry.getValue()) {
+    					
+                		estimatedconcepts = getEstimatedConcepts(m.getKey());
+                   
+                }
+              	if(estimatedconcepts == null ) {
+            			//System.err.println("No concepts for " + m.getKey());
             			continue;
             		}
-            		Mapping newmapping = (Mapping) m.clone();
-                ConfigFile cf = new ConfigFile(prop);
-                
+    				ConfigFile cf = new ConfigFile(prop);
+                    
                 cf.mappingfile = "./mappings/mapping.part" + partition + ".csv";
                 
                 cf.appending = "Y";
@@ -125,27 +129,31 @@ public class Partitioner {
                 cf.conceptcdstartseq = new Integer(currentConceptSeq).toString();
                 cf.encounternumstartseq= new Integer(1).toString();
                 cf.patientnumstartseq  = new Integer(3).toString();
-            		
+                cf.trialid = TRIAL_ID;
+               
                 try(OutputStream output = new FileOutputStream(MAPPING_OUTPUT_DIR + "/mapping.part" + partition + ".csv")) {
-                	
-                		output.write(newmapping.toCSV().getBytes());
+                		for(Mapping newmapping: entry.getValue()) {
+                			output.write((newmapping.toCSV() + '\n').getBytes());
+                		}
                 		output.flush();
                 		output.close();
                 		
                 }
+                
                 try(OutputStream output = new FileOutputStream(CONFIG_OUTPUT_DIR + "/config.part" + partition + ".config")) {
                 	
-	            		output.write(cf.toString().getBytes());
-	            		output.flush();
-	            		output.close();
+    	            		output.write(cf.toString().getBytes());
+    	            		output.flush();
+    	            		output.close();
             		
                 }
 
                 //Iterate sequence for next partition in the loop
-                //buffer is not enough setting to 10000 to avoid conficts
-                currentConceptSeq = currentConceptSeq + estimatedconcepts + 10000;
-                	partition++;
-            }
+                //buffer is not enough setting to 50 to avoid conficts
+                currentConceptSeq = currentConceptSeq + estimatedconcepts;
+                partition++;
+    			}
+            
         } catch (IOException ex) {
             ex.printStackTrace();
         }		
@@ -188,71 +196,5 @@ public class Partitioner {
 			}
 		}
 		return null;
-	}
-	public static void setVariables(String[] args) throws Exception {
-		for(String arg: args) {
-			if(arg.equalsIgnoreCase( "-configfile" )){
-
-				CONFIG_FILE = checkPassedArgs(arg, args);
-				
-			}
-			if(arg.equalsIgnoreCase( "-evaluationsdir" )){
-				
-				EVALUATIONS_DIR = checkPassedArgs(arg, args);
-				
-			}
-			if(arg.equalsIgnoreCase( "-configoutputdir" )){
-				
-				CONFIG_OUTPUT_DIR = checkPassedArgs(arg, args);
-				
-			}
-			if(arg.equalsIgnoreCase( "-mappingoutputdir" )){
-				
-				MAPPING_OUTPUT_DIR = checkPassedArgs(arg, args);
-				
-			}			
-			if(arg.equalsIgnoreCase( "-mappingoutputdir" )){
-				
-				MAPPING_OUTPUT_DIR = checkPassedArgs(arg, args);
-				
-			}
-		}
-		
-		
-		
-	}
-	
-	
-	// checks passed arguments and sends back value for that argument
-	public static String checkPassedArgs(String arg, String[] args) throws Exception {
-		
-		int argcount = 0;
-		
-		String argv = new String();
-		
-		for(String thisarg: args) {
-			
-			if(thisarg.equals(arg)) {
-				
-				break;
-				
-			} else {
-				
-				argcount++;
-				
-			}
-		}
-		
-		if(args.length > argcount) {
-			
-			argv = args[argcount + 1];
-			
-		} else {
-			
-			throw new Exception("Error in argument: " + arg );
-			
-		}
-		return argv;
-
 	}
 }

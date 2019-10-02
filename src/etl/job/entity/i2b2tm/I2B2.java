@@ -101,6 +101,35 @@ public class I2B2 implements Cloneable{
 		cSymbol = record[25];	
 	}
 
+	public I2B2(I2B2 node) {
+		this.cHlevel = node.cHlevel;
+		this.cFullName = node.cFullName;
+		this.cName = node.cName;
+		this.cSynonymCd = node.cSynonymCd;
+		this.cVisualAttributes = node.cVisualAttributes;
+		this.cTotalNum = node.cTotalNum;
+		this.cBaseCode = node.cBaseCode;
+		this.cMetaDataXML = node.cMetaDataXML;
+		this.cFactTableColumn = node.cFactTableColumn;
+		this.cTableName = node.cTableName;
+		this.cColumnName = node.cColumnName;
+		this.cColumnDataType = node.cColumnDataType;
+		this.cOperator = node.cOperator;
+		this.cDimCode = node.cDimCode;
+		this.cComment = node.cComment;
+		this.cToolTip = node.cToolTip;
+		this.updateDate = node.updateDate;
+		this.downloadDate = node.downloadDate;
+		this.importDate = node.importDate;
+		this.sourceSystemCd = node.sourceSystemCd;
+		this.valueTypeCd = node.valueTypeCd;
+		this.i2b2Id = node.i2b2Id;
+		this.mAppliedPath = node.mAppliedPath;
+		this.mExclusionCd = node.mExclusionCd;
+		this.cPath = node.cPath;
+		this.cSymbol = node.cSymbol;
+	}
+
 	public boolean isValid() {
 		return (this.cFullName != null && this.cName != null) ? true: false;
 	}

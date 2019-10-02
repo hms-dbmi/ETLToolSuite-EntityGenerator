@@ -40,10 +40,18 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 	public Mapping(){
 		
 	}
-	public Object clone() throws
-    CloneNotSupportedException 
+	public Mapping(String key, String rootNode, String supPath, String dataType, String options) {
+		super();
+		this.key = key;
+		this.rootNode = rootNode;
+		this.supPath = supPath;
+		this.dataType = dataType;
+		this.options = options;
+	}
+	
+	public Object clone() throws CloneNotSupportedException 
 	{ 
-	return super.clone(); 
+		return super.clone(); 
 	} 
 	public Map<String, Mapping> generateMappingHash(String filePath, char delimiter) throws IOException{
 		
@@ -116,7 +124,31 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 		return list;
 		
 	}
+	public static List<Mapping> generateMappingListForHPDS(String filePath, boolean skipheader, char separator,char quoteChar) throws IOException{
+		
+		if(!Files.exists(Paths.get(filePath))) {
+			throw new IOException(filePath + " does not exist.");
+		}
+		
+		List<Mapping> list = new ArrayList<Mapping>();
+		
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(filePath))){
 
+			CsvToBean<Mapping> beans = new CsvToBeanBuilder<Mapping>(buffer)
+					.withSkipLines(skipheader ? 1 : 0)
+					.withQuoteChar(quoteChar)
+					.withSeparator(separator)
+					.withEscapeChar('¶')
+					.withType(Mapping.class)
+					.build();			
+			
+			list = beans.parse();
+
+		}
+		
+		return list;
+		
+	}
 	public static Set<String> keySet(List<Mapping> mappings){
 		Set<String> set = new HashSet<String>();
 		
@@ -267,6 +299,10 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 				+ "]";
 	}
 	
+	public char toCSV(char mAPPING_DELIMITER, char mAPPING_QUOTED_STRING) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 	public String toCSV() {
 		return makeStringSafe(key) + ',' + makeStringSafe(rootNode) + ','
 				+ makeStringSafe(supPath) + ',' + makeStringSafe(dataType) + ',' + makeStringSafe(options);

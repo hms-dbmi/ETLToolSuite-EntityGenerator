@@ -50,12 +50,14 @@ public class MetadataGenerator extends Job {
 		} catch (Exception e) {
 			System.err.println("Error processing variables");
 			System.err.println(e);
+			e.printStackTrace();
 		}
 		
 		try {
 			execute();
 		} catch (Exception e) {
 			System.err.println(e);
+			e.printStackTrace();
 		}
 	}
 	/**
@@ -71,12 +73,14 @@ public class MetadataGenerator extends Job {
 		} catch (Exception e) {
 			System.err.println("Error processing variables");
 			System.err.println(e);
+			e.printStackTrace();
 		}
 		
 		try {
 			return execute(concepts);
 		} catch (Exception e) {
 			System.err.println(e);
+			e.printStackTrace();
 		}
 		return null;
 		

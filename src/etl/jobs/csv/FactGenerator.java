@@ -88,12 +88,14 @@ public class FactGenerator extends Job {
 		} catch (Exception e) {
 			System.err.println("Error processing variables");
 			System.err.println(e);
+			e.printStackTrace();
 		}
 		
 		try {
 			return execute();
 		} catch (CsvDataTypeMismatchException | CsvRequiredFieldEmptyException | IOException e) {
 			System.err.println(e);
+			e.printStackTrace();
 		}
 		return null;
 		
@@ -156,10 +158,15 @@ public class FactGenerator extends Job {
 			}
 			
 			String fileName = mapping.getKey().split(":")[0];
+			
 			Integer column = new Integer(mapping.getKey().split(":")[1]);
+			
 			if(!Files.exists(Paths.get(DATA_DIR + File.separatorChar + fileName))) {
+				
 				System.err.println(DATA_DIR + File.separatorChar + fileName + " does not exist.");
+				
 				return;
+				
 			}
 			
 			try(BufferedReader reader = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + fileName))){
@@ -181,7 +188,7 @@ public class FactGenerator extends Job {
 				records.forEach(record ->{
 
 					ObservationFact obs = new ObservationFact();
-					
+					if(record.length - 1 < column) return;
 					if(record[column].isEmpty()) return;
 					
 					String conceptCd = mapping.getDataType().equalsIgnoreCase("numeric") ?
@@ -282,9 +289,9 @@ public class FactGenerator extends Job {
 				e.printStackTrace();
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			System.err.println("Error writing Observation Facts");
 			System.err.println(e);
+			e.printStackTrace();
 		} 
 	}
 
