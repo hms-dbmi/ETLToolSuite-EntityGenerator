@@ -13,7 +13,7 @@ public class ConfigFile {
 	public String	datadelimiter = ",";
 	public String	mappingdelimiter = ",";
 	public char		mappingquotedstring = '"';
-	public String	sourcesystemcd = "MESA";
+	public String	trialid = "MESA";
 	public String	appending = "Y";
 	public String	ispartition = "Y";
 	public String	finalpartition = "N";
@@ -25,7 +25,7 @@ public class ConfigFile {
 	public String conceptcdstartseq;
 	public String encounternumstartseq;
 	public String patientnumstartseq;
-	
+		
 	
 	public ConfigFile(Properties prop) {
 		super();
@@ -38,7 +38,7 @@ public class ConfigFile {
 		if(prop.containsKey("datadelimiter")) this.datadelimiter = prop.getProperty("datadelimiter");
 		if(prop.containsKey("mappingdelimiter")) this.mappingdelimiter = prop.getProperty("mappingdelimiter");
 		if(prop.containsKey("mappingquotedstring")) this.mappingquotedstring = prop.getProperty("mappingquotedstring").charAt(0);
-		if(prop.containsKey("sourcesystemcd")) this.sourcesystemcd = prop.getProperty("sourcesystemcd");
+		if(prop.containsKey("trialid")) this.trialid = prop.getProperty("trialid");
 		if(prop.containsKey("appending")) this.appending = prop.getProperty("appending");
 		if(prop.containsKey("ispartition")) this.ispartition = prop.getProperty("ispartition");
 		if(prop.containsKey("finalpartition")) this.finalpartition = prop.getProperty("finalpartition");
@@ -64,7 +64,7 @@ public class ConfigFile {
 				"datadelimiter=" + datadelimiter + "\n" +
 				"mappingdelimiter=" + mappingdelimiter + "\n" +
 				"mappingquotedstring=" + mappingquotedstring + "\n" +
-				"sourcesystemcd=" + sourcesystemcd + "\n" +
+				"trialid=" + trialid + "\n" +
 				"appending=" + appending + "\n" +
 				"ispartition=" + ispartition + "\n" +
 				"finalpartition=" + finalpartition + "\n" +
@@ -75,7 +75,8 @@ public class ConfigFile {
 				"sequenceencounter=" + sequenceencounter + "\n" +
 				"conceptcdstartseq=" + conceptcdstartseq + "\n" +
 				"encounternumstartseq=" + encounternumstartseq + "\n" +
-				"patientnumstartseq=" + patientnumstartseq + "\n";
+				"patientnumstartseq=" + patientnumstartseq + "\n" + 
+				"trialid=" + trialid + "\n";
 
 	}
 	

@@ -1,7 +1,9 @@
-/bin/
-/build/
-/completed/
+/old_data/*
+/bin/*
+/build/*
+/completed/*
 /data/*
+/olddata/*
+/dict/*
+/processing/*
 /.project
-/.classpath
-/.settings

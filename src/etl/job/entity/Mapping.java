@@ -22,6 +22,8 @@ import etl.utils.Utils;
 
 public class Mapping implements Cloneable, Comparable<Mapping>{
 	
+	public static char QUOTED_STRING = '"';
+
 	public static String OPTIONS_DELIMITER = ";";
 	
 	public static String OPTIONS_KV_DELIMITER = ":";
@@ -308,13 +310,13 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 				+ makeStringSafe(supPath) + ',' + makeStringSafe(dataType) + ',' + makeStringSafe(options);
 	}
 	
-	public String makeStringSafe(String string){
+	public static String makeStringSafe(String string){
 		
 		if(string != null && !string.isEmpty()){
-			if(string != null && !string.isEmpty() && string.substring(0, 1).equals("`")){
+			if(string != null && !string.isEmpty() && string.substring(0, 1).equals(QUOTED_STRING)){
 				return string.replaceAll("\\s{2,}", " ");
 			} else {
-				return '`' + string.replaceAll("\\s{2,}", " ") + '`';
+				return QUOTED_STRING + string.replaceAll("\\s{2,}", " ") + QUOTED_STRING;
 			}
 		}
 		// return empty string not null
@@ -324,7 +326,58 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 	@Override
 	public int compareTo(Mapping o) {
 		
-		return this.getKey().compareTo(o.getKey());
+		return new Integer(this.getKey().split(":")[1]).compareTo(new Integer(o.getKey().split(":")[1]));
+	}
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((dataType == null) ? 0 : dataType.hashCode());
+		result = prime * result + ((key == null) ? 0 : key.hashCode());
+		result = prime * result + ((options == null) ? 0 : options.hashCode());
+		result = prime * result + ((rootNode == null) ? 0 : rootNode.hashCode());
+		result = prime * result + ((supPath == null) ? 0 : supPath.hashCode());
+		return result;
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Mapping other = (Mapping) obj;
+		if (dataType == null) {
+			if (other.dataType != null)
+				return false;
+		} else if (!dataType.equals(other.dataType))
+			return false;
+		if (key == null) {
+			if (other.key != null)
+				return false;
+		} else if (!key.equals(other.key))
+			return false;
+		if (options == null) {
+			if (other.options != null)
+				return false;
+		} else if (!options.equals(other.options))
+			return false;
+		if (rootNode == null) {
+			if (other.rootNode != null)
+				return false;
+		} else if (!rootNode.equals(other.rootNode))
+			return false;
+		if (supPath == null) {
+			if (other.supPath != null)
+				return false;
+		} else if (!supPath.equals(other.supPath))
+			return false;
+		return true;
+	}
+	public static String printHeader() {
+		return makeStringSafe("Filename and Variable Position") + ',' + makeStringSafe("Root Node") + ','
+				+ makeStringSafe("Supplemental Path") + ',' + makeStringSafe("DataType") + ',' + makeStringSafe("Options");
 	}
 	
 	

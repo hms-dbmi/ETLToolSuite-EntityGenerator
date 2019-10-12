@@ -78,10 +78,13 @@ public class ConceptGenerator extends Job{
 			return execute();
 		} catch (CsvDataTypeMismatchException e) {
 			System.err.println(e);
+			e.printStackTrace();
 		} catch (CsvRequiredFieldEmptyException e) {
 			System.err.println(e);
+			e.printStackTrace();
 		} catch (IOException e) {
 			System.err.println(e);
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -139,7 +142,7 @@ public class ConceptGenerator extends Job{
 				List<String[]> records = csvreader.readAll();
 				
 				records.forEach(record ->{
-					
+					if(record.length - 1 < column) return;
 					if(record[column].isEmpty()) {
 						return;
 					}
@@ -168,6 +171,7 @@ public class ConceptGenerator extends Job{
 				});
 			} catch (IOException e) {
 				System.err.println(e);
+				e.printStackTrace();
 			}
 			
 		});	

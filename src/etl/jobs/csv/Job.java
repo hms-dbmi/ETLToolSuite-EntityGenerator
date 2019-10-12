@@ -26,6 +26,8 @@ public abstract class Job implements Serializable {
 	
 	protected static String MAPPING_FILE = "./mappings/mapping.csv";
 
+	protected static String MAPPING_DIR = "./mappings/";
+	
 	protected static boolean MAPPING_SKIP_HEADER = true;
 
 	protected static char MAPPING_DELIMITER = ',';
@@ -38,10 +40,14 @@ public abstract class Job implements Serializable {
 	
 	protected static String DATA_DIR = "./data/";
 
+	protected static String DICT_DIR = "./dict/";
+	
 	protected static String TRIAL_ID = "DEFAULT";
+	
+	protected static CharSequence PATH_SEPARATOR = "\\";
 
-	protected static CharSequence PATH_SEPARATOR = "/";
-
+	protected  static String ROOT_NODE = PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR;
+	
 	// Sequencing Variables
 	protected static boolean DO_SEQUENCING = true;
 	
@@ -83,6 +89,10 @@ public abstract class Job implements Serializable {
 			//////////////////////////////////
 			// File and Directory Variables //
 			DATA_DIR = properties.contains("datadir") ? properties.getProperty("datadir").toString() : DATA_DIR;
+			
+			DICT_DIR = properties.contains("dictdir") ? properties.getProperty("dictdir").toString() : DICT_DIR;
+
+			
 			WRITE_DIR = properties.contains("writedir") ? properties.getProperty("writedir").toString() : WRITE_DIR;
 			RESOURCE_DIR = properties.contains("resourcedir") ? properties.getProperty("resourcedir").toString() : RESOURCE_DIR;
 
@@ -117,6 +127,10 @@ public abstract class Job implements Serializable {
 			////////////////////
 			// Misc Variables //
 			TRIAL_ID = properties.contains("trialid") ? properties.getProperty("trialid").toString() : TRIAL_ID;
+			
+			ROOT_NODE = properties.contains("rootnode") ? PATH_SEPARATOR + properties.getProperty("rootnode").toString() + PATH_SEPARATOR: ROOT_NODE;
+
+			
 			PATH_SEPARATOR = properties.contains("pathseparator") ? new StringBuilder(properties.getProperty("pathseparator")) : PATH_SEPARATOR;
 	
 			//////////////////////////
