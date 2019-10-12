@@ -70,8 +70,6 @@ def scrapeValueNodes(browser,value_nodes):
                 concept_dict[node.text] = path
             
             for k, v in concept_dict.items():
-                print(k)
-                print(v)
                 writer.writerow([k,v])
                 
     except (Exception):
