@@ -91,7 +91,7 @@ def cmdWrapper(*args):
 ## Data Sync
 #  Syncs a project's bucket 
 if syncproject == 'Y':
-    args = ['aws', 's3', 'sync', str(studybucket), projecthome]
+    args = ['aws', 's3', 'sync', str(studybucket), projecthome, '--exclude', studybucket + 'completed/*']
     mainlogger.info('Starting: ' + ' '.join(args))
     stdout,stderr = cmdWrapper(*args)
     logmsgs(mainlogger, stdout, stderr)
@@ -152,6 +152,14 @@ if rungenerator == 'Y':
     logmsgs(mainlogger, stdout, stderr)
     mainlogger.info('Finished: ' + ' '.join(args))
 
+## Merge Partitions
+    args = ['java', '-jar', 'DataMerge.jar', '-propertiesfile', jobconfig ]
+    
+    mainlogger.info('Starting: ' + ' '.join(args))
+    stdout,stderr = cmdWrapper(*args)
+    logmsgs(mainlogger, stdout, stderr)
+    mainlogger.info('Finished: ' + ' '.join(args))
+
 ## Process Fill in Tree
     args = ['java', '-jar', 'FillInTree.jar', '-propertiesfile', jobconfig ]
     
@@ -160,9 +168,21 @@ if rungenerator == 'Y':
     logmsgs(mainlogger, stdout, stderr)
     mainlogger.info('Finished: ' + ' '.join(args))
 
-## Process Concept Counts
-    args = ['java', '-jar', 'CountGenerator3.jar', '-propertiesfile', jobconfig ]
+    args = ['java', '-jar', 'FixPaths.jar', '-propertiesfile', jobconfig ]
     
+    mainlogger.info('Starting: ' + ' '.join(args))
+    stdout,stderr = cmdWrapper(*args)
+    logmsgs(mainlogger, stdout, stderr)
+    mainlogger.info('Finished: ' + ' '.join(args))
+
+## Process Concept Counts
+ #   args = ['java', '-jar', 'CountGenerator3.jar', '-propertiesfile', jobconfig ]
+    
+ #   mainlogger.info('Starting: ' + ' '.join(args))
+ #   stdout,stderr = cmdWrapper(*args)
+ #   logmsgs(mainlogger, stdout, stderr)
+ #   mainlogger.info('Finished: ' + ' '.join(args))
+
  #   mainlogger.info('Starting: ' + ' '.join(args))
   #  stdout,stderr = cmdWrapper(*args)
    # logmsgs(mainlogger, stdout, stderr)
@@ -177,9 +197,9 @@ if rungenerator == 'Y':
 #    logmsgs(mainlogger, stdout, stderr)
 #    mainlogger.info('Finished: ' + ' '.join(args))
 
-if rundataload == 'Y':
-    args = ['sh', 'LoadTables.sh', '-u', str(dburl), '-o', dbuser, '-p', dbpass, '-c', writedir, '-s', dbscriptdir]        
-    mainlogger.info('Starting: ' + ' '.join(args))
-    stdout,stderr = cmdWrapper(*args)
-    logmsgs(mainlogger, stdout, stderr)
-    mainlogger.info('Finished: ' + ' '.join(args))
+#if rundataload == 'Y':
+#    args = ['sh', 'LoadTables.sh', '-u', str(dburl), '-o', dbuser, '-p', dbpass, '-c', writedir, '-s', dbscriptdir]        
+#    mainlogger.info('Starting: ' + ' '.join(args))
+#    stdout,stderr = cmdWrapper(*args)
+#    logmsgs(mainlogger, stdout, stderr)
+#    mainlogger.info('Finished: ' + ' '.join(args))
