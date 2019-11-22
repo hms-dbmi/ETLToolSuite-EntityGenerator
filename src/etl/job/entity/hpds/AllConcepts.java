@@ -96,9 +96,9 @@ public class AllConcepts {
 		sb.append("\",\"");
 		sb.append(conceptPath);
 		sb.append("\",\"");
-		sb.append(tvalChar);
-		sb.append("\",\"");
 		sb.append(nvalNum);
+		sb.append("\",\"");
+		sb.append(tvalChar);
 		sb.append('"');
 		sb.append('\n');
 		
