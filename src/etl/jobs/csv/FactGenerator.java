@@ -34,7 +34,6 @@ import etl.job.entity.Mapping;
 import etl.job.entity.i2b2tm.ConceptCounts;
 import etl.job.entity.i2b2tm.ObservationFact;
 import etl.jobs.jobproperties.JobProperties;
-import etl.utils.ReadWriteLock;
 import etl.utils.Utils;
 
 /**
@@ -138,6 +137,8 @@ public class FactGenerator extends Job {
 		
 		mappings.forEach(mapping -> {
 			
+			if(mapping.getKey().split(":").length !=2) return;
+			
 			String[] options = mapping.getOptions().split(":");
 			
 			for(String option: options) {
@@ -188,13 +189,13 @@ public class FactGenerator extends Job {
 				records.forEach(record ->{
 
 					ObservationFact obs = new ObservationFact();
+					if(record[column] == null) return;
+					if(record[column].trim().equalsIgnoreCase("null")) return;
 					if(record.length - 1 < column) return;
-					if(record[column].isEmpty()) return;
+					if(record[column].trim().isEmpty()) return;
 					
 					String conceptCd = mapping.getDataType().equalsIgnoreCase("numeric") ?
 							mapping.getRootNode() :mapping.getRootNode() + record[column] + PATH_SEPARATOR; 
-
-					conceptCd = conceptCd.replace("//", "/");
 							
 					String encounterNum = ENCOUNTER_COL == -1 ? "-1" : record[ENCOUNTER_COL];
 					String startDate = START_DATE_COL == null ? defaultDate : record[START_DATE_COL];

@@ -100,16 +100,14 @@ public class Partitioner extends Job {
     			int partition = 1;
     			
     			int currentConceptSeq = CONCEPT_CD_STARTING_SEQ;
-    			
-    			System.out.println(CONCEPT_CD_STARTING_SEQ);
-    			
+    			    			
     			MAPPING_FILE = prop.getProperty("mappingfile");
     			
     			for(Entry<String,Set<Mapping>> entry: mappings.entrySet()) {
     				Integer estimatedconcepts = 0;
     				for(Mapping m: entry.getValue()) {
     					
-                		estimatedconcepts = getEstimatedConcepts(m.getKey());
+                		estimatedconcepts += getEstimatedConcepts(m.getKey());
                    
                 }
               	if(estimatedconcepts == null ) {
@@ -123,7 +121,7 @@ public class Partitioner extends Job {
                 cf.appending = "Y";
                 cf.ispartition = "Y";
                 cf.finalpartition = "N";
-                cf.mappingquotedstring = '`';
+                cf.mappingquotedstring = MAPPING_QUOTED_STRING;
              
                 cf.sequencedata = "Y";
                 cf.conceptcdstartseq = new Integer(currentConceptSeq).toString();
@@ -171,6 +169,15 @@ public class Partitioner extends Job {
 		      }
 		    }
 		  } 	
+		  File dir2 = new File(MAPPING_DIR);
+		  directoryListing = dir2.listFiles();
+		  if (directoryListing != null) {
+		    for (File child : directoryListing) {
+		      if(child.getName().matches("mapping\\.part.*\\.csv")) {
+		    	  	child.delete();
+		      }
+		    }
+		  } 	
 	}
 
 	/**
@@ -195,6 +202,6 @@ public class Partitioner extends Job {
 				}
 			}
 		}
-		return null;
+		return 0;
 	}
 }

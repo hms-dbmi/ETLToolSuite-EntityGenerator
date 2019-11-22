@@ -40,11 +40,18 @@ public class FixPaths extends Job {
 
 	
 	public static void main(String[] args) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
-		
+		try {
+			setVariables(args, buildProperties(args));
+		} catch (Exception e) {
+			System.err.println("Error processing variables");
+			System.out.println(e.toString());
+			e.printStackTrace();
+		}		
 		
 		try(BufferedReader reader = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "ConceptDimension.csv"))){
 
 			CsvToBean<ConceptDimension> csvToBean = Utils.readCsvToBean(ConceptDimension.class, reader, DATA_QUOTED_STRING, DATA_SEPARATOR, false);	
+			
 			csvToBean.spliterator().forEachRemaining(cd -> {
 				if(conceptcdLookup.containsKey(cd.getConceptPath())) {
 					//System.out.println(cd);
@@ -73,17 +80,18 @@ public class FixPaths extends Job {
 				String cBasecode  = conceptcdLookup.containsKey(i2b2.getcFullName()) ? conceptcdLookup.get(i2b2.getcFullName()):
 					"";
 					
-				
 				i2b2.setcDimCode(path);
+				
 				i2b2.setcFullName(path);
+				
 				i2b2.setcToolTip(path);
+				
 				i2b2.setcBaseCode(cBasecode);
+				
 				if(!i2b2.getcMetaDataXML().isEmpty()) i2b2.setcMetaDataXML("NUMERIC");
-				//records.add(i2b2.toStringArray());
 
 				try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + File.separatorChar + "I2B2new.csv"), StandardOpenOption.CREATE, StandardOpenOption.APPEND)){				
-					//CsvToBean<I2B2> csvToBean = 
-					//		Utils.readCsvToBean(I2B2.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);
+
 					CSVWriter writer = new CSVWriter(buffer);
 			
 					writer.writeNext(i2b2.toStringArray());
@@ -99,8 +107,6 @@ public class FixPaths extends Job {
 			csvReader.close();
 			
 			reader.close();
-			
-
 			
 		}
 		

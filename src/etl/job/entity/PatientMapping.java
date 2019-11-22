@@ -249,5 +249,28 @@ public class PatientMapping {
 		}
 		return l;
 	}
+
+	public String writeHeader() {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("\"key\",\"Concept_Path\",\"Supplement_Path\",\"Data_Type\",\"Options\"\n");
+		return sb.toString();
+	}
+
+	public String toCsv() {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("\"");
+		sb.append(patientKey);
+		sb.append("\",");
+		sb.append("\"");
+		sb.append(patientColumn);
+		sb.append("\",");
+		sb.append("\"");
+		sb.append(options);
+		sb.append("\"\n");
+
+		return sb.toString();
+	}
 	
 }

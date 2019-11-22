@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +89,7 @@ public class MetadataGenerator extends Job {
 	
 	private static void execute() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 
-		String conceptsProcessingFileName = PROCESSING_FOLDER + CONFIG_FILENAME.replace(".config", "").replace("config.", "") + "_ConceptDimension.csv";
+		String conceptsProcessingFileName = PROCESSING_FOLDER + CONFIG_FILENAME.replace("config.", "") + "_ConceptDimension.csv";
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(conceptsProcessingFileName))){
 	
@@ -282,10 +283,11 @@ public class MetadataGenerator extends Job {
 	 */
 	private static Map<String, String> createMappings() throws IOException {
 		List<Mapping> mappings = Mapping.generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
+		Map<String, String> nodes = new HashMap<String,String>();
+		for(Mapping mapping : mappings) {
+			nodes.put(mapping.getRootNode(), mapping.getDataType());
+		}
 		
-		Map<String, String> nodes = mappings.stream().collect(
-					Collectors.toMap(Mapping::getRootNode, Mapping::getDataType)
-				);
 		return nodes;
 	}
 

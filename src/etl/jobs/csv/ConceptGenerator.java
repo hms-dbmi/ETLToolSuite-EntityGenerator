@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +66,7 @@ public class ConceptGenerator extends Job{
 	 * @param args
 	 * @return 
 	 */
-	public static Collection<ConceptDimension> main(String[] args, JobProperties jobProperties) {
+	public static Set<ConceptDimension> main(String[] args, JobProperties jobProperties) {
 		try {
 			setVariables(args, jobProperties);
 		} catch (Exception e) {
@@ -96,12 +97,12 @@ public class ConceptGenerator extends Job{
 	 * @throws CsvDataTypeMismatchException
 	 * @throws CsvRequiredFieldEmptyException
 	 */
-	private static Collection<ConceptDimension> execute() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+	private static Set<ConceptDimension> execute() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 		
 		List<Mapping> mappings = new ArrayList<Mapping>();
-		
+
 		mappings = Mapping.generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
-		
+
 		HashSet<ConceptDimension> setCds = new HashSet<ConceptDimension>();
 
 		doConceptReader(setCds, mappings);
@@ -117,12 +118,13 @@ public class ConceptGenerator extends Job{
 	 * @param mappings
 	 * @throws IOException
 	 */
-	private static void doConceptReader(Collection<ConceptDimension> cds, List<Mapping> mappings) throws IOException {
+	private static void doConceptReader(Set<ConceptDimension> cds, List<Mapping> mappings) throws IOException {
 			
 		mappings.stream().forEach(mapping -> {
 			if(mapping.getKey().split(":").length < 2) return;
-			
+
 			String fileName = mapping.getKey().split(":")[0];
+
 			Integer column = new Integer(mapping.getKey().split(":")[1]);
 			
 			try(BufferedReader reader = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + fileName))){
@@ -142,8 +144,12 @@ public class ConceptGenerator extends Job{
 				List<String[]> records = csvreader.readAll();
 				
 				records.forEach(record ->{
-					if(record.length - 1 < column) return;
-					if(record[column].isEmpty()) {
+					if(record[column] == null) return;
+					if(record[column].trim().equalsIgnoreCase("null")) return;
+					if(record.length - 1 < column) {
+						return;
+					}
+					if(record[column].trim().isEmpty()) {
 						return;
 					}
 					

@@ -1,14 +1,15 @@
 package etl.job.entity.hpds;
 
 public class AllConcepts {
-	private String patientNum;
+	private Integer patientNum;
 	private String conceptPath;
 	private String tvalChar;
 	private String nvalNum;
-	public String getPatientNum() {
+	
+	public Integer getPatientNum() {
 		return patientNum;
 	}
-	public void setPatientNum(String patientNum) {
+	public void setPatientNum(Integer patientNum) {
 		this.patientNum = patientNum;
 	}
 	public String getConceptPath() {
@@ -79,7 +80,7 @@ public class AllConcepts {
 	public boolean isValid() {
 		
 		if(patientNum == null) return false;
-		if(patientNum.trim().isEmpty()) return false;
+		//if(Integer.isEmpty) return false;
 		if(conceptPath == null) return false;
 		if(conceptPath.trim().isEmpty()) return false;
 		

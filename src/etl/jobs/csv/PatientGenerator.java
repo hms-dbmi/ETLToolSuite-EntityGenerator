@@ -372,23 +372,23 @@ private static void doPatientSecurityGenerator(List<PatientDimension> patients) 
  * @param attrKeys
  */
 	private static void buildAttributes(PatientMapping pm, Set<String> attrKeys) {
-		
-		MappingHelper mh = attributemap.get(pm.getPatientColumn().toLowerCase());
-		
-		String[] options = pm.getOptions().split(":");
-		String patientcol = "";
-		for(String option: options) {
-			if(option.split("=").length != 2) continue;
-			String optionkey = option.split("=")[0];
-			if(optionkey.equalsIgnoreCase("patientcol")) {
-				patientcol = option.split("=")[1];
-			}
-		}
-		
-		List<String> fileKeys = mh.getFileKeys();
-		String fileKey = patientcol.isEmpty() ? pm.getPatientKey(): pm.getPatientKey() + ":" + patientcol;
-		fileKeys.add(fileKey);
+		if(pm.getPatientKey().split(":").length == 2) {
+			MappingHelper mh = attributemap.get(pm.getPatientColumn().toLowerCase());
 			
+			String[] options = pm.getOptions().split(":");
+			String patientcol = "";
+			for(String option: options) {
+				if(option.split("=").length != 2) continue;
+				String optionkey = option.split("=")[0];
+				if(optionkey.equalsIgnoreCase("patientcol")) {
+					patientcol = option.split("=")[1];
+				}
+			}
+			
+			List<String> fileKeys = mh.getFileKeys();
+			String fileKey = patientcol.isEmpty() ? pm.getPatientKey(): pm.getPatientKey() + ":" + patientcol;
+			fileKeys.add(fileKey);
+		}
 	}
 	
 }

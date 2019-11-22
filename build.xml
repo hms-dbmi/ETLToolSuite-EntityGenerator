@@ -66,6 +66,7 @@
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 	  	</jar>
+    	<!--
 	  	<jar destfile="CountGenerator3.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.CountGenerator3"/>
@@ -193,6 +194,46 @@
   	    <fileset dir="bin" includes="**/*.class" />
   		<fileset dir="bin" includes="*.xml"></fileset>
   	    <zipgroupfileset dir="bin" includes="**/*.jar" />
-  	</jar>      
+  		</jar>  
+		<jar destfile="DbgapTreeBuilder.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.DbgapTreeBuilder"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+		    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>-->
+		<jar destfile="DbgapGlobalVarGenerator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.DbgapGlobalVarGenerator"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+		    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+		<jar destfile="HarmonizedConsentsGenerator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.HarmonizedConsentsGenerator"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+		    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+		<jar destfile="GenerateAllConcepts.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.GenerateAllConcepts"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+		    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar> 
+		<jar destfile="DbGapDataMerge.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.DbGapDataMerge"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+		    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar> 
     	</target>
 </project>

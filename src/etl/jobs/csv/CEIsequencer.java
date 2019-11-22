@@ -277,7 +277,7 @@ public class CEIsequencer extends Job{
 		Map<String,String> conceptMap = new HashMap<String,String>();
 
 		setCds.forEach(concept ->{
-				
+			System.out.println(concept.getConceptCd());
 			conceptMap.put(concept.getConceptCd(), String.valueOf(CONCEPT_CD_STARTING_SEQ));
 
 			concept.setConceptCd(String.valueOf(CONCEPT_CD_STARTING_SEQ));

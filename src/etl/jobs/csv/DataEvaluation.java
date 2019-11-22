@@ -104,7 +104,7 @@ public class DataEvaluation extends Job{
 				CSVReader reader = new CSVReader(Files.newBufferedReader(
 						Paths.get(DATA_DIR + pfile)
 						));
-				if(MAPPING_SKIP_HEADER) reader.readNext();
+				if(SKIP_HEADERS) reader.readNext();
 				Iterator<String[]> iter = reader.iterator();
 				
 				while(iter.hasNext()) {
@@ -114,10 +114,17 @@ public class DataEvaluation extends Job{
 			}
 			
 		}
+		
+		// map with 
 		for(Mapping m: mappingFile) {
 			fileNames.add(m.getKey().split(":")[0]);
 		}
-
+		if(Files.exists(Paths.get(RESOURCE_DIR + "conceptevaluation.txt"))) {
+			Files.delete(Paths.get(RESOURCE_DIR + "conceptevaluation.txt"));
+		}		
+		if(Files.exists(Paths.get(RESOURCE_DIR + "dataevaluation.txt"))) {
+			Files.delete(Paths.get(RESOURCE_DIR + "dataevaluation.txt"));
+		}
 		Files.list(Paths.get(DATA_DIR)).forEach(path -> {		
 			if(!Files.isDirectory(path))
 			try {
@@ -145,16 +152,21 @@ public class DataEvaluation extends Job{
 				}
 	
 				CSVReader reader = new CSVReader(Files.newBufferedReader(path));
-				System.out.println(path);
 			
-				//if(SKIP_HEADERS) reader.readNext();
+				if(SKIP_HEADERS) reader.readNext();
 						
 				int nonnullvals = 0;
+				
 				List<String[]> list = reader.readAll();
+				
 				Spliterator<String[]> iter = reader.spliterator();
 				
 				uniqueVals = new HashMap<String, Set<String>>();
+				
 				totalVals = new HashMap<String, List<String>>();
+				
+				System.out.println("Evaluating data file " + path.getFileName());
+				
 				for(String[] array : list){
 					int colIndex = 0;
 					if(array == null) return;
@@ -168,7 +180,7 @@ public class DataEvaluation extends Job{
 								colIndex++;
 								continue;
 							}
-							if(v.isEmpty()) {
+							if(v.trim().isEmpty()) {
 								colIndex++;
 								continue;
 							}
@@ -258,6 +270,15 @@ public class DataEvaluation extends Job{
 					strings.add(path.getFileName() + " Facts = " + estimatedFacts);
 				}
 								*/
+		        try(BufferedWriter output = Files.newBufferedWriter( Paths.get(RESOURCE_DIR + "conceptevaluation.txt"), StandardOpenOption.APPEND, StandardOpenOption.CREATE)) {
+	        			for(Entry<String, Integer> entry : estimatedconcepts.entrySet()) {
+		        			String str2 = entry.getKey() + ",concepts," + entry.getValue() + "\n";	
+		        			//output.write(str1.getBytes());
+		        			output.write(str2);
+	
+		        			output.flush();
+	        			}
+		        }	/*			
 		        try(OutputStream output = new FileOutputStream( RESOURCE_DIR + "conceptevaluation.txt", true)) {
 		        		for(Entry<String, Integer> entry : estimatedconcepts.entrySet()) {
 		        			String str2 = entry.getKey() + ",concepts," + entry.getValue() + "\n";	
@@ -267,7 +288,7 @@ public class DataEvaluation extends Job{
 		        			output.flush();
 		        		}
 		        }
-
+*/
 		        try(OutputStream output = new FileOutputStream(RESOURCE_DIR + "factevaluation.txt", true)) {
 	        		for(Entry<String, Integer> entry : estimatedfacts.entrySet()) {
 	        			String str2 = entry.getKey() + ",facts," + entry.getValue() + "\n";	
@@ -286,6 +307,7 @@ public class DataEvaluation extends Job{
         try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(RESOURCE_DIR + "dataevaluation.txt"),StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) { //(Paths.get(WRITE_DIR + "dataevaluation.txt"), StandardOpenOptions.CREATE, ) {
         		List<String> lines = Arrays.asList(
 	        		 "Total expected facts: " + (totalFacts + patientids.size()),
+	        		 "Total expected facts without patient security facts: " + (totalFacts),
 	        		 "Total expected concepts: " + totalConcepts,
 	        		 "Total expected patients: " + patientids.size()
         		);

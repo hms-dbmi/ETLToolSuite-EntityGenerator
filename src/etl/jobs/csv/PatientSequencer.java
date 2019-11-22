@@ -109,9 +109,8 @@ public class PatientSequencer extends Job {
 		Set<PatientMapping> patientMappings = new HashSet<PatientMapping>();
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + File.separatorChar + "PatientDimension.csv"))){
-			System.out.println(SKIP_HEADERS);
 			CsvToBean<PatientDimension> csvToBean = 
-					Utils.readCsvToBean(PatientDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, SKIP_HEADERS);
+					Utils.readCsvToBean(PatientDimension.class, buffer, DATA_QUOTED_STRING, DATA_SEPARATOR, false);
 			
 			patients = new HashSet<>(csvToBean.parse());
 									

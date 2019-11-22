@@ -25,7 +25,7 @@ public class ConfigFile {
 	public String conceptcdstartseq;
 	public String encounternumstartseq;
 	public String patientnumstartseq;
-		
+	public String pathseparator;
 	
 	public ConfigFile(Properties prop) {
 		super();
@@ -50,6 +50,7 @@ public class ConfigFile {
 		if(prop.containsKey("conceptcdstartseq")) this.conceptcdstartseq = prop.getProperty("conceptcdstartseq");
 		if(prop.containsKey("encounternumstartseq")) this.encounternumstartseq = prop.getProperty("encounternumstartseq");
 		if(prop.containsKey("patientnumstartseq")) this.patientnumstartseq = prop.getProperty("patientnumstartseq");
+		if(prop.containsKey("pathseparator")) this.pathseparator = prop.getProperty("pathseparator");
 
 	}
 
@@ -76,6 +77,7 @@ public class ConfigFile {
 				"conceptcdstartseq=" + conceptcdstartseq + "\n" +
 				"encounternumstartseq=" + encounternumstartseq + "\n" +
 				"patientnumstartseq=" + patientnumstartseq + "\n" + 
+				"pathseparator=" + pathseparator + "\n" + 
 				"trialid=" + trialid + "\n";
 
 	}
