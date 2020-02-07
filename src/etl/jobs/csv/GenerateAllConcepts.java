@@ -83,8 +83,13 @@ public class GenerateAllConcepts extends Job{
 		
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_allConcepts.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 			mappings.forEach(mapping -> {
-				
-				mapping.setRootNode(mapping.getRootNode().replace(OLD_SEPARATOR,PATH_SEPARATOR.charAt(0)));
+				// validations
+				if(mapping.getKey().split(":").length != 2) return;
+				if(mapping.getRootNode().contains(String.valueOf(OLD_SEPARATOR))) {
+					
+					mapping.setRootNode(mapping.getRootNode().replace(OLD_SEPARATOR,PATH_SEPARATOR.charAt(0)));
+					
+				};
 				
 				String[] options = mapping.getOptions().split(":");
 	
@@ -102,7 +107,7 @@ public class GenerateAllConcepts extends Job{
 				}
 	 
 				String fileName = mapping.getKey().split(":")[0];
-				
+								
 				Integer column = new Integer(mapping.getKey().split(":")[1]);
 				
 				if(!Files.exists(Paths.get(DATA_DIR + File.separatorChar + fileName))) {
@@ -320,6 +325,12 @@ public class GenerateAllConcepts extends Job{
 				if(new String(StringUtils.substring(properties.getProperty("usepatientmapping"),0,1)).equalsIgnoreCase("Y")){
 					USE_PATIENT_MAPPING = true;
 				}
+			}
+			if(properties.contains("patientcol")) {
+				
+				PATIENT_COL = new Integer(properties.get("patientcol").toString());
+				
+				
 			}
 		}
 	}

@@ -44,7 +44,7 @@ public abstract class Job implements Serializable {
 	
 	protected static String TRIAL_ID = "DEFAULT";
 	
-	protected static CharSequence PATH_SEPARATOR = "\\";
+	protected static CharSequence PATH_SEPARATOR = "µ";
 
 	protected  static String ROOT_NODE = PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR;
 	
@@ -129,10 +129,9 @@ public abstract class Job implements Serializable {
 			TRIAL_ID = properties.contains("trialid") ? properties.getProperty("trialid").toString() : TRIAL_ID;
 			
 			ROOT_NODE = properties.contains("rootnode") ? PATH_SEPARATOR + properties.getProperty("rootnode").toString() + PATH_SEPARATOR: ROOT_NODE;
-
 			
 			PATH_SEPARATOR = properties.contains("pathseparator") ? new StringBuilder(properties.getProperty("pathseparator")) : PATH_SEPARATOR;
-	
+
 			//////////////////////////
 			// Sequencing variables //
 			if(properties.contains("sequencedata")) {

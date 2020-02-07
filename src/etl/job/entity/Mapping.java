@@ -119,7 +119,7 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 			
 			list = beans.parse();
 			for(Mapping m: list) {
-				m.setRootNode(m.getRootNode().replace('\\', '/'));
+				//m.setRootNode(m.getRootNode().replace('\\', '/'));
 			}
 		}
 		
@@ -140,12 +140,15 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 					.withSkipLines(skipheader ? 1 : 0)
 					.withQuoteChar(quoteChar)
 					.withSeparator(separator)
-					.withEscapeChar('¶')
+					.withEscapeChar('æ')
 					.withType(Mapping.class)
-					.build();			
+					.build();	
 			
-			list = beans.parse();
-
+			Iterator<Mapping> iter = beans.iterator();
+			
+			while(iter.hasNext()) {
+				list.add(iter.next());
+			}
 		}
 		
 		return list;
