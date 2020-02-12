@@ -42,7 +42,9 @@ public class GenerateAllConcepts extends Job{
 	
 	private static Integer PATIENT_COL = 0;
 	
-	
+	// Static map to see if patient has been created
+	private static Map<String,Integer> SEQUENCE_MAP = new HashedMap<String,Integer>();
+		
 	public static void main(String[] args) {
 		
 		try {
@@ -75,10 +77,30 @@ public class GenerateAllConcepts extends Job{
 
 		List<Mapping> mappings = Mapping.generateMappingListForHPDS(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
 
+		// populate seq map with current mappings
+		if(USE_PATIENT_MAPPING) buildSeqMap();
 		doGenerateAllConcepts(mappings);
 			
 	}
 
+	private static void buildSeqMap() throws IOException {
+		
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(PATIENT_MAPPING_FILE))){
+			
+			CSVReader reader = new CSVReader(buffer);
+			
+			String[] line;
+			
+			while((line = reader.readNext()) != null) {
+				if(line.length != 3)  continue;
+				
+				SEQUENCE_MAP.put(line[0], new Integer(line[2]));
+				
+			}
+			
+		}
+		
+	}
 	private static void doGenerateAllConcepts(List<Mapping> mappings) {
 		
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_allConcepts.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
@@ -214,7 +236,7 @@ public class GenerateAllConcepts extends Job{
 			
 			String[] stringToWrite = new String[3];
 			
-			for(Entry<String,Integer> entry: PATIENT_SEQED_MAP.entrySet()) {
+			for(Entry<String,Integer> entry: SEQUENCE_MAP.entrySet()) {
 				
 				stringToWrite[0] = entry.getKey();
 
@@ -305,15 +327,12 @@ public class GenerateAllConcepts extends Job{
 		
 		}
 	}
-	
-	// Static map to see if patient has been created
-	private static Map<String,Integer> PATIENT_SEQED_MAP = new HashedMap<String,Integer>();
-	
+
 	private static Integer sequencePatient(String patientNum) throws IOException {
-		if(PATIENT_SEQED_MAP.containsKey(patientNum)) {
-			return PATIENT_SEQED_MAP.get(patientNum);
+		if(SEQUENCE_MAP.containsKey(patientNum)) {
+			return SEQUENCE_MAP.get(patientNum);
 		} else {
-			PATIENT_SEQED_MAP.put(patientNum, PATIENT_NUM_STARTING_SEQ);
+			SEQUENCE_MAP.put(patientNum, PATIENT_NUM_STARTING_SEQ);
 			PATIENT_NUM_STARTING_SEQ++;
 			return PATIENT_NUM_STARTING_SEQ - 1;
 		}
