@@ -235,5 +235,29 @@
 			<fileset dir="bin" includes="*.xml"></fileset>
 		    <zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar> 
+		<jar destfile="SwapValuefix.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.SwapValuefix"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+		    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar> 
+		<jar destfile="ValidateAllConcepts.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.ValidateAllConcepts"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+		    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar> 
+		<jar destfile="HarmonizedSyncPatients.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.HarmonizedSyncPatients"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+		    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar> 
     	</target>
 </project>
