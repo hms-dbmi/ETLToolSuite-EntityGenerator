@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,8 @@ public class GenerateAllConcepts extends Job{
 	private static boolean USE_PATIENT_MAPPING = false;
 	
 	private static Integer PATIENT_COL = 0;
+	
+	private static Set<String> MAPPINGS_WITH_BAD_DATA_TYPES = new HashSet<>();
 	
 	// Static map to see if patient has been created
 	private static Map<String,Integer> SEQUENCE_MAP = new HashedMap<String,Integer>();
@@ -80,7 +83,16 @@ public class GenerateAllConcepts extends Job{
 		// populate seq map with current mappings
 		if(USE_PATIENT_MAPPING) buildSeqMap();
 		doGenerateAllConcepts(mappings);
-			
+		writeBadMappings();	
+	}
+
+	private static void writeBadMappings() throws IOException {
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_BadDataTypes.txt"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+			for(String line: MAPPINGS_WITH_BAD_DATA_TYPES) {
+				buffer.write(line + '\n');
+			}
+		}
+		
 	}
 
 	private static void buildSeqMap() throws IOException {
@@ -101,6 +113,7 @@ public class GenerateAllConcepts extends Job{
 		}
 		
 	}
+	
 	private static void doGenerateAllConcepts(List<Mapping> mappings) {
 		
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_allConcepts.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
@@ -189,11 +202,13 @@ public class GenerateAllConcepts extends Job{
 					} ); 
 					
 					while((line = iter.next()) != null) {
-					
+						if(line.length == 0) continue;
+						// hotfix for dbgap
+						if(line[0].toLowerCase().contains("dbgap")) continue;
 						if(line.length - 1 >= column && line.length - 1 >= PATIENT_COL) {
 							
 							if(line[column].trim().isEmpty()) continue;
-							
+							if(line[0].charAt(0) == '#') continue;
 							AllConcepts allConcept = generateAllConcepts(mapping,line,column);
 							
 							if(allConcept.isValid()) {
@@ -282,12 +297,14 @@ public class GenerateAllConcepts extends Job{
 			
 			AllConcepts allConcept = new AllConcepts();
 			
-			allConcept.setConceptPath(mapping.getRootNode() + line[column].trim().replaceAll("\"", "'") + PATH_SEPARATOR);
+			allConcept.setConceptPath(mapping.getRootNode());
+			
 			if(DO_PATIENT_NUM_SEQUENCE) {
 				allConcept.setPatientNum(sequencePatient(line[PATIENT_COL]));
 			} else {
 				allConcept.setPatientNum(new Integer(line[PATIENT_COL]));
 			}
+			
 			allConcept.setNvalNum("");
 			
 			allConcept.setTvalChar(line[column].trim().replaceAll("\"", "'"));
@@ -298,7 +315,7 @@ public class GenerateAllConcepts extends Job{
 			
 			AllConcepts allConcept = new AllConcepts();
 			
-			if(NumberUtils.isParsable(line[column].trim())){
+			if(NumberUtils.isCreatable(line[column].trim())){
 			
 				allConcept.setConceptPath(mapping.getRootNode());
 				
@@ -310,13 +327,15 @@ public class GenerateAllConcepts extends Job{
 				
 				allConcept.setNvalNum(line[column].trim());
 				
-				allConcept.setTvalChar("E");
+				allConcept.setTvalChar("");
 				
 				return allConcept;
 				
 			} else {
 				
-				System.err.println("Value for record " + line + " in file " + mapping.getKey() + " is not numeric.");
+				System.err.println("Value for record " + line[column].trim() + " in file " + mapping.getKey() + " is not numeric.");
+				
+				MAPPINGS_WITH_BAD_DATA_TYPES.add(mapping.getKey());
 				
 				return new AllConcepts();
 				

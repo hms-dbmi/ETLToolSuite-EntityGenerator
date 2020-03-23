@@ -6,18 +6,22 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import com.opencsv.CSVReader;
 import com.opencsv.bean.CsvBindByPosition;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 
+import etl.job.entity.hpds.AllConcepts;
 import etl.utils.Utils;
 
 public class Mapping implements Cloneable, Comparable<Mapping>{
@@ -132,8 +136,21 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 			throw new IOException(filePath + " does not exist.");
 		}
 		
-		List<Mapping> list = new ArrayList<Mapping>();
-		
+		List<Mapping> list = new ArrayList<>();
+		/*Set<Mapping> list = new TreeSet<>( new Comparator<Mapping>() {
+			
+			@Override
+			public int compare(Mapping o1, Mapping o2) {
+				
+				if(o1 == null || o2 == null) return -1;
+				
+				int conceptpath = o1.getRootNode().compareTo(o2.getRootNode());
+				
+				return conceptpath;
+										
+			}
+			
+		} );*/ 
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(filePath))){
 
 			CsvToBean<Mapping> beans = new CsvToBeanBuilder<Mapping>(buffer)
@@ -150,7 +167,13 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 				list.add(iter.next());
 			}
 		}
-		
+		Collections.sort(list, new Comparator<Mapping>() {
+
+			@Override
+			public int compare(Mapping o1, Mapping o2) {
+				return o1.getRootNode().compareTo(o2.getRootNode());
+			}
+		});
 		return list;
 		
 	}
@@ -331,6 +354,10 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 		
 		return new Integer(this.getKey().split(":")[1]).compareTo(new Integer(o.getKey().split(":")[1]));
 	}
+	public int compare(Mapping a, Mapping b) 
+    { 
+        return a.rootNode.compareTo( b.rootNode ); 
+    }
 	@Override
 	public int hashCode() {
 		final int prime = 31;

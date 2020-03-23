@@ -42,13 +42,16 @@ public class JSONToAllConcepts extends Job {
 	private static boolean USE_PATIENT_MAPPING = false;
 
 	private static Map<String,List<String>> OMISSIONS_MAP = new HashMap<String, List<String>>();
-	{
+	/*{
 	
 		OMISSIONS_MAP.put("fields:activestatus", Arrays.asList("A"));
 		OMISSIONS_MAP.put("fields:encoded_relation", Arrays.asList("null","",null));
-	};
+	};*/
 	
-	//private static List<AllConcepts> ac = new ArrayList<AllConcepts>();
+	/**
+	 * TreeSet used with a custom comparator to sort allconcepts as necessary to build the javabin files
+	 * 
+	 */
 	private static Set<AllConcepts> ac = new TreeSet<AllConcepts>( new Comparator<AllConcepts>() {
 		@Override
 		public int compare(AllConcepts o1, AllConcepts o2) {
@@ -99,7 +102,7 @@ public class JSONToAllConcepts extends Job {
 
 	private static void execute() throws Exception {
 		
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_allConcepts.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)){
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID.toUpperCase() + "_allConcepts.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)){
 		}
 		List<Mapping> mappingFile = Mapping.class.newInstance().generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
 		
@@ -119,7 +122,7 @@ public class JSONToAllConcepts extends Job {
 			
 		};
 
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_allConcepts.csv"), StandardOpenOption.APPEND, StandardOpenOption.CREATE)){
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID.toUpperCase() + "_allConcepts.csv"), StandardOpenOption.APPEND, StandardOpenOption.CREATE)){
 			
 			for(AllConcepts a: ac) {
 				
@@ -149,7 +152,7 @@ public class JSONToAllConcepts extends Job {
 			
 		}
 		
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_PatientMapping.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)){
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID.toUpperCase() + "_PatientMapping.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)){
 			
 			for(Entry<String,Integer> seqPat: SEQUENCE_MAP.entrySet()) {
 				
@@ -197,7 +200,7 @@ public class JSONToAllConcepts extends Job {
 	}
 
 	private static List buildRecordList() throws Exception{
-		
+		System.out.println(DATA_DIR);
 		if(!Files.isDirectory(Paths.get(DATA_DIR))) {
 			return JSONDataSource2.buildObjectMap(new File(DATA_DIR), DATASOURCE_FORMAT);	
 		}
@@ -643,12 +646,26 @@ public class JSONToAllConcepts extends Job {
 		
 		String omissionsDenormalized = properties.get("omissions").toString();
 		
-		String[] omissionsArray = omissionsDenormalized.split("\\|");
+		String[] omissionsArray = omissionsDenormalized.split(",");
 		
 		for(String omission: omissionsArray) {
-			String[] kvpair = omission.split(";");
+			String[] kvpair = omission.split("=");
 			if(kvpair.length == 2) {
-				OMISSIONS_MAP.put(kvpair[0], Arrays.asList(kvpair[1]));
+				if(OMISSIONS_MAP.containsKey(kvpair[0])) {
+					List<String> list = OMISSIONS_MAP.get(kvpair[0]);
+					list.add(kvpair[1]);
+					OMISSIONS_MAP.put(kvpair[0], list);
+				} else {
+					OMISSIONS_MAP.put(kvpair[0], new ArrayList<String>(Arrays.asList(kvpair[1])));
+				}
+			} else {
+				if(OMISSIONS_MAP.containsKey(kvpair[0])) {
+					List<String> list = OMISSIONS_MAP.get(kvpair[0]);
+					list.add("");
+					OMISSIONS_MAP.put(kvpair[0], list);
+				} else {
+					OMISSIONS_MAP.put(kvpair[0], new ArrayList<String>(Arrays.asList("")));
+				}
 			}
 		}	
 	}

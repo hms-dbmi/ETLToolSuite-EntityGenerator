@@ -35,9 +35,7 @@ public class AllConcepts {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((conceptPath == null) ? 0 : conceptPath.hashCode());
-		result = prime * result + ((nvalNum == null) ? 0 : nvalNum.hashCode());
 		result = prime * result + ((patientNum == null) ? 0 : patientNum.hashCode());
-		result = prime * result + ((tvalChar == null) ? 0 : tvalChar.hashCode());
 		return result;
 	}
 	@Override
@@ -54,21 +52,12 @@ public class AllConcepts {
 				return false;
 		} else if (!conceptPath.equals(other.conceptPath))
 			return false;
-		if (nvalNum == null) {
-			if (other.nvalNum != null)
-				return false;
-		} else if (!nvalNum.equals(other.nvalNum))
-			return false;
 		if (patientNum == null) {
 			if (other.patientNum != null)
 				return false;
 		} else if (!patientNum.equals(other.patientNum))
 			return false;
-		if (tvalChar == null) {
-			if (other.tvalChar != null)
-				return false;
-		} else if (!tvalChar.equals(other.tvalChar))
-			return false;
+		
 		return true;
 	}
 	
@@ -82,6 +71,8 @@ public class AllConcepts {
 		if(patientNum == null) return false;
 		//if(Integer.isEmpty) return false;
 		if(conceptPath == null) return false;
+		if(tvalChar.equals("null")) return false;
+		if(nvalNum.equals("null")) return false;
 		if(conceptPath.trim().isEmpty()) return false;
 		
 		return true;

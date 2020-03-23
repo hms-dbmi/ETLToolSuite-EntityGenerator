@@ -89,7 +89,7 @@ public abstract class Job implements Serializable {
 			//////////////////////////////////
 			// File and Directory Variables //
 			DATA_DIR = properties.contains("datadir") ? properties.getProperty("datadir").toString() : DATA_DIR;
-			
+
 			DICT_DIR = properties.contains("dictdir") ? properties.getProperty("dictdir").toString() : DICT_DIR;
 
 			

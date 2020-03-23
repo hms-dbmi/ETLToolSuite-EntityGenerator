@@ -78,7 +78,7 @@ public class DbgapTreeBuilder extends Job {
 			// build mapping file
 			for(File data: dataFiles) {
 				
-				if(data.getName().toLowerCase().contains("sample.multi.txt")) {
+				if(data.getName().toLowerCase().contains("subject.multi")) {
 					buildDbgaidMap(data,dbgapidmap);
 				}
 				
@@ -114,7 +114,7 @@ public class DbgapTreeBuilder extends Job {
 					e.printStackTrace();
 				}
 				
-				if(dataDic != null) {
+				//if(dataDic != null) {
 					
 					fileDesc = findDescription(dataDic);
 					
@@ -134,7 +134,7 @@ public class DbgapTreeBuilder extends Job {
 						
 						try(BufferedReader buffer = Files.newBufferedReader(Paths.get(data.getAbsolutePath()))){
 							
-							CSVReader reader = new CSVReader(buffer,'\t', '∂');
+							CSVReader reader = new CSVReader(buffer,',', '\"');
 							
 							String[] line;
 							
@@ -157,7 +157,7 @@ public class DbgapTreeBuilder extends Job {
 								
 								else if(!headerWritten) {
 									
-									if(line[0].toLowerCase().equals("dbgap_sample_id")) {
+									if(line[0].toLowerCase().equals("dbgap_subject_id")) {
 									
 										isSampleFile = true;
 										
@@ -170,7 +170,7 @@ public class DbgapTreeBuilder extends Job {
 									int idx = 0;
 									
 									for(String colheader: line) {
-										
+										/*
 										if(data.getName().toLowerCase().contains("subject.multi")) {
 											
 											if(colheader.toLowerCase().contains("dbgap")) {
@@ -194,7 +194,7 @@ public class DbgapTreeBuilder extends Job {
 											}
 											
 										}
-										
+										*/
 										if(headerLookup.containsKey(colheader)) {
 											// replace all backslashes to forward slash and double quotes to single quotes
 											String newheader = headerLookup.get(colheader);
@@ -397,7 +397,7 @@ public class DbgapTreeBuilder extends Job {
 									if(isSampleFile) {
 										
 										
-										if(!lineToWrite[0].toLowerCase().contains("dbgap_sample_id")) {
+										if(!lineToWrite[0].toLowerCase().contains("dbgap_subject_id")) {
 											
 											if(dbgapidmap.containsKey(lineToWrite[0])) {
 												
@@ -423,11 +423,11 @@ public class DbgapTreeBuilder extends Job {
 
 					}
 					
-				} else {
+				//} else {
 					
 					//System.err.println("File: " + data.getName() + " Does not have a corresponding dictionary file in " + DICT_DIR);
 					
-				}
+				//}
 				
 			}
 			
@@ -611,6 +611,7 @@ public class DbgapTreeBuilder extends Job {
 		
 		valueLookup.put(0,new HashMap<String,String>());
 		valueLookup.put(1,new HashMap<String,String>());
+		
 	    for (int idx = 0; idx < variables.getLength(); idx++) {
 	
 	    		Node node = variables.item(idx);
