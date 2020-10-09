@@ -13,6 +13,8 @@ import java.util.Map;
 
 import com.opencsv.CSVReader;
 
+import etl.jobs.Job;
+
 public class HarmonizedConsentsGenerator extends Job{
 
 	public static void main(String[] args) {
@@ -114,27 +116,6 @@ public class HarmonizedConsentsGenerator extends Job{
 		return map;
 	}
 	
-	private static String toCsv(String[] line) {
-		StringBuilder sb = new StringBuilder();
-		
-		int lastNode = line.length - 1;
-		int x = 0;
-		for(String node: line) {
-			
-			sb.append('"');
-			sb.append(node);
-			sb.append('"');
-			
-			if(x == lastNode) {
-				sb.append('\n');
-			} else {
-				sb.append(',');
-			}
-			x++;
-		}
-		
-		return sb.toString();
-	}
 	
 	private static void writeVariable(List<String[]> consentGroups) throws IOException {
 		

@@ -17,10 +17,12 @@ import com.opencsv.CSVReaderBuilder;
 import com.opencsv.RFC4180Parser;
 import com.opencsv.RFC4180ParserBuilder;
 
+import etl.jobs.Job;
+
 public class UDNIDSync extends Job {
 
 	private static final String MANIFEST_FILE = DATA_DIR + "UDN_file-manifest_2020-01-22.tsv";
-	private static final String PM_FILE = DATA_DIR + "PatientMapping.csv";
+	private static final String PM_FILE = DATA_DIR + "hpdsid_to_udnid.csv";
 	private static final String SAMPLE_LIST = DATA_DIR + "vcfSampList.csv";
 	private static final String PM_FILE_NEW = DATA_DIR + "PatientMappingNew.csv";
 	private static final String PM_FILE_OLD = DATA_DIR + "PatientMappingOld.csv";
@@ -89,11 +91,14 @@ public class UDNIDSync extends Job {
 			List<String[]> records = csvreader.readAll();
 			
 			for(String[] line: records) {
+				if(line[0].equals("2998")) {
+					System.out.println(line[1] + ":" + line[0]);
+				}
 				if(line[0] == null) continue;
 				if(line[0].isEmpty()) continue;
 				if(line[0].startsWith("#")) continue;
 			
-				udnid_patid_map.put(line[1], line[2]);
+				udnid_patid_map.put(line[1], line[0]);
 			}
 		// read patient mapping
 		}
@@ -128,7 +133,10 @@ public class UDNIDSync extends Job {
 					if(udnid_patid_map.containsKey(udnId)) {
 						
 						String patNum = udnid_patid_map.get(udnId);
-						
+						System.err.println(patNum);
+						if(patNum.equals("2998")) {
+							System.out.println(udnId + ":" + line[0] + patNum);
+						}						
 						if(sampids.toString().isEmpty()) {
 							
 							sampids.append(line[0]);
@@ -160,7 +168,7 @@ public class UDNIDSync extends Job {
 				
 			}
 			// output to vcfIndex.tsv
-			String lineToWrite = "/opt/local/hpds/vcfInput/full_udn_exome_calls.transform_udn.norm.split.v2.vcf.gz\tALL\t1\t1\t" + sampids.toString() + '\t' + patids.toString();
+			String lineToWrite = "/opt/local/hpds/vcfInput/full_udn_exome_calls.transform_csq.vcf.gz\tALL\t1\t1\t" + sampids.toString() + '\t' + patids.toString();
 			
 			try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "vcfIndex.tsv"),StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING)){
 				writer.write(lineToWrite);

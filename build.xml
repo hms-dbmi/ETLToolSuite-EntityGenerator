@@ -57,7 +57,7 @@
             <src path="resources"/>
             <classpath refid="classpath"/>
         </javac>
-    
+     <!--
 	  	<jar destfile="ConceptGenerator.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.ConceptGenerator"/>
@@ -66,7 +66,7 @@
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 	  	</jar>
-    	<!--
+    	
 	  	<jar destfile="CountGenerator3.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.CountGenerator3"/>
@@ -195,6 +195,63 @@
   		<fileset dir="bin" includes="*.xml"></fileset>
   	    <zipgroupfileset dir="bin" includes="**/*.jar" />
   		</jar>  
+  		-->
+    		<jar destfile="BDCShareTreeBuilder.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.BDCShareTreeBuilder"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>
+    		<jar destfile="RootNodeConcept.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.RootNodeConcept"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>
+	    	<jar destfile="AddStartDateFix.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.AddStartDateFix"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>     	
+	    	<jar destfile="SampleIdGenerator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.SampleIdGenerator"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar> 
+    		<jar destfile="Partitioner.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.Partitioner"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>   
+    		<jar destfile="DataAnalyzer.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.DataAnalyzer"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+		    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+    		<jar destfile="MergeMappings.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.MergeMappings"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+		    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
 		<jar destfile="DbgapTreeBuilder.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.DbgapTreeBuilder"/>
@@ -202,10 +259,10 @@
 		    <fileset dir="bin" includes="**/*.class" />
 			<fileset dir="bin" includes="*.xml"></fileset>
 		    <zipgroupfileset dir="bin" includes="**/*.jar" />
-		</jar>-->
-		<jar destfile="DbgapGlobalVarGenerator.jar">
+		</jar>
+	    	<jar destfile="DbgapTreeBuilder2.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.jobs.csv.DbgapGlobalVarGenerator"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.DbgapTreeBuilder2"/>
 			</manifest>
 		    <fileset dir="bin" includes="**/*.class" />
 			<fileset dir="bin" includes="*.xml"></fileset>
@@ -243,9 +300,9 @@
 			<fileset dir="bin" includes="*.xml"></fileset>
 		    <zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar> 
-		<jar destfile="ValidateAllConcepts.jar">
+		<jar destfile="AllConceptValidation.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.jobs.csv.ValidateAllConcepts"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.AllConceptValidation"/>
 			</manifest>
 		    <fileset dir="bin" includes="**/*.class" />
 			<fileset dir="bin" includes="*.xml"></fileset>
@@ -259,5 +316,101 @@
 			<fileset dir="bin" includes="*.xml"></fileset>
 		    <zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar> 
+    		<jar destfile="JSONToAllConcepts.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.JSONToAllConcepts"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+		    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar> 		
+        	<jar destfile="PHSIdGenerator.jar">
+    			<manifest>
+    				<attribute name="Main-Class" value="etl.jobs.csv.bdc.PHSIdGenerator"/>
+    			</manifest>
+    		    <fileset dir="bin" includes="**/*.class" />
+    			<fileset dir="bin" includes="*.xml"></fileset>
+    		    <zipgroupfileset dir="bin" includes="**/*.jar" />
+    		</jar> 		
+		<jar destfile="ConsentGroupGenerator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.ConsentGroupGenerator"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar> 
+		<jar destfile="ConsentCountValidation.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.ConsentCountValidation"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+	    	<jar destfile="LookForDupConsents.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.LookForDupConsents"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+    		<jar destfile="QuickSort.jar">
+    			<manifest>
+    				<attribute name="Main-Class" value="etl.jobs.csv.QuickSort"/>
+    			</manifest>
+    		    <fileset dir="bin" includes="**/*.class" />
+    			<fileset dir="bin" includes="*.xml"></fileset>
+    	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    		</jar> 
+    		<jar destfile="BDCVariableCollector.jar">
+    			<manifest>
+    				<attribute name="Main-Class" value="etl.jobs.csv.BDCVariableCollector"/>
+    			</manifest>
+    		    <fileset dir="bin" includes="**/*.class" />
+    			<fileset dir="bin" includes="*.xml"></fileset>
+    	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    		</jar> 
+		<jar destfile="DbgapDecodeFiles.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.DbgapDecodeFiles"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar> 
+		<jar destfile="DbGapPMGenerator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.DbGapPMGenerator"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar> 
+	    	<jar destfile="MergePartitions.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.MergePartitions"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>    	
+	    	<jar destfile="AppendSampleID.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.AppendSampleID"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>  
+    		<jar destfile="JsonMetadataGenerator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.JsonMetadataGenerator"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>  
     	</target>
 </project>

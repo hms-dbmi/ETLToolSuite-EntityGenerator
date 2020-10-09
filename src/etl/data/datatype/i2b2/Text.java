@@ -13,7 +13,7 @@ import etl.data.datasource.entities.json.udn.Sequence;
 import etl.data.datatype.DataType;
 import etl.job.entity.Mapping;
 import etl.job.entity.hpds.AllConcepts;
-import etl.jobs.csv.Job;
+import etl.jobs.Job;
 
 /**
  * 

@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -28,6 +30,7 @@ import com.opencsv.RFC4180ParserBuilder;
 
 import etl.job.entity.Mapping;
 import etl.job.entity.hpds.AllConcepts;
+import etl.jobs.Job;
 import etl.jobs.jobproperties.JobProperties;
 
 public class GenerateAllConcepts extends Job{
@@ -51,7 +54,7 @@ public class GenerateAllConcepts extends Job{
 	public static void main(String[] args) {
 		
 		try {
-			
+			System.out.println("test");
 			setVariables(args, buildProperties(args));
 			
 			setLocalVariables(args, buildProperties(args));
@@ -62,7 +65,7 @@ public class GenerateAllConcepts extends Job{
 			
 			System.err.println(e);
 			
-		}
+		}	
 		
 		try {
 			
@@ -77,7 +80,7 @@ public class GenerateAllConcepts extends Job{
 	}
 
 	private static void execute() throws IOException {
-
+		Mapping.PATH_SEPARATOR = PATH_SEPARATOR;
 		List<Mapping> mappings = Mapping.generateMappingListForHPDS(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
 
 		// populate seq map with current mappings
@@ -104,20 +107,26 @@ public class GenerateAllConcepts extends Job{
 			String[] line;
 			
 			while((line = reader.readNext()) != null) {
-				if(line.length != 3)  continue;
-				
+				if(line.length < 3)  continue;
+				if(!NumberUtils.isCreatable(line[2])) continue;
 				SEQUENCE_MAP.put(line[0], new Integer(line[2]));
 				
 			}
 			
+			if(!SEQUENCE_MAP.isEmpty()) {
+				PATIENT_NUM_STARTING_SEQ = Collections.max(SEQUENCE_MAP.values()) + 1;
+			}
+
 		}
 		
 	}
-	
+
 	private static void doGenerateAllConcepts(List<Mapping> mappings) {
 		
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_allConcepts.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
+			
 			mappings.forEach(mapping -> {
+				
 				// validations
 				if(mapping.getKey().split(":").length != 2) return;
 				if(mapping.getRootNode().contains(String.valueOf(OLD_SEPARATOR))) {
@@ -271,24 +280,6 @@ public class GenerateAllConcepts extends Job{
 			e.printStackTrace();
 		}
 
-	}
-
-	private static char[] toCsv(String[] strings) {
-		StringBuilder sb = new StringBuilder();
-		
-		int x = strings.length;
-		
-		for(String str: strings) {
-			sb.append('"');
-			sb.append(str);
-			sb.append('"');
-			if(x != 1 ) {
-				sb.append(',');
-			}
-			x--;
-		}
-		sb.append('\n');
-		return sb.toString().toCharArray();
 	}
 
 	private static AllConcepts generateAllConcepts(Mapping mapping, String[] line, Integer column) throws IOException {

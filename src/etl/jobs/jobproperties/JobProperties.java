@@ -1,6 +1,8 @@
 package etl.jobs.jobproperties;
 
 import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -30,7 +32,7 @@ public class JobProperties extends Properties{
 		
 		if(Files.exists(Paths.get(propertiesFile))) {
 
-			this.load(new FileInputStream(propertiesFile));
+			this.load(new InputStreamReader(new FileInputStream(propertiesFile), Charset.forName("UTF-8")));
 			requiredfields.addAll(REQUIRED_PROPERTIES);
 			
 			for(Object key: this.keySet()) {

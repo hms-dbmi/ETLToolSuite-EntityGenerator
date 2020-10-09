@@ -1,12 +1,12 @@
 package etl.jobs.csv;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,11 +19,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 
 import com.opencsv.CSVReader;
 
 import etl.job.entity.ConfigFile;
 import etl.job.entity.Mapping;
+import etl.jobs.Job;
 
 /**
  * @author Thomas DeSain
@@ -76,11 +78,11 @@ public class Partitioner extends Job {
 		deleteOldConfigs();
 		if(DELETE_ONLY.equalsIgnoreCase("Y")) return;
 		
-		List<Mapping> mappingFile = Mapping.generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
+		List<Mapping> mappingFile = Mapping.generateMappingListForHPDS(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
 		// map
     	// key = concept path
     	// value = set of mapping key
-		Map<String,Set<Mapping>> mappings = new HashMap<String,Set<Mapping>>();
+		Map<String,Set<Mapping>> mappings = new TreeMap<String,Set<Mapping>>();
 		
 		for(Mapping m: mappingFile) {
 			if(mappings.containsKey(m.getRootNode())){
@@ -90,7 +92,7 @@ public class Partitioner extends Job {
  			}
 		}
 		
-        try (InputStream input = new FileInputStream(CONFIG_FILE)) {
+        try (BufferedReader input = Files.newBufferedReader(Paths.get(CONFIG_FILE))) {
         	
             Properties prop = new Properties();
 
@@ -104,30 +106,30 @@ public class Partitioner extends Job {
     			MAPPING_FILE = prop.getProperty("mappingfile");
     			
     			for(Entry<String,Set<Mapping>> entry: mappings.entrySet()) {
-    				Integer estimatedconcepts = 0;
-    				for(Mapping m: entry.getValue()) {
-    					
-                		estimatedconcepts += getEstimatedConcepts(m.getKey());
-                   
-                }
-              	if(estimatedconcepts == null ) {
-            			//System.err.println("No concepts for " + m.getKey());
-            			continue;
-            		}
+    				
     				ConfigFile cf = new ConfigFile(prop);
-                    
+    				
                 cf.mappingfile = "./mappings/mapping.part" + partition + ".csv";
                 
                 cf.appending = "Y";
+
                 cf.ispartition = "Y";
+                
                 cf.finalpartition = "N";
+                
                 cf.mappingquotedstring = MAPPING_QUOTED_STRING;
              
                 cf.sequencedata = "Y";
+                
                 cf.conceptcdstartseq = new Integer(currentConceptSeq).toString();
+                
                 cf.encounternumstartseq= new Integer(1).toString();
+                
                 cf.patientnumstartseq  = new Integer(3).toString();
+                
                 cf.trialid = TRIAL_ID;
+                
+                cf.writedir = PROCESSING_FOLDER + partition + '_';
                
                 try(OutputStream output = new FileOutputStream(MAPPING_OUTPUT_DIR + "/mapping.part" + partition + ".csv")) {
                 		for(Mapping newmapping: entry.getValue()) {
@@ -148,7 +150,6 @@ public class Partitioner extends Job {
 
                 //Iterate sequence for next partition in the loop
                 //buffer is not enough setting to 50 to avoid conficts
-                currentConceptSeq = currentConceptSeq + estimatedconcepts;
                 partition++;
     			}
             
@@ -184,11 +185,14 @@ public class Partitioner extends Job {
 	 * Reads the evaluation file to find the expected concept size for this mapping.
 	 * This is important to properly sequence the data.
 	 * 
+	 * No longer needed for transmart onlyx
+	 * 
 	 * @param mappingKey
 	 * @return
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
+	@Deprecated
 	private static Integer getEstimatedConcepts(String mappingKey) throws FileNotFoundException, IOException {
 		Path path = Paths.get(EVALUATION_FILE_CONCEPTS);
 		try (CSVReader reader = new CSVReader(Files.newBufferedReader(path))) {

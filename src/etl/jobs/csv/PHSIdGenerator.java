@@ -3,6 +3,7 @@ package etl.jobs.csv;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -14,15 +15,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.util.Map.Entry;
 
 import com.opencsv.CSVReader;
 
+import etl.jobs.Job;
+@Deprecated
 public class PHSIdGenerator extends Job {
 	
 	private static String STUDY_ID_W_ACCESSIONS = "studyid_with_accessions.csv";
 
-	private static String ACCESSIONS_WITH_SOURCE_SUBJECT_COLUMN = "accessions_with_source_subject_column.csv";
+	private static String ACCESSIONS_WITH_SOURCE_SUBJECT_COLUMN = "accessions_with_source_subject_column.tsv";
 	
 	public static void main(String[] args) {
 		try {
@@ -43,7 +49,16 @@ public class PHSIdGenerator extends Job {
 
 
 	private static void execute() throws IOException {
+		
+		cleanAccessionFile();
+		
 		buildPhsIds();		
+	}
+
+
+	private static void cleanAccessionFile() throws IOException {
+		BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "AccessionIds.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+		writer.close();
 	}
 
 
@@ -54,23 +69,190 @@ public class PHSIdGenerator extends Job {
 		
 		// Map of study_id and accession with version
 		Map<String,String> accessions = new HashMap<>();
+		Map<String,String> topmedAccessions = new HashMap<>();
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + STUDY_ID_W_ACCESSIONS))){
 			
-			String line;
+			CSVReader reader = new CSVReader(buffer);
 			
-			while((line = buffer.readLine()) != null) {
+			String[] arr;
+			
+			while((arr = reader.readNext()) != null) {
 				
-				String[] arr = line.split(",");
+				if(arr.length == 3) {
 				
-				if(arr.length == 2) {
-					accessions.put(arr[0], arr[1]);
+					if(arr[2].isEmpty()) {
+					
+						accessions.put(arr[0].toUpperCase(), arr[1]);
+					
+					} else {
+						
+						if(!arr[1].trim().isEmpty()) {
+						
+							accessions.put(arr[0].toUpperCase(), arr[1]);
+						
+						} else {
+							
+							accessions.put(arr[0].toUpperCase(), arr[2]);
+							
+						}
+							
+						topmedAccessions.put(arr[0].toUpperCase(), arr[2]);
+						
+					}
+				
 				}
 				
 			}
 		}
 		// accessions with source_subject_column
-		Map<String,Set<String>> accessionsSourceSubjCols = new HashMap<>();
+		
+		
+		// build dataToWrite or wrap this is buffer writer
+		
+		ArrayList<String> parentAccesionsdToWrite = buildAccessions(accessions);
+		
+		ArrayList<String> topMedAccesionsdToWrite = buildAccessions(topmedAccessions);
+		
+		if(parentAccesionsdToWrite.isEmpty()) {
+			System.out.println("No Parent Accessions found to write");
+		}
+		
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "ParentAccessionIds.csv"),StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+			for(String str: parentAccesionsdToWrite) writer.write(str);
+		}
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "AccessionIds.csv"),StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+			for(String str: parentAccesionsdToWrite) writer.write(str);
+		}
+		if(topMedAccesionsdToWrite.isEmpty()) {
+			System.out.println("No Topmed Accessions found to write");
+		}
+		
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "TopmedAccessionIds.csv"),StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+			for(String str: topMedAccesionsdToWrite) writer.write(str);
+		}
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "AccessionIds.csv"),StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+			for(String str: topMedAccesionsdToWrite) writer.write(str);
+		}
+		
+		
+				/*
+				for(String f: dataDir.list()) {
+					
+					
+					
+					if(f.toLowerCase().contains(accession.getValue().toLowerCase()) && f.toLowerCase().contains("subject.multi")) {
+						
+						System.out.println("found!");
+						
+						System.out.println(f);
+						
+						
+						
+						doesSubjectMultiExist = true;
+						
+						try(BufferedReader buffer = Files.newBufferedReader(Paths.get(new File(DATA_DIR + f).getAbsolutePath()))) {
+							
+							String phsOnly = accession.getValue().substring(0, 9);
+							
+							String srcCol = accessionsSourceSubjCols.get(phsOnly);
+							
+							if(srcCol == null || srcCol.isEmpty()) {
+								System.out.println("error source column not given for " + phsOnly);
+								// goto next study
+								continue;
+							}
+							
+							CSVReader reader = new CSVReader(buffer, '\t');
+							
+							String[] headers;
+							
+							//////////
+							System.out.println(phsOnly);
+							
+							while((headers = reader.readNext()) != null) {
+
+								boolean isComment = headers[0].toString().startsWith("#") ? true: headers[0].trim().isEmpty() ? true: false;
+								
+								if(isComment) {
+									
+									continue;
+									
+								} else {
+									
+									break;
+									
+								}
+								
+							}
+							
+						
+							int headeridx = ArrayUtils.indexOf(headers, srcCol);
+							
+							if(headeridx == ArrayUtils.INDEX_NOT_FOUND) {
+								System.err.println("Header column not found for " + phsOnly + " using " + srcCol);
+							}
+							// if no source is given use the dbgap_id
+							
+
+							String[] line;
+							
+							while((line = reader.readNext()) != null) {
+								
+								String[] lineToWrite = null;
+										
+								if(line.length >= headeridx) {
+									
+									String sourceId = line[headeridx];
+									
+									if(sourceId.isEmpty()) {
+										System.out.println(phsOnly + " missing source subject id for: " + line);
+										continue;
+									}
+																					
+									else {
+										
+										if(idLookup.containsKey(line[0])) {
+											
+											String hpdsId = idLookup.get(line[0]);
+											String phs = topmedAccessions.containsKey(accession.getKey().toUpperCase()) ? topmedAccessions.get(accession.getKey().toUpperCase()) : accession.getValue();
+											lineToWrite = new String[] { hpdsId, phs + "_" + sourceId };
+
+										} else {
+											System.out.println("missing accession for " + line[0]);
+										}
+									}
+								
+								}
+								
+								if(lineToWrite != null) {
+									
+									dataToWrite.add(toCsv(lineToWrite));
+									
+								} else {
+									
+									String hpdsId = idLookup.get(line[0]);
+									
+									lineToWrite = new String[] { hpdsId, accession.getValue() + "_" + line[0] };
+									
+									dataToWrite.add(toCsv(lineToWrite));
+									
+								}
+							}
+							
+						}
+						
+						System.out.println(dataToWrite.size());
+
+					}*/
+	
+		
+	}
+	
+	private static ArrayList<String> buildAccessions(Map<String, String> accessions) throws IOException {
+		ArrayList<String> dataToWrite = new ArrayList<>();
+		
+		Map<String,String> accessionsSourceSubjCols = new HashMap<>();
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + ACCESSIONS_WITH_SOURCE_SUBJECT_COLUMN))){
 			
@@ -80,44 +262,31 @@ public class PHSIdGenerator extends Job {
 				
 				String[] arr = line.split("\t");
 				
-				if(arr.length == 3) {
-					
-					Set<String> sourceCols = new HashSet<>();
-					
-					String[] cols = arr[2].split(",");
-					
-					for(String c: cols) {
-						
-						sourceCols.add(c.trim());
-						
-					}
-					
-					accessionsSourceSubjCols.put(arr[0], sourceCols);
-					
-				}
+				accessionsSourceSubjCols.put(arr[0], arr[1]);
 				
 			}
 			
 		}
 		
-		// build dataToWrite or wrap this is buffer writer
-		
-		Set<String> dataToWrite = new HashSet<>();
-		
 		for(Entry<String, String> accession: accessions.entrySet()) {
 			
 			Map<String,String> patientMapping = new HashMap<>();
 			
-			if(!Files.exists(Paths.get(WRITE_DIR + accession.getKey().toUpperCase() + "_PatientMapping.csv"))) {
+			if(!Files.exists(Paths.get(DATA_DIR + accession.getKey().toUpperCase() + "_PatientMapping.v2.csv"))) {
 				
 				System.out.println("Patient Mapping missing in data directory for " + accession.getKey().toUpperCase());
 				continue;
+				
+			} else {
+				
+				System.out.println(DATA_DIR + accession.getKey().toUpperCase() + "_PatientMapping.v2.csv found.  Building Identifiers." );
+				
 				
 			};
 			
 			Map<String,String> idLookup = new HashMap<>();
 			
-			try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + accession.getKey().toUpperCase() + "_PatientMapping.csv"))) {
+			try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + accession.getKey().toUpperCase() + "_PatientMapping.v2.csv"))) {
 				
 				CSVReader reader = new CSVReader(buffer);
 				
@@ -134,169 +303,110 @@ public class PHSIdGenerator extends Job {
 			File dataDir = new File(DATA_DIR);
 			
 			if(dataDir.isDirectory()) {
-				
-				for(String f: dataDir.list()) {
+								
+				File[] files = dataDir.listFiles(new FilenameFilter() {
 					
-					if(f.toLowerCase().contains(accession.getValue().toLowerCase()) && f.toLowerCase().contains("subject.multi")) {
+					@Override
+					public boolean accept(File dir, String name) {
+						System.out.println(name.toLowerCase());
+						System.out.println(accession.getValue().toLowerCase());
+
+						if(name.toLowerCase().contains(accession.getValue().toLowerCase()) && name.toLowerCase().contains("subject.multi") && name.endsWith("txt")) {
+							return true;
+						}
+						return false;
+					}
+				});
+				
+				if(files.length != -1 ) {
+					
+					for(File file: files) {
 						
-						try(BufferedReader buffer = Files.newBufferedReader(Paths.get(new File(DATA_DIR + f).getAbsolutePath()))) {
+						try(BufferedReader buffer = Files.newBufferedReader(Paths.get(file.getAbsolutePath()))) {
+						
+							CSVReader reader = new CSVReader(buffer, '\t');
+							
+							String[] headers;
 							
 							String phsOnly = accession.getValue().substring(0, 9);
 							
-							Set<String> srcCols = accessionsSourceSubjCols.get(phsOnly);
-							if(srcCols == null) srcCols = new HashSet<>();
-							CSVReader reader = new CSVReader(buffer, '\t');
+							String srcCol = accessionsSourceSubjCols.get(phsOnly);
 							
-							String[] comments;
+							if(srcCol == null || srcCol.isEmpty()) {
+								System.out.println("error source column not given for " + phsOnly);
+								// goto next study
+								continue;
+							}
+							//////////
+							System.out.println(phsOnly);
 							
-							List<String> headers2 = new ArrayList<String>();
+							while((headers = reader.readNext()) != null) {
 
-							while((comments = reader.readNext()) != null) {
-
-								boolean isComment = comments[0].toString().startsWith("#") ? true: comments[0].isEmpty() ? true: false;
+								boolean isComment = headers[0].toString().startsWith("#") ? true: headers[0].trim().isEmpty() ? true: false;
 								
 								if(isComment) {
 									
 									continue;
 									
 								} else {
-									headers2 = Arrays.asList(comments);
+									
 									break;
 									
 								}
 								
 							}
+							int headeridx = ArrayUtils.indexOf(headers, srcCol);
 							
-							List<String> headers = new ArrayList<>();
-							
-							int x = 0;
-							Set<Integer> ints = new HashSet<>();
-							// make lowercase
-							for(String h: headers2) {
-								headers.add(x, h.toLowerCase());
-								x++;
+							if(headeridx == ArrayUtils.INDEX_NOT_FOUND) {
+								System.err.println("Header column not found for " + phsOnly + " using " + srcCol);
 							}
 							
-							// see if given headers exist in multi file if not empty the srcCols set
-							for(String c: srcCols) {
-								if(!headers.contains(c.toLowerCase())) {
-									srcCols.remove(c);
-								}
-							}
+							String[] line;
 							
-							// if no source is given use the dbgap_id
-							if(srcCols.isEmpty()) {
+							while((line = reader.readNext()) != null) {
 								
-								String[] line;
-								
-
-								while((line = reader.readNext()) != null) {
-									String[] lineToWrite = null;
-									// build a line that will be the data file
-									// use the patient mapping to create the first column to be the hpds id that is stored as the value 
-									// in patient mapping.
-									// line should look like:
-									// <HPDS_ID>,phsXXXXXX.vX_<line[srcCol]>
-									// use dbgap_id if no source is given
-									if(idLookup.containsKey(line[0])) {
+								String[] lineToWrite = null;
 										
-										String hpdsId = idLookup.get(line[0]);
-										
-										lineToWrite = new String[] { hpdsId, accession.getValue() + "_" + line[0] };
-										dataToWrite.add(toCsv(lineToWrite));
-										
-									} else {
-										
-										System.err.println("No dbgap_id found in patient mapping for " + line[0]);
-										
+								if(line.length >= headeridx) {
+									
+									String sourceId = line[headeridx];
+									
+									if(sourceId.isEmpty()) {
+										System.out.println(phsOnly + " missing source subject id for: " + line);
+										continue;
 									}
-									
-								}
-								
-							} else {
-
-								String[] line;
-								
-								while((line = reader.readNext()) != null) {
-									
-									String[] lineToWrite = null;
-
-									
-									for(String c: srcCols) {
+																					
+									else {
 										
-										int idx = headers.indexOf(c.toLowerCase());
-										
-										if(idx == -1) continue;
-										
-										else {
+										if(idLookup.containsKey(line[0])) {
 											
-											if(line.length >= idx) {
-												
-												String sourceId = line[idx];
-												
-												if(sourceId.isEmpty()) continue;
-																								
-												else {
-													
-													if(idLookup.containsKey(line[0])) {
-														
-														String hpdsId = idLookup.get(line[0]);
-														
-														lineToWrite = new String[] { hpdsId, accession.getValue() + "_" + sourceId };
-														break;
+											String hpdsId = idLookup.get(line[0]);
+											String phs = accessions.containsKey(accession.getKey().toUpperCase()) ? accessions.get(accession.getKey().toUpperCase()) : accession.getValue();
+											lineToWrite = new String[] { hpdsId, phs + "_" + sourceId };
 
-													}
-												}
-											}
+										} else {
+											System.out.println("missing accession for " + line[0]);
 										}
 									}
-									
-									if(lineToWrite != null) {
-										
-										dataToWrite.add(toCsv(lineToWrite));
-										
-									} else {
-										
-										String hpdsId = idLookup.get(line[0]);
-										
-										lineToWrite = new String[] { hpdsId, accession.getValue() + "_" + line[0] };
-										
-										dataToWrite.add(toCsv(lineToWrite));
-										
-									}
+								
 								}
+								
+								if(lineToWrite != null) {
+									
+									dataToWrite.add(new String(toCsv(lineToWrite)));
+									
+								} 
 							}
 						}
-						
 					}
+					
+				} else {
+					
+					System.err.println("Missing subject.multi file for " + accession.getKey() + " - " + accession.getValue());
+					
 				}
 			}
-			
 		}
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "AccessionIds.csv"),StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
-			for(String str: dataToWrite) writer.write(str);
-		}
-	}
-	
-	private static String toCsv(String[] line) {
-		StringBuilder sb = new StringBuilder();
-		
-		int lastNode = line.length - 1;
-		int x = 0;
-		for(String node: line) {
-			
-			sb.append('"');
-			sb.append(node);
-			sb.append('"');
-			
-			if(x == lastNode) {
-				sb.append('\n');
-			} else {
-				sb.append(',');
-			}
-			x++;
-		}
-		
-		return sb.toString();
+		return dataToWrite;
 	}
 }

@@ -12,9 +12,9 @@ esac
 done
 
 for filename in ${resdir}${configfile}; do
-        nohup java -jar EntityGenerator.jar -propertiesfile $filename -Xmx${memory} & 
+        nohup java -jar GenerateAllConcepts.jar -propertiesfile $filename -Xmx${memory} & 
 
-        if [ $(ps aux | grep EntityGenerator.jar | wc -l) -gt ${maxjobs} ]
+        if [ $(ps aux | grep GenerateAllConcepts.jar | wc -l) -gt ${maxjobs} ]
            then
                 sleep 5
         fi

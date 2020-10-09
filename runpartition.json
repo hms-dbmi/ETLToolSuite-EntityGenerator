@@ -1,14 +1,14 @@
 {
     "resourcesdir": "resources/",
     "datadir": "data/",
-    "studybucket": "s3://<bucket_name>",
+    "studybucket": "s3://stage-mesa-etl",
     "mappingdir": "mappings/",
     "jobconfig": "resources/job.config",
     "writedir": "completed/",
     "mappingfilename": "mapping.csv",
     "patientmappingfilename": "mapping.csv.patient",
     "patientconfig": "resources/patient.config",
-    "maxjobs": 3,
+    "maxjobs": 4,
     "jobmemory": "4g",
     "runcurator": "Y",
     "rundataeval": "Y",
@@ -16,8 +16,9 @@
     "rungenerator": "Y",
     "loglevel": "DEBUG",
     "logdir": "/var/logs/",
-    "syncproject": "Y",
+    "syncproject": "N",
     "clearlogs": "Y",
     "archivelogs": "Y",
+    "rundataload": "N",
     "dbscriptdir": "oracle/ctl/TRUNCATE/"
 }

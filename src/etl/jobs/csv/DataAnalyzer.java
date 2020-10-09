@@ -28,6 +28,7 @@ import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 import etl.job.entity.Mapping;
+import etl.jobs.Job;
 import etl.utils.Utils;
 
 public class DataAnalyzer extends Job {
@@ -40,7 +41,6 @@ public class DataAnalyzer extends Job {
 		} catch (Exception e) {
 			System.err.println("Error processing variables");
 			e.printStackTrace();
-			System.err.println(e);
 		}
 		
 		execute();
@@ -52,7 +52,7 @@ public class DataAnalyzer extends Job {
 
 		List<Mapping> newMappings = analyzeData(mappings);
 		
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get("mappings/newMapping.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(MAPPING_FILE), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 			Utils.writeToCsv(buffer, newMappings, MAPPING_QUOTED_STRING, MAPPING_DELIMITER);
 		}
 	}
@@ -78,7 +78,7 @@ public class DataAnalyzer extends Job {
 			
 		}
 		
-		mappingsMap.entrySet().stream().parallel().forEach(entry ->{
+		mappingsMap.entrySet().stream().forEach(entry ->{
 			
 			for(Mapping m: entry.getValue()) {
 

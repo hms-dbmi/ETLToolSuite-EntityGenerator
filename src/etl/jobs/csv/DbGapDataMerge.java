@@ -4,15 +4,16 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
 
-import com.opencsv.CSVReader;
+import etl.jobs.Job;
+
+import java.util.TreeMap;
 
 public class DbGapDataMerge extends Job {
 
@@ -33,50 +34,48 @@ public class DbGapDataMerge extends Job {
 		}
 	}
 
-	private static void execute() throws IOException {
+	private static void execute() throws IOException, InterruptedException {
 		
 		Map<String, String> rootNodeSort = sortByRootNodes();
 		
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "MergedAllConcepts.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-			
-			for(Entry<String,String> entry: rootNodeSort.entrySet()) {
-				
-				try(BufferedReader reader = Files.newBufferedReader(Paths.get(entry.getValue()))){
-					System.out.println(entry.getValue());
-					CSVReader csvreader = new CSVReader(reader, ',', '\"', '√');
-
-					String[] line;
-					
-					while((line = csvreader.readNext()) != null )  {
-						if(line[1].contains(entry.getKey())) {
-							String rootnode = line[1];
-							rootnode = rootnode.replace('µ', '\\');
-							line[1] = rootnode;
-							if(line[2].equals("null")) continue;
-							if(line[3].equals("null")) continue;
-							if(!line[2].isEmpty() && line[3].equals("E")) {
-								
-								line[3] = "";
-								
-							}
-							
-							
-							buffer.write(toCsv(line));
-						}
-					}
-					
-				}
-				
-			}
-			buffer.flush();
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "allConcepts.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 			buffer.close();
+		}
+			
+		for(Entry<String,String> entry: rootNodeSort.entrySet()) {
+			System.out.println("merging " + entry.getKey());
+			ProcessBuilder processBuilder = new ProcessBuilder();
+			
+			processBuilder.command("bash", "-c", "cat " + entry.getValue() + " >> " + WRITE_DIR + "allConcepts.csv");
+			
+			Process process = processBuilder.start();
+			
+			StringBuilder output = new StringBuilder();
+			
+			BufferedReader reader = new BufferedReader(
+					new InputStreamReader(process.getInputStream()));
+
+			String line;
+			while ((line = reader.readLine()) != null) {
+				output.append(line + "\n");
+			}
+
+			int exitVal = process.waitFor();
+			if (exitVal == 0) {
+				System.out.print(entry.getKey() + " merge Success!");
+				System.out.println(output);
+			} else {
+				System.out.println(exitVal);
+				System.err.print(entry.getKey() + " merge unsuccessful!");
+			}		
+			
 		}
 		
 	}
 	// filename and rootnode
 	private static Map<String, String> sortByRootNodes() throws IOException {
 		
-		File dataDir = new File(WRITE_DIR);
+		File dataDir = new File(DATA_DIR);
 		// Map of rootNode and trial id
 		Map<String,String> rootnodes = new TreeMap<>();
 		
@@ -122,21 +121,5 @@ public class DbGapDataMerge extends Job {
 		}
 		return rootnodes;
 	}
-	private static char[] toCsv(String[] strings) {
-		StringBuilder sb = new StringBuilder();
-		
-		int x = strings.length;
-		
-		for(String str: strings) {
-			sb.append('"');
-			sb.append(str);
-			sb.append('"');
-			if(x != 1 ) {
-				sb.append(',');
-			}
-			x--;
-		}
-		sb.append('\n');
-		return sb.toString().toCharArray();
-	}
+
 }

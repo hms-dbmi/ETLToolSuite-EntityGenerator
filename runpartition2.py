@@ -3,7 +3,7 @@ from subprocess import *
 
 # set project home variable
 projecthome = os.environ.get('ETL_PROJECT_HOME', './') # sets where script is executed if envvar is not set
-print 'Project Home is set to ' + projecthome 
+print('Project Home is set to ' + projecthome) 
 # set variables
 with open(projecthome + '/runpartition.json') as json_data:
     data = json.load(json_data)
@@ -22,12 +22,12 @@ with open(projecthome + '/runpartition.json') as json_data:
     trialid = data.get('trialid', 'default')
     
     # Job variables
-    syncproject = data.get('syncproject', 'N').upper()
-    runcurator = data.get('runcurator', 'Y').upper()
-    rundataeval = data.get('rundataeval', 'Y').upper()
-    runpartitioning = data.get('runpartitioning', 'Y').upper()
+    #syncproject = data.get('syncproject', 'N').upper()
+    #runcurator = data.get('runcurator', 'Y').upper()
+    #rundataeval = data.get('rundataeval', 'Y').upper()
+    #runpartitioning = data.get('runpartitioning', 'Y').upper()
     rungenerator = data.get('rungenerator', 'Y').upper()
-    rundataload = data.get('rundataload', 'Y').upper()
+    #rundataload = data.get('rundataload', 'Y').upper()
 
     # Logging variables
     loglevel = (getattr(logging, data.get('loglevel', 'INFO').upper(), None))
@@ -35,12 +35,6 @@ with open(projecthome + '/runpartition.json') as json_data:
     clearlogs = data.get('clearlogs', 'Y').upper()
     archivelogs = data.get('archivelogs', 'N').upper()
 
-    # Data Load variables
-    # User and pass need to be setup outside this process or be pulled from vault secrets
-    dburl = os.environ.get('DB_HOST','')
-    dbuser = os.environ.get('DB_USERNAME','root')
-    dbpass = os.environ.get('DB_PASSWORD','')
-    dbscriptdir = data.get('dbscriptdir','')
 
 #logging
 #function to setup logging
@@ -90,78 +84,78 @@ def cmdWrapper(*args):
 
 ## Data Sync
 #  Syncs a project's bucket 
-if syncproject == 'Y':
-    args = ['aws', 's3', 'sync', str(studybucket), projecthome]
-    mainlogger.info('Starting: ' + ' '.join(args))
-    stdout,stderr = cmdWrapper(*args)
-    logmsgs(mainlogger, stdout, stderr)
-    mainlogger.info('Finished: ' + ' '.join(args))
+#if syncproject == 'Y':
+#    args = ['aws', 's3', 'sync', str(studybucket), projecthome]
+#    mainlogger.info('Starting: ' + ' '.join(args))
+#    stdout,stderr = cmdWrapper(*args)
+#    logmsgs(mainlogger, stdout, stderr)
+#    mainlogger.info('Finished: ' + ' '.join(args))
     
 ## main
 # Data Curator
-if runcurator == 'Y':
-    args = ['java', '-jar', 'DataCurator.jar', '-propertiesfile', jobconfig]
-    mainlogger.info('Starting: ' + ' '.join(args))
-    stdout,stderr = cmdWrapper(*args)
-    logmsgs(mainlogger, stdout, stderr)
-    mainlogger.info('Finished: ' + ' '.join(args))
+#if runcurator == 'Y':
+#    args = ['java', '-jar', 'DataCurator.jar', '-propertiesfile', jobconfig]
+#    mainlogger.info('Starting: ' + ' '.join(args))
+#    stdout,stderr = cmdWrapper(*args)
+#    logmsgs(mainlogger, stdout, stderr)
+#    mainlogger.info('Finished: ' + ' '.join(args))
     #mainlogger.info(''.join(stdout))
     #mainlogger.error(''.join(stderr))      
 ## Data Evaluations
-if rundataeval == 'Y':
-    args = ['java', '-jar', 'DataEvaluation.jar', '-propertiesfile', jobconfig]
-    mainlogger.info('Starting: ' + ' '.join(args))
-    stdout,stderr = cmdWrapper(*args)
-    logmsgs(mainlogger, stdout, stderr)
-    mainlogger.info('Finished: ' + ' '.join(args))
+#if rundataeval == 'Y':
+#    args = ['java', '-jar', 'DataEvaluation.jar', '-propertiesfile', jobconfig]
+#    mainlogger.info('Starting: ' + ' '.join(args))
+#    stdout,stderr = cmdWrapper(*args)
+#    logmsgs(mainlogger, stdout, stderr)
+#    mainlogger.info('Finished: ' + ' '.join(args))
     #mainlogger.info(''.join(stdout))
     #mainlogger.error(''.join(stderr))  
 ## Partitioner
-if runpartitioning == 'Y':
-    args = ['java', '-jar', 'Partitioner.jar', '-propertiesfile', jobconfig]
-    mainlogger.info('Starting: ' + ' '.join(args))
-    stdout,stderr = cmdWrapper(*args)
-    logmsgs(mainlogger, stdout, stderr)
-    mainlogger.info('Finished: ' + ' '.join(args))
+#if runpartitioning == 'Y':
+#    args = ['java', '-jar', 'Partitioner.jar', '-propertiesfile', jobconfig]
+#    mainlogger.info('Starting: ' + ' '.join(args))
+#    stdout,stderr = cmdWrapper(*args)
+#    logmsgs(mainlogger, stdout, stderr)
+#    mainlogger.info('Finished: ' + ' '.join(args))
 
 ## Generate Patients
-if rungenerator == 'Y':
-    args = ['java', '-jar', 'PatientGenerator.jar', '-propertiesfile', jobconfig ]
-    mainlogger.info('Starting: ' + ' '.join(args))
-    stdout,stderr = cmdWrapper(*args)
-    logmsgs(mainlogger, stdout, stderr)
-    mainlogger.info('Finished: ' + ' '.join(args))
+#if rungenerator == 'Y':
+#    args = ['java', '-jar', 'PatientGenerator.jar', '-propertiesfile', jobconfig ]
+#    mainlogger.info('Starting: ' + ' '.join(args))
+#    stdout,stderr = cmdWrapper(*args)
+#    logmsgs(mainlogger, stdout, stderr)
+#    mainlogger.info('Finished: ' + ' '.join(args))
 
 ## Sequence Patients
-    args = ['java', '-jar', 'PatientSequencer.jar', '-propertiesfile', jobconfig ]
+#    args = ['java', '-jar', 'PatientSequencer.jar', '-propertiesfile', jobconfig ]
     
-    mainlogger.info('Starting: ' + ' '.join(args))
-    stdout,stderr = cmdWrapper(*args)
-    logmsgs(mainlogger, stdout, stderr)
-    mainlogger.info('Finished: ' + ' '.join(args))
+#    mainlogger.info('Starting: ' + ' '.join(args))
+#    stdout,stderr = cmdWrapper(*args)
+#    logmsgs(mainlogger, stdout, stderr)
+#    mainlogger.info('Finished: ' + ' '.join(args))
 
     
 ## Process partitions this will generate the rest of the entities.
     #for file in os.listdir(resourcesdir):
      #   if 'config.part' in file:
             #args = ['java', '-jar', 'EntityGenerator.jar', '-propertiesfile', resourcesdir + file, '-jobtype', 'CSVToI2b2TM' ]
-    args = ['sh', 'runpartition.sh', '-j', str(maxjobs), '-m', jobmemory, '-c', 'config.part*.config', '-r', resourcesdir]        
-    
-    mainlogger.info('Starting: ' + ' '.join(args))
-    stdout,stderr = cmdWrapper(*args)
-    logmsgs(mainlogger, stdout, stderr)
-    mainlogger.info('Finished: ' + ' '.join(args))
+args = ['sh', 'runpartition.sh', '-j', str(maxjobs), '-m', jobmemory, '-c', 'config.part*.config', '-r', resourcesdir]        
+
+mainlogger.info('Starting: ' + ' '.join(args))
+stdout,stderr = cmdWrapper(*args)
+logmsgs(mainlogger, stdout, stderr)
+mainlogger.info('Finished: ' + ' '.join(args))
 
 ## Process Fill in Tree
-    args = ['java', '-jar', 'FillInTree.jar', '-propertiesfile', jobconfig ]
+#    args = ['java', '-jar', 'FillInTree.jar', '-propertiesfile', jobconfig ]
     
-    mainlogger.info('Starting: ' + ' '.join(args))
-    stdout,stderr = cmdWrapper(*args)
-    logmsgs(mainlogger, stdout, stderr)
-    mainlogger.info('Finished: ' + ' '.join(args))
+#    mainlogger.info('Starting: ' + ' '.join(args))
+#    stdout,stderr = cmdWrapper(*args)
+#    logmsgs(mainlogger, stdout, stderr)
+#    mainlogger.info('Finished: ' + ' '.join(args))
 
 ## Process Concept Counts
-    args = ['java', '-jar', 'CountGenerator3.jar', '-propertiesfile', jobconfig ]
+#    args = ['java', '-jar', 'CountGenerator3.jar', '-propertiesfile', jobconfig ]
     
  #   mainlogger.info('Starting: ' + ' '.join(args))
   #  stdout,stderr = cmdWrapper(*args)
@@ -177,9 +171,9 @@ if rungenerator == 'Y':
 #    logmsgs(mainlogger, stdout, stderr)
 #    mainlogger.info('Finished: ' + ' '.join(args))
 
-if rundataload == 'Y':
-    args = ['sh', 'LoadTables.sh', '-u', str(dburl), '-o', dbuser, '-p', dbpass, '-c', writedir, '-s', dbscriptdir]        
-    mainlogger.info('Starting: ' + ' '.join(args))
-    stdout,stderr = cmdWrapper(*args)
-    logmsgs(mainlogger, stdout, stderr)
-    mainlogger.info('Finished: ' + ' '.join(args))
+#if rundataload == 'Y':
+#    args = ['sh', 'LoadTables.sh', '-u', str(dburl), '-o', dbuser, '-p', dbpass, '-c', writedir, '-s', dbscriptdir]        
+#    mainlogger.info('Starting: ' + ' '.join(args))
+#    stdout,stderr = cmdWrapper(*args)
+#    logmsgs(mainlogger, stdout, stderr)
+#    mainlogger.info('Finished: ' + ' '.join(args))

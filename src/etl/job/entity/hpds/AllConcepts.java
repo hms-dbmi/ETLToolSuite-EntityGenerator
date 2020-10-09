@@ -5,9 +5,16 @@ public class AllConcepts {
 	private String conceptPath;
 	private String tvalChar;
 	private String nvalNum;
+	private String startDate = "0";
 	
 	public Integer getPatientNum() {
 		return patientNum;
+	}
+	public String getStartDate() {
+		return startDate;
+	}
+	public void setStartDate(String startDate) {
+		this.startDate = startDate;
 	}
 	public void setPatientNum(Integer patientNum) {
 		this.patientNum = patientNum;
@@ -90,6 +97,8 @@ public class AllConcepts {
 		sb.append(nvalNum);
 		sb.append("\",\"");
 		sb.append(tvalChar);
+		sb.append("\",\"");
+		sb.append(startDate);
 		sb.append('"');
 		sb.append('\n');
 		

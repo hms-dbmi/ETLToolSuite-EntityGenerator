@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,6 +31,7 @@ import etl.data.datasource.JSONDataSource2;
 import etl.data.datatype.DataType;
 import etl.job.entity.Mapping;
 import etl.job.entity.hpds.AllConcepts;
+import etl.jobs.Job;
 import etl.jobs.jobproperties.JobProperties;
 
 public class JSONToAllConcepts extends Job {
@@ -144,7 +144,7 @@ public class JSONToAllConcepts extends Job {
 				cp = cp.replaceAll("\\p{C}", "");
 				
 				a.setConceptPath(cp);
-						
+				a.setStartDate("0");		
 				writer.write(a.toCSV());
 				writer.flush();
 				
@@ -153,7 +153,7 @@ public class JSONToAllConcepts extends Job {
 		}
 		
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID.toUpperCase() + "_PatientMapping.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)){
-			
+			writer.write("patientnum,concept_path,nval,tval,startdate\n");
 			for(Entry<String,Integer> seqPat: SEQUENCE_MAP.entrySet()) {
 				
 				StringBuilder sb = new StringBuilder();
@@ -192,11 +192,14 @@ public class JSONToAllConcepts extends Job {
 				if(line.length != 3)  continue;
 				
 				SEQUENCE_MAP.put(line[0], new Integer(line[2]));
-				
+				if(line[0].equalsIgnoreCase("UDN346231")) {
+					System.err.println("found test case");
+					System.err.println(line[2]);
+				}
 			}
 			
 		}
-		
+		System.out.println("built patient lookup map for sequencing");
 	}
 
 	private static List buildRecordList() throws Exception{
@@ -227,7 +230,7 @@ public class JSONToAllConcepts extends Job {
 		if(!isOmitted){
 			
 			Integer patNum = sequencePatientNum(relationalValue.toString());
-
+			System.out.println(relationalValue + "=" + patNum);
 			for(Mapping mapping: mappings){
 				
 				DataType dt = DataType.initDataType(StringUtils.capitalize(mapping.getDataType()));
@@ -355,8 +358,11 @@ public class JSONToAllConcepts extends Job {
 					Set<AllConcepts> newEnts = dt.generateTables(m2, null, values, Arrays.asList(patNum));
 					
 					if(newEnts != null && newEnts.size() > 0){
-					
-						ac.addAll(newEnts);
+						for(AllConcepts ac2 : newEnts) {
+							ac2.setPatientNum(patNum);
+							ac.add(ac2);
+						}
+						
 					
 					}
 					
@@ -368,7 +374,7 @@ public class JSONToAllConcepts extends Job {
 	}
 	
 	private static Integer sequencePatientNum(String preSeqPatientNum) {
-		
+		System.out.println(SEQUENCE_MAP.size());
 		if(SEQUENCE_MAP.containsKey(preSeqPatientNum)) {
 			
 			return SEQUENCE_MAP.get(preSeqPatientNum);

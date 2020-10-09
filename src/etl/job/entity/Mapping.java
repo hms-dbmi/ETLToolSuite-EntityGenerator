@@ -32,6 +32,8 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 	
 	public static String OPTIONS_KV_DELIMITER = ":";
 	
+	public static CharSequence PATH_SEPARATOR = "µ";
+	
 	@CsvBindByPosition(position = 0, required=false)
 	private String key = "";
 	@CsvBindByPosition(position = 1, required=false)
@@ -157,14 +159,57 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 					.withSkipLines(skipheader ? 1 : 0)
 					.withQuoteChar(quoteChar)
 					.withSeparator(separator)
-					.withEscapeChar('æ')
 					.withType(Mapping.class)
 					.build();	
 			
 			Iterator<Mapping> iter = beans.iterator();
 			
 			while(iter.hasNext()) {
-				list.add(iter.next());
+				
+				Mapping mapping = iter.next();
+				
+				mapping.setRootNode(mapping.getRootNode().replaceAll("\"", ""));
+				
+				/*
+				
+				if(rootNode.length() <= 1) continue;
+				
+				if(!rootNode.substring(0, 1).equals(PATH_SEPARATOR.toString())) throw new IOException("Bad Path separtor in config.  Ensure that the root node pathseparator is correct in the job configuration.");
+ 				
+				String[] nodes = mapping.getRootNode().split(PATH_SEPARATOR.toString());
+				/*
+				StringBuilder sb = new StringBuilder();
+				
+				if(nodes.length > 1) {
+					
+					sb.append(PATH_SEPARATOR);
+					
+					for(String node: nodes) {
+						
+						if(node.length() > 250) {
+							
+							node = node.substring(0, 250) + "...";
+							
+							sb.append(node);
+							
+							sb.append(PATH_SEPARATOR);
+							
+						} else if(!node.isEmpty()){
+
+							sb.append(node);
+							
+							sb.append(PATH_SEPARATOR);
+							
+						}
+					}
+					mapping.setRootNode(sb.toString());
+				} else {
+					
+					continue;
+					
+				}
+				*/
+				list.add(mapping);
 			}
 		}
 		Collections.sort(list, new Comparator<Mapping>() {

@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import etl.jobs.Job;
+
 import java.util.Set;
 
 public class VariableCount extends Job {

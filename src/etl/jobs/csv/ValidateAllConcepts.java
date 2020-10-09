@@ -9,6 +9,8 @@ import java.util.Map;
 
 import com.opencsv.CSVReader;
 
+import etl.jobs.Job;
+
 public class ValidateAllConcepts extends Job {
 
 	public static void main(String[] args) {

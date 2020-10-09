@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import etl.job.entity.Mapping;
+import etl.jobs.Job;
 
 public class MergeMappings extends Job {
 

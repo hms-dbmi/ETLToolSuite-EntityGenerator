@@ -22,6 +22,7 @@ import com.opencsv.RFC4180Parser;
 import com.opencsv.RFC4180ParserBuilder;
 
 import etl.job.entity.hpds.AllConcepts;
+import etl.jobs.Job;
 
 public class HarmonizedSyncPatients extends Job {
 
@@ -61,7 +62,7 @@ public class HarmonizedSyncPatients extends Job {
 	
 	private static void updateHRMNAllConcepts(Map<String, String> patIdMap) throws IOException {
 		
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + "HRMN_allConcepts.csv"))){
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "HRMN_allConcepts.csv"))){
 			RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
 					.withSeparator(DATA_SEPARATOR)
 					.withQuoteChar(DATA_QUOTED_STRING);
@@ -213,14 +214,12 @@ public class HarmonizedSyncPatients extends Job {
 		Map<String,String> patidMapping = new HashMap<String,String>();
 
 		for(String studyid: studyids) {
-			if(!Files.exists(Paths.get(WRITE_DIR + studyid.toUpperCase() +"_PatientMapping.csv"))) {
+			if(!Files.exists(Paths.get(DATA_DIR + studyid.toUpperCase() +"_PatientMapping.v2.csv"))) {
 				System.err.println(studyid.toUpperCase() + " study is missing.  Make sure the shortname for trial id is correct in the consent info file.");
 				continue;
 			}
-			if(studyid.toUpperCase().equals("AMISH")) {
-				System.out.println();
-			}
-			try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + studyid.toUpperCase() +"_PatientMapping.csv"))){
+			
+			try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + studyid.toUpperCase() +"_PatientMapping.v2.csv"))){
 				
 				// study's_hpds_id, dbgap_id
 						
@@ -229,7 +228,7 @@ public class HarmonizedSyncPatients extends Job {
 				String[] line;
 				while((line = reader.readNext()) != null) {
 										
-					if(line.length != 3) continue;
+					if(line.length < 3) continue;
 					
 					String dbgapid = line[0];
 					
@@ -289,7 +288,7 @@ public class HarmonizedSyncPatients extends Job {
 
 	private static List<String[]> getConsentInfo() throws IOException {
 		
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + "HarmonizedPatientsWithConsentInfo.csv"))) {
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "HarmonizedPatientsWithConsentInfo.csv"))) {
 			
 			CSVReader reader = new CSVReader(buffer, ',', '\"', '√');
 			
@@ -301,7 +300,7 @@ public class HarmonizedSyncPatients extends Job {
 
 	private static List<String[]> getPatientMappings() throws IOException {
 	
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(WRITE_DIR + "HRMN_PatientMapping.csv"))) {
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "HRMN_PatientMapping.csv"))) {
 		
 			CSVReader reader = new CSVReader(buffer, ',', '\"', '√');
 			
@@ -325,7 +324,7 @@ public class HarmonizedSyncPatients extends Job {
 			*/
 		}		
 	}
-	private static char[] toCsv(String[] line) {
+	protected static char[] toCsv(String[] line) {
 		StringBuilder sb = new StringBuilder();
 		
 		int lastNode = line.length - 1;

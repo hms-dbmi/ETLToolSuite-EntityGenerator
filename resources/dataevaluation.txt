@@ -1,6 +1,4 @@
-Total expected facts: 13417003
-
-Total expected concepts: 8333
-
-Total expected patients: 9779
-
+Total expected facts: 39662
+Total expected facts without patient security facts: 21395
+Total expected concepts: 5369
+Total expected patients: 18267

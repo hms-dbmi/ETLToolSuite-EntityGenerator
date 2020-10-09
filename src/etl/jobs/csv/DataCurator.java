@@ -34,6 +34,7 @@ import com.opencsv.RFC4180Parser;
 import com.opencsv.RFC4180ParserBuilder;
 
 import etl.job.entity.Mapping;
+import etl.jobs.Job;
 
 /** 
  * @author Thomas DeSain

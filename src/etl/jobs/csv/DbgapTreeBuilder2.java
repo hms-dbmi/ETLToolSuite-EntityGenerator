@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -26,9 +27,15 @@ import org.xml.sax.SAXException;
 import com.opencsv.CSVReader;
 
 import etl.job.entity.Mapping;
+import etl.jobs.Job;
 
 public class DbgapTreeBuilder2 extends Job {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -445541832610664833L;
+	
 	private static final String HIERARCHY_DIR = "./hierarchies/";
 	private static final boolean USE_DESC = false;
 	private static boolean PROCESS_MISSING_DICTIONARY = false;
@@ -52,7 +59,10 @@ public class DbgapTreeBuilder2 extends Job {
 			
 		}	
 	}
+	
 	private static void execute() throws IOException, ParserConfigurationException, SAXException {
+		// preserve root node from mapping file
+		setRootNode();
 		// gather data files that do not have dictionaries
 		// files missing dictionaries will be reported out. 
 		// 
@@ -62,19 +72,59 @@ public class DbgapTreeBuilder2 extends Job {
 		
 	}
 	
+	private static void setRootNode() throws IOException {
+		
+		if(Files.exists(Paths.get(MAPPING_FILE))) {
+		
+			try(BufferedReader buffer = Files.newBufferedReader(Paths.get(MAPPING_FILE))) {
+				
+				CSVReader reader = new CSVReader(buffer);
+				
+				String[] line;
+				
+				while((line = reader.readNext()) != null) {
+					
+					if(line[0].contains(":")) {
+						String[] str = line[1].split(PATH_SEPARATOR.toString());
+						if(str.length > 1) {
+							ROOT_NODE = str[1];
+						} else {
+							if(ROOT_NODE.equalsIgnoreCase("DEFAULT")) throw new IOException("no root node specified");
+						}
+						
+						break;
+					}
+					
+				}
+			}
+			
+		}
+		
+	}
+
 	private static void buildMappingFile() throws ParserConfigurationException, SAXException, IOException {
 		
 		File dir = new File(DATA_DIR);
+		
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(MAPPING_FILE), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+		
 			if(dir.isDirectory()) {
+				
 				for(File file: dir.listFiles()) {
+					
+					if(!file.getName().startsWith("phs")) continue;
+					
+					if(file.getName().toUpperCase().contains("MULTI")) continue;
+
 					String pht = getPht(file);
 					
 					Document dictionary = getDictionary(pht);
 					
 					if(dictionary == null) {
+						
 						System.err.println("Missing dictionary file for " + file.getName());
 						if(PROCESS_MISSING_DICTIONARY == false) continue;
+					
 					}
 					//
 					
@@ -83,14 +133,16 @@ public class DbgapTreeBuilder2 extends Job {
 					missingHeaders = findMissingHeadersInDictionary(dictionary,headers);
 					
 					generateMappings(buffer, file, headers, dictionary);
+					
 				}
+				
 			}
+			
 		}
 	}
 	
 	private static void generateMappings(BufferedWriter buffer, File file, String[] headers, Document dictionary) throws IOException {
 		// get the description from root data table
-		String str = ROOT_NODE;
 		
 		String desc = findDescription(dictionary);
 		int x = 0;
@@ -98,7 +150,13 @@ public class DbgapTreeBuilder2 extends Job {
 		List<Mapping> mappings = new ArrayList<>();
 		
 		for(String header: headers) {
+			if(file.getName().toUpperCase().contains("MULTI")) continue;
 			Mapping mapping = new Mapping();
+			
+			for(Entry<String, List<String>> entry: missingHeaders.entrySet()) {
+				if(entry.getValue().contains(header)) continue;
+			}
+			
 			if(!missingHeaders.containsKey(header)) {
 				
 				String varDesc = findVariableDescription(header,dictionary);
@@ -107,15 +165,23 @@ public class DbgapTreeBuilder2 extends Job {
 				
 					StringBuilder conceptPathSB = new StringBuilder();
 						
-					conceptPathSB.append(ROOT_NODE);
-										
-					conceptPathSB.append(desc);
-					
 					conceptPathSB.append(PATH_SEPARATOR);
-					
-					conceptPathSB.append(varDesc);
+
+					conceptPathSB.append(ROOT_NODE);
 
 					conceptPathSB.append(PATH_SEPARATOR);
+										
+					if(!desc.replaceAll("\"", "").isEmpty()) {
+						conceptPathSB.append(desc.replaceAll("\"", ""));
+					
+						conceptPathSB.append(PATH_SEPARATOR);
+					}
+					
+					if(!varDesc.replaceAll("\"", "").isEmpty()) {
+						conceptPathSB.append(varDesc.replaceAll("\"", ""));
+					
+						conceptPathSB.append(PATH_SEPARATOR);
+					}
 					
 					mapping.setKey(file.getName() + ":" + x);
 					
@@ -133,9 +199,11 @@ public class DbgapTreeBuilder2 extends Job {
 					
 					conceptPathSB.append(PATH_SEPARATOR);
 					
-					conceptPathSB.append(desc);
+					if(!desc.replaceAll("\"", "").isEmpty()) {
+						conceptPathSB.append(desc.replaceAll("\"", ""));
 					
-					conceptPathSB.append(PATH_SEPARATOR);
+						conceptPathSB.append(PATH_SEPARATOR);
+					}
 					
 					mapping.setKey(file.getName() + ":" + x);
 										
@@ -145,14 +213,20 @@ public class DbgapTreeBuilder2 extends Job {
 
 				}
 			}
-			buffer.write(mapping.toCSV() + "\n");
-			buffer.flush();
+			
+			if(mapping.getRootNode().split(PATH_SEPARATOR.toString()).length > 2)  {
+			
+				buffer.write(mapping.toCSV() + "\n");
+				buffer.flush();
+			
+			}
 			x++;
 		}
 		
 	}
 	
 	private static String findVariableDescription(String header, Document dictionary) {
+		
 		NodeList variables = dictionary.getElementsByTagName("variable");
 		
 		NodeList dataTable = dictionary.getElementsByTagName("data_table");
@@ -163,9 +237,12 @@ public class DbgapTreeBuilder2 extends Job {
 		
 		String id = nodeMap.getNamedItem("id").getNodeValue(); //.replaceAll("\\..*", "");
 		
-		if(missingHeaders.get(id).contains(header)) return header;
+		if(missingHeaders.get(id).contains(header)) return null;
+		
 		String name = "";
+		
 		String description = "";
+		
 		for (int idx = 0; idx < variables.getLength(); idx++) {
 	    	
 	    		Node node = variables.item(idx);
@@ -176,14 +253,18 @@ public class DbgapTreeBuilder2 extends Job {
 	    		for (int idx2 = 0; idx2 < variableChildren.getLength(); idx2++) {
 	    			
 	        		Node node2 = variableChildren.item(idx2);
+	        		
 	        		if(node2.getNodeName().equalsIgnoreCase("name")) {
 		        		
-	        			name = node2.getTextContent();	        			
+	        			name = node2.getTextContent();	     
+	        			
 	        			if(!name.equalsIgnoreCase(header)) {
 	        				name = "";
 	        				continue;
 	        			}
+	        			
 	        		}
+	        		
 	        		if(node2.getNodeName().equalsIgnoreCase("description")) {
 	        		
 	        			description = node2.getTextContent();	
@@ -193,13 +274,17 @@ public class DbgapTreeBuilder2 extends Job {
 	        			}
 	        			
 	        		}
+	        		
 	        		if(!name.isEmpty() && !description.isEmpty() && name.equalsIgnoreCase(header)) break;	        		
 	    		}
 	    		if(!name.isEmpty() && !description.isEmpty() && name.equalsIgnoreCase(header)) return description;
 		}
 		if(description.isEmpty()) return header;
+		
 		return description;
+		
 	}
+	
 	private static Map<String, List<String>> findMissingHeadersInDictionary(Document dictionary, String[] headers) {
 		Map<String, List<String>> missingHeaders = new HashMap<>();
 		
@@ -249,6 +334,7 @@ public class DbgapTreeBuilder2 extends Job {
 		missingHeaders.put(id, missing);
 		return missingHeaders;
 	}
+	
 	private static String[] getDataHeaders(File file) throws IOException {
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(file.getAbsolutePath()))) {
@@ -267,6 +353,7 @@ public class DbgapTreeBuilder2 extends Job {
 		}
 		return null;
 	}
+	
 	private static List<String> lookForDictionaries() throws ParserConfigurationException, SAXException, IOException {
 		
 		List<String> missingDictionaries = new ArrayList<>();
@@ -285,7 +372,7 @@ public class DbgapTreeBuilder2 extends Job {
 				if(!file.getName().contains("phs")) continue;
 				
 				pht = getPht(file);
-				
+				if(pht == null) continue;
 				if(!checkForDictionary(pht)) {
 					
 					missingDictionaries.add(file.getName());
@@ -301,36 +388,42 @@ public class DbgapTreeBuilder2 extends Job {
 	}
 	
 	private static String getPht(File file) {
-		System.out.println(file.getName());
-		return file.getName().split("\\.")[2];
+		if(file.getName().startsWith("phs")) {
+		
+			return file.getName().split("\\.")[2];
+			
+		} 
+		return null;
 	}
+	
 	private static Document getDictionary(String pht) throws ParserConfigurationException, SAXException, IOException {
 		
-		File dir = new File(DICT_DIR);
+		File dir = new File(DATA_DIR);
 		
 		File[] files = dir.listFiles(new FileFilter() {
 
 		    @Override
 		    public boolean accept(File file) {
-		    	
-		        return file.getName().contains(pht);
+		    		if(file.getName().contains(pht)) {
+		    			return file.getName().contains(".xml");
+		    		}
+		        return false;
 		        
 		    }
 		
 		});
 		
-		if(files.length == 1) {
-			
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder builder = factory.newDocumentBuilder();
-			
-			return builder.parse(files[0]);
-			
-		} else {
-		
-			return null;
-		
+		for(File f: files) {
+			if(f.getName().contains(pht)) {
+				if(f.getName().contains("data_dict")) {
+					DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+					DocumentBuilder builder = factory.newDocumentBuilder();
+					
+					return builder.parse(f);
+				}
+			}
 		}
+		return null;
 	}
 	
 	private static boolean checkForDictionary(String pht) {
