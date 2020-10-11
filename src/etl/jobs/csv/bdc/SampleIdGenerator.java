@@ -1,4 +1,4 @@
-package etl.jobs.csv;
+package etl.jobs.csv.bdc;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -8,19 +8,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import com.opencsv.CSVIterator;
 import com.opencsv.CSVReader;
 
-import etl.jobs.Job;
+import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 
-public class SampleIdGenerator extends Job {
+public class SampleIdGenerator extends BDCJob {
 	private static String STUDY_ID_W_ACCESSIONS = "studyid_with_accessions.csv";
 
 	public static void main(String[] args) {
@@ -59,8 +55,8 @@ public class SampleIdGenerator extends Job {
 						
 						String studyId = getStudyAccessions(phsOnly);
 						
-						if(studyId.isEmpty()) {
-							System.err.println("No study associated with " + phsOnly);
+						if(studyId == null || studyId.isEmpty()) {
+							System.err.println("No study associated with " + phsOnly + " in managed input file");
 							continue;
 						};
 						
@@ -140,18 +136,16 @@ public class SampleIdGenerator extends Job {
 	}
 
 	private static String getStudyAccessions(String phsOnly) throws IOException {
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + STUDY_ID_W_ACCESSIONS))){
-			
-			String line;
-			
-			while((line = buffer.readLine()) != null) {
-				String[] arr = line.split(",");
-				if(arr[1].contains(phsOnly)) return arr[0];
-				if(arr[2].contains(phsOnly)) return arr[0];
+		
+		List<BDCManagedInput> managedInputs = BDCJob.getManagedInputs();
+		
+		for(BDCManagedInput managedInput:managedInputs) {
+			if(managedInput.getStudyIdentifier().equals(phsOnly)) {
+				return managedInput.getStudyAbvName();
 			}
-			
 		}
-		return "";
+		
+		return null;
 	}
 
 }

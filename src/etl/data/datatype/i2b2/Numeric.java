@@ -17,8 +17,8 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 
 import etl.data.datatype.DataType;
-import etl.job.entity.Mapping;
 import etl.job.entity.hpds.AllConcepts;
+import etl.jobs.mappings.Mapping;
 
 public class Numeric extends DataType{
 

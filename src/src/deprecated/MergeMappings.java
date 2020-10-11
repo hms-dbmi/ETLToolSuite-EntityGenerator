@@ -1,4 +1,4 @@
-package etl.jobs.csv;
+package src.deprecated;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -8,8 +8,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
-import etl.job.entity.Mapping;
 import etl.jobs.Job;
+import etl.jobs.mappings.Mapping;
 
 public class MergeMappings extends Job {
 

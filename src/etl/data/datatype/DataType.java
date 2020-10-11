@@ -10,8 +10,8 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import etl.job.entity.Mapping;
 import etl.job.entity.hpds.AllConcepts;
+import etl.jobs.mappings.Mapping;
 
 
 public abstract class DataType {

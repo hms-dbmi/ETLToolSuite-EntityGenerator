@@ -1,4 +1,4 @@
-package etl.jobs.csv;
+package src.deprecated;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

@@ -7,8 +7,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 
-import etl.job.entity.Mapping;
 import etl.jobs.Job;
+import etl.jobs.mappings.Mapping;
 
 public class MappingSimpleSwap extends Job {
 

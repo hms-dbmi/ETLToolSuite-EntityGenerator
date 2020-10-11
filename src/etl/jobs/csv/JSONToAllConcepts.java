@@ -29,10 +29,10 @@ import com.opencsv.CSVReader;
 
 import etl.data.datasource.JSONDataSource2;
 import etl.data.datatype.DataType;
-import etl.job.entity.Mapping;
 import etl.job.entity.hpds.AllConcepts;
 import etl.jobs.Job;
 import etl.jobs.jobproperties.JobProperties;
+import etl.jobs.mappings.Mapping;
 
 public class JSONToAllConcepts extends Job {
 	

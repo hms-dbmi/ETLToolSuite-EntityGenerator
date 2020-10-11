@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.opencsv.CSVReader;
 
+import etl.jobs.mappings.Mapping;
+
 public class Data {
 	protected String fileName;
 	protected String dataLabel;

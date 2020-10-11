@@ -1,4 +1,4 @@
-package etl.jobs.csv;
+package etl.jobs.csv.bdc;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -191,10 +191,9 @@ public class HarmonizedSyncPatients extends Job {
 				hrmnid[0] = record[0];//;record[0].split("\\_")[0] + "_" + hrmnId_dbgapId.get(record[0]);
 				// hrmn_hpds_id
 				hrmnid[1] = record[2];
-				
-					
-					// the dbgapid for patient
-					hrmnid[2] = hrmnId_dbgapId.get(record[0]);
+
+				// the dbgapid for patient
+				hrmnid[2] = hrmnId_dbgapId.get(record[0]);
 					
 			
 				String[] t =  {hrmnid[0], hrmnid[1] };

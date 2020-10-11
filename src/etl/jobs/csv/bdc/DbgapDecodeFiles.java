@@ -1,4 +1,4 @@
-package etl.jobs.csv;
+package etl.jobs.csv.bdc;
 
 import java.io.BufferedWriter;
 import java.io.File;

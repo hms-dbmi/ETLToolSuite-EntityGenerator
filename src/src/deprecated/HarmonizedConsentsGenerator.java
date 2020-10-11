@@ -1,4 +1,4 @@
-package etl.jobs.csv;
+package src.deprecated;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -15,6 +15,7 @@ import com.opencsv.CSVReader;
 
 import etl.jobs.Job;
 
+@Deprecated
 public class HarmonizedConsentsGenerator extends Job{
 
 	public static void main(String[] args) {

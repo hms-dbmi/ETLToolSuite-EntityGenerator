@@ -16,11 +16,11 @@ import java.util.Set;
 import com.opencsv.CSVReader;
 
 import etl.data.datatype.i2b2.Objectarray;
-import etl.job.entity.Mapping;
 import etl.job.entity.hpds.AllConcepts;
 import etl.job.entity.i2b2tm.ConceptDimension;
 import etl.job.entity.i2b2tm.I2B2;
 import etl.job.entity.i2b2tm.ObservationFact;
+import etl.jobs.mappings.Mapping;
 
 public class Umls extends Objectarray {
 	

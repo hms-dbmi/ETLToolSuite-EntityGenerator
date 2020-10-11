@@ -24,8 +24,8 @@ import java.util.TreeMap;
 import com.opencsv.CSVReader;
 
 import etl.job.entity.ConfigFile;
-import etl.job.entity.Mapping;
 import etl.jobs.Job;
+import etl.jobs.mappings.Mapping;
 
 /**
  * @author Thomas DeSain

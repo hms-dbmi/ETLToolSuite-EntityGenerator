@@ -22,9 +22,8 @@ import java.util.Spliterator;
 
 import com.opencsv.CSVReader;
 
-import etl.job.entity.Mapping;
-import etl.job.entity.PatientMapping;
 import etl.jobs.Job;
+import etl.jobs.mappings.Mapping;
 
 
 /**

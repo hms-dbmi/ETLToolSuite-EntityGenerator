@@ -1,4 +1,4 @@
-package etl.job.entity;
+package src.deprecated;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.opencsv.CSVReader;
+
+import etl.jobs.mappings.Mapping;
 
 public class PatientMapping {
 	

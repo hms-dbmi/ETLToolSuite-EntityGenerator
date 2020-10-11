@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 import com.opencsv.bean.CsvToBean;
 
-import etl.job.entity.Mapping;
+import etl.jobs.mappings.Mapping;
 /**
  * Scans the mapping file(s) to look for duplicate paths.
  * If found look at variables for those mappings to ensure no duplicate 

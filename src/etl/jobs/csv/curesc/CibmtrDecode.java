@@ -15,8 +15,8 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import com.opencsv.CSVReader;
 
-import etl.job.entity.Mapping;
 import etl.jobs.Job;
+import etl.jobs.mappings.Mapping;
 
 public class CibmtrDecode extends Job {
 

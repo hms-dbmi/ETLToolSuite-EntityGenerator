@@ -27,8 +27,8 @@ import com.opencsv.RFC4180ParserBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
-import etl.job.entity.Mapping;
 import etl.jobs.Job;
+import etl.jobs.mappings.Mapping;
 import etl.utils.Utils;
 
 public class DataAnalyzer extends Job {
@@ -93,37 +93,6 @@ public class DataAnalyzer extends Job {
 					e.printStackTrace();
 				}
 			}
-		/*
-		//for(Entry<String,List<Mapping>> entry: mappingsMap.entrySet()) {
-			
-			if(Files.exists(Paths.get(DATA_DIR + File.pathSeparatorChar + entry.getKey()))) {
-				
-				//Stream<Path> dataDirectory = Files.walk(Paths.get(DATA_DIR + File.pathSeparatorChar + entry.getKey()));
-				
-				dataDirectory.forEach(path ->{
-					
-					String fileName = path.getFileName().toString();
-					
-					for(Mapping mapping: mappings) {
-						
-						String mappingFileName = mapping.getKey().split(":")[0];
-						
-						if(fileName.equals(mappingFileName)) {
-							
-							try {
-								newMappings.add(analyzeData(mapping,path));
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							
-						}
-						
-					}
-					
-				});
-				
-			}*/
 		});
 		return newMappings;
 	}

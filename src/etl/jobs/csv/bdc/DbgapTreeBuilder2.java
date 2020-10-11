@@ -1,4 +1,4 @@
-package etl.jobs.csv;
+package etl.jobs.csv.bdc;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -26,22 +26,38 @@ import org.xml.sax.SAXException;
 
 import com.opencsv.CSVReader;
 
-import etl.job.entity.Mapping;
-import etl.jobs.Job;
+import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
+import etl.jobs.mappings.Mapping;
 
-public class DbgapTreeBuilder2 extends Job {
+
+/**
+ * Meant to ingest one Study at a time and generate a dynamic mapping file.
+ * 
+ * Required:
+ * Data and Data_Dict files must be located in DATA_DIR ( ./data/ by default ) 
+ * Managed Input must contain STUDY_ID and ACCESSION
+ * Studies job.config must be in RESOURCES_DIR ( ./resources/ by default )
+ * 
+ * @author Thomas DeSain
+ *
+ */
+
+public class DbgapTreeBuilder2 extends BDCJob {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -445541832610664833L;
+
+	private static final boolean PRESERVE_ROOT_NODE = false;
 	
-	private static final String HIERARCHY_DIR = "./hierarchies/";
-	private static final boolean USE_DESC = false;
 	private static boolean PROCESS_MISSING_DICTIONARY = false;
-	private static boolean LABEL_IS_ENCODED = false;
-	private static List<String> missingDictionaries;
+
 	private static Map<String, List<String>> missingHeaders;
+	// root nodes per accession
+	private static Map<String, String> rootNodes = new HashMap<>();
+
+	private static boolean LABEL_IS_ENCODED;
 	
 	public static void main(String[] args) {
 		try {
@@ -62,17 +78,29 @@ public class DbgapTreeBuilder2 extends Job {
 	
 	private static void execute() throws IOException, ParserConfigurationException, SAXException {
 		// preserve root node from mapping file
-		setRootNode();
-		// gather data files that do not have dictionaries
-		// files missing dictionaries will be reported out. 
-		// 
-		missingDictionaries = lookForDictionaries();
+		if(PRESERVE_ROOT_NODE) setRootNodeFromPreviousMapping();
+		
+		else setRootNodeFromManagedInputs();
+
 		// Build the mapping file.
 		buildMappingFile();
 		
 	}
 	
-	private static void setRootNode() throws IOException {
+	private static void setRootNodeFromManagedInputs() throws IOException {
+		
+		List<BDCManagedInput> managedInputs = getManagedInputs();
+		
+		for(BDCManagedInput managedInput: managedInputs) {
+			if(TRIAL_ID.trim().equalsIgnoreCase(managedInput.getStudyAbvName().trim())) {
+				
+				rootNodes.put(managedInput.getStudyIdentifier(), managedInput.getStudyFullName() + " ( " + managedInput.getStudyIdentifier() + " )");
+
+			}
+		}
+	}
+
+	private static void setRootNodeFromPreviousMapping() throws IOException {
 		
 		if(Files.exists(Paths.get(MAPPING_FILE))) {
 		
@@ -102,11 +130,11 @@ public class DbgapTreeBuilder2 extends Job {
 		
 	}
 
-	private static void buildMappingFile() throws ParserConfigurationException, SAXException, IOException {
+	private static void buildMappingFile() throws IOException, ParserConfigurationException, SAXException {
 		
 		File dir = new File(DATA_DIR);
 		
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(MAPPING_FILE), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "mapping.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 		
 			if(dir.isDirectory()) {
 				
@@ -114,7 +142,7 @@ public class DbgapTreeBuilder2 extends Job {
 					
 					if(!file.getName().startsWith("phs")) continue;
 					
-					if(file.getName().toUpperCase().contains("MULTI")) continue;
+					//if(file.getName().toUpperCase().contains("MULTI")) continue;
 
 					String pht = getPht(file);
 					
@@ -149,8 +177,14 @@ public class DbgapTreeBuilder2 extends Job {
 		
 		List<Mapping> mappings = new ArrayList<>();
 		
+		if(!PRESERVE_ROOT_NODE) {
+			String phs = file.getName().split("\\.")[0];
+			ROOT_NODE = rootNodes.get(phs);
+			if(!phs.contains("phs")) throw new IOException("BAD File " + phs); 
+		}
+		
 		for(String header: headers) {
-			if(file.getName().toUpperCase().contains("MULTI")) continue;
+			//if(file.getName().toUpperCase().contains("MULTI")) continue;
 			Mapping mapping = new Mapping();
 			
 			for(Entry<String, List<String>> entry: missingHeaders.entrySet()) {
@@ -461,123 +495,7 @@ public class DbgapTreeBuilder2 extends Job {
 			
 		}		
 	}
-	
 
-	private static NodeList buildValueLookup(Document dataDic) {
-		
-		NodeList dataTable = dataDic.getElementsByTagName("data_table");
-		
-		Node dataNode = dataTable.item(0);
-		
-		NamedNodeMap nodeMap = dataNode.getAttributes();
-		
-		String dictPhenoId = nodeMap.getNamedItem("id").getNodeValue();
-		
-		String studyId = nodeMap.getNamedItem("study_id").getNodeValue();
-		
-		String participantSet = nodeMap.getNamedItem("participant_set").getNodeValue();
-		
-		String dateCreated = nodeMap.getNamedItem("date_created").getNodeValue();
-		
-		// build an object that will collect the variables
-		
-		return dataDic.getElementsByTagName("variable");
-		/*
-		// Colheader<List<Map<encodedvalue, decodedvalue>>>
-		Map<Integer, Map<String, String>> valueLookup = new HashMap<Integer, Map<String, String>>();
-		
-		valueLookup.put(0,new HashMap<String,String>());
-		valueLookup.put(1,new HashMap<String,String>());
-		
-	    for (int idx = 0; idx < variables.getLength(); idx++) {
-	
-	    		Node node = variables.item(idx);
-	    		
-	    		NodeList variableChildren = node.getChildNodes();
-	    		
-	    		String name = "";
-	    		
-	    		String desc = "";
-	    		
-	    		String type = "";
-	    		
-	    		List<Node> valueNodes = new ArrayList<Node>();
-	    		
-	    		for (int idx2 = 0; idx2 < variableChildren.getLength(); idx2++) {
-	
-	        		Node node2 = variableChildren.item(idx2);
-	        			        		
-	        		if(node2.getNodeName().equalsIgnoreCase("name")) name = node2.getTextContent();
-	        		
-	        		if(node2.getNodeName().equalsIgnoreCase("description")) desc = node2.getTextContent();
-	        		
-	        		//if(node2.getNodeName().equalsIgnoreCase("type")) type = node2.getTextContent();
-	        		
-	        		if(node2.getNodeName().equalsIgnoreCase("value")) valueNodes.add(node2);
-	    		}
-	    		
-	    		Map<String,String> valueMap = new HashMap<String,String>(); 
-	    		
-	    		//if(!type.equalsIgnoreCase("encoded")) continue;
-	    		
-	    		for(Node vnode: valueNodes) {
-	    			
-	    			Map<String,String> vmap = new HashMap<String,String>(); 
-	    			
-	    			String valueDecoded = vnode.getFirstChild().getNodeValue();
-	    			
-	    			String valueCoded;
-	    			
-	    			if(vnode.getAttributes().getNamedItem("code") == null) {
-	    				// ignore variable as it is missing its decoded value
-	    				// dictionary needs to be updated.
-	    				//ignorecols.add(idx);
-
-	    				continue;
-	    				
-	    			} else {
-	    				
-	    				valueCoded = vnode.getAttributes().getNamedItem("code").getNodeValue();
-	    				
-	    			}
-	    			
-	    			valueMap.put(valueCoded, valueDecoded);
-	    		}
-	    		valueLookup.put(idx + 1, valueMap);
-	    }
-	    
-	    return valueLookup;
-	   */ 
-	}
-
-	private static HashMap<String,Map<String, String>> buildHierMap(String phs) throws Exception {
-		HashMap<String,Map<String, String>> hierMap = new HashMap<String,Map<String,String>>();
-		
-		File hierdir = new File(HIERARCHY_DIR);
-		if(hierdir.isDirectory()) {
-			for(File file: hierdir.listFiles()) {
-				if(file.getName().contains(phs) && file.getName().contains("hierarchy")) {
-					try(BufferedReader buffer = Files.newBufferedReader(Paths.get(file.getAbsolutePath()))){
-						CSVReader reader = new CSVReader(buffer,',','"','√');
-						
-						String[] line;
-						while((line = reader.readNext() )!= null) {
-							Map<String, String> map = new HashMap<String,String>();
-							
-							map.put(line[2], line[0]);
-							hierMap.put(line[1], map);
-						}
-					}
-					break;
-				}
-			}
-		}
-		if(hierMap.isEmpty()) System.err.println("No hierarchy found for: " + phs);
-		return hierMap;
-
-		
-	}
-	
 	private static String findDescription(Document dataDic) {
 		NodeList dataTable = dataDic.getElementsByTagName("data_table");
 		

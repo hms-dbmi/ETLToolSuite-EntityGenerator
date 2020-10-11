@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.Set;
 
 import etl.data.datatype.DataType;
-import etl.job.entity.Mapping;
 import etl.job.entity.hpds.AllConcepts;
+import etl.jobs.mappings.Mapping;
 
 
 

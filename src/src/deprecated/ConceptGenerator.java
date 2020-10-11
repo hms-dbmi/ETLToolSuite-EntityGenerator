@@ -23,10 +23,10 @@ import com.opencsv.RFC4180ParserBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
-import etl.job.entity.Mapping;
 import etl.job.entity.i2b2tm.ConceptDimension;
 import etl.jobs.Job;
 import etl.jobs.jobproperties.JobProperties;
+import etl.jobs.mappings.Mapping;
 import etl.utils.Utils;
 
 /**

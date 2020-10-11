@@ -11,8 +11,8 @@ import javax.xml.crypto.Data;
 
 import etl.data.datasource.JSONDataSource;
 import etl.data.datatype.DataType;
-import etl.job.entity.Mapping;
 import etl.job.entity.hpds.AllConcepts;
+import etl.jobs.mappings.Mapping;
 
 
 

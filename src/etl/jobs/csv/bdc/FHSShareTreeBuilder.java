@@ -1,4 +1,4 @@
-package etl.jobs.csv;
+package etl.jobs.csv.bdc;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -19,10 +19,10 @@ import java.util.Set;
 
 import com.opencsv.CSVReader;
 
-import etl.job.entity.Mapping;
 import etl.jobs.Job;
+import etl.jobs.mappings.Mapping;
 
-public class BDCShareTreeBuilder extends Job {
+public class FHSShareTreeBuilder extends Job {
 
 	/**
 	 * 

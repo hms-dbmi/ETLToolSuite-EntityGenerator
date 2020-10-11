@@ -1,4 +1,4 @@
-package etl.job.entity;
+package etl.jobs.mappings;
 
 import java.io.BufferedReader;
 import java.io.IOException;

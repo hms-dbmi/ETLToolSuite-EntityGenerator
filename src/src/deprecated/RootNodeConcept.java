@@ -11,8 +11,8 @@ import java.util.List;
 
 import com.opencsv.CSVReader;
 
-import etl.job.entity.Mapping;
 import etl.jobs.Job;
+import etl.jobs.mappings.Mapping;
 
 public class RootNodeConcept extends Job {
 

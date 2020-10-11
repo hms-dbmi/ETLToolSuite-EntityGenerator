@@ -28,11 +28,17 @@ import com.opencsv.CSVReaderBuilder;
 import com.opencsv.RFC4180Parser;
 import com.opencsv.RFC4180ParserBuilder;
 
-import etl.job.entity.Mapping;
 import etl.job.entity.hpds.AllConcepts;
 import etl.jobs.Job;
 import etl.jobs.jobproperties.JobProperties;
+import etl.jobs.mappings.Mapping;
+import etl.jobs.mappings.PatientMapping;
 
+/**
+ * CSV Version to generate allConcepts file
+ * 
+ *
+ */
 public class GenerateAllConcepts extends Job{
 	
 	/**
@@ -54,7 +60,7 @@ public class GenerateAllConcepts extends Job{
 	public static void main(String[] args) {
 		
 		try {
-			System.out.println("test");
+
 			setVariables(args, buildProperties(args));
 			
 			setLocalVariables(args, buildProperties(args));
@@ -82,10 +88,25 @@ public class GenerateAllConcepts extends Job{
 	private static void execute() throws IOException {
 		Mapping.PATH_SEPARATOR = PATH_SEPARATOR;
 		List<Mapping> mappings = Mapping.generateMappingListForHPDS(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
-
+		
+		List<PatientMapping> patientMappings = new ArrayList<>();
+		
 		// populate seq map with current mappings
-		if(USE_PATIENT_MAPPING) buildSeqMap();
-		doGenerateAllConcepts(mappings);
+		//if(USE_PATIENT_MAPPING) buildSeqMap();
+		
+		if(USE_PATIENT_MAPPING ) {
+			
+			patientMappings = PatientMapping.readPatientMappingFile(PATIENT_MAPPING_FILE);
+			
+			SEQUENCE_MAP = PatientMapping.buildSeqMap(patientMappings);
+			
+			if(!SEQUENCE_MAP.isEmpty()) {
+				PATIENT_NUM_STARTING_SEQ = Collections.max(SEQUENCE_MAP.values()) + 1;
+			}
+			
+		}
+		
+		doGenerateAllConcepts(patientMappings, mappings);
 		writeBadMappings();	
 	}
 
@@ -98,30 +119,7 @@ public class GenerateAllConcepts extends Job{
 		
 	}
 
-	private static void buildSeqMap() throws IOException {
-		
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(PATIENT_MAPPING_FILE))){
-			
-			CSVReader reader = new CSVReader(buffer);
-			
-			String[] line;
-			
-			while((line = reader.readNext()) != null) {
-				if(line.length < 3)  continue;
-				if(!NumberUtils.isCreatable(line[2])) continue;
-				SEQUENCE_MAP.put(line[0], new Integer(line[2]));
-				
-			}
-			
-			if(!SEQUENCE_MAP.isEmpty()) {
-				PATIENT_NUM_STARTING_SEQ = Collections.max(SEQUENCE_MAP.values()) + 1;
-			}
-
-		}
-		
-	}
-
-	private static void doGenerateAllConcepts(List<Mapping> mappings) {
+	private static void doGenerateAllConcepts(List<PatientMapping> patientMappings, List<Mapping> mappings) {
 		
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_allConcepts.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 			
@@ -256,7 +254,7 @@ public class GenerateAllConcepts extends Job{
 			System.err.println(e2);
 			
 		}
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_PatientMapping.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_PatientMapping.v2.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 			
 			String[] stringToWrite = new String[3];
 			
@@ -289,6 +287,8 @@ public class GenerateAllConcepts extends Job{
 			AllConcepts allConcept = new AllConcepts();
 			
 			allConcept.setConceptPath(mapping.getRootNode());
+			
+			allConcept.setPatientNum(sequencePatient(line[PATIENT_COL]));
 			
 			if(DO_PATIENT_NUM_SEQUENCE) {
 				allConcept.setPatientNum(sequencePatient(line[PATIENT_COL]));

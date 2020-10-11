@@ -1,4 +1,4 @@
-package etl.jobs.csv;
+package etl.jobs.csv.bdc;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -23,8 +23,20 @@ import com.opencsv.RFC4180ParserBuilder;
 
 import etl.jobs.Job;
 
-
+/**
+ * This method is meant to append mapping files with 
+ * NWD values from sample.multi file
+ * Only holding on to it if needed right now it is useless
+ * All this logic should go to a BDCPatientMapping object if it is needed.
+ * @author Tom
+ *
+ */
 public class AppendSampleID extends Job {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -834479314465676588L;
 
 	private static String STUDY_ID_W_ACCESSIONS = "studyid_with_accessions.csv";
 

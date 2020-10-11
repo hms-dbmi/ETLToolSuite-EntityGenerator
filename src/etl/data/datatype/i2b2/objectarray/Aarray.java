@@ -11,8 +11,8 @@ import java.util.Map;
 import java.util.Set;
 
 import etl.data.datatype.i2b2.Objectarray;
-import etl.job.entity.Mapping;
 import etl.job.entity.hpds.AllConcepts;
+import etl.jobs.mappings.Mapping;
 
 
 public class Aarray extends Objectarray {

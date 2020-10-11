@@ -24,7 +24,6 @@ import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 import etl.exceptions.RequiredFieldException;
-import etl.job.entity.PatientMapping;
 import etl.job.entity.i2b2tm.ObservationFact;
 import etl.job.entity.i2b2tm.PatientDimension;
 import etl.job.entity.i2b2tm.PatientTrial;
