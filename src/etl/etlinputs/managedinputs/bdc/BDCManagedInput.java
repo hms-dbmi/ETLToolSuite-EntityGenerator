@@ -30,9 +30,14 @@ public class BDCManagedInput extends ManagedInput {
 		this.phsSubjectIdColumn = inputCsv[6];
 	}
 	
-	public static List<ManagedInput> buildAll(List<String[]> managedInputs) {
+	public static List<ManagedInput> buildAll(List<String[]> managedInputs){
+		return buildAll(managedInputs,true);
+	}
+	
+	public static List<ManagedInput> buildAll(List<String[]> managedInputs, Boolean skipHeader) {
 		List<ManagedInput> inputs = new ArrayList<>();
 		for(String[] input: managedInputs) {
+			if(input[0].equalsIgnoreCase("Study Abbreviated Name")) continue;
 			inputs.add(new BDCManagedInput(input));
 		}
 		return inputs;
@@ -60,6 +65,13 @@ public class BDCManagedInput extends ManagedInput {
 
 	public String getPhsSubjectIdColumn() {
 		return phsSubjectIdColumn;
+	}
+
+	@Override
+	public String toString() {
+		return "BDCManagedInput [studyIdentifier=" + studyIdentifier + ", studyType=" + studyType + ", studyFullName="
+				+ studyFullName + ", dataType=" + dataType + ", isHarmonized=" + isHarmonized + ", phsSubjectIdColumn="
+				+ phsSubjectIdColumn + "]";
 	}	
 	
 }
