@@ -66,7 +66,7 @@ public class FHSShareTreeBuilder extends Job {
 				
 			}
 		}
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "newMapping.csv"), StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING)){
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_mapping.csv"), StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING)){
 			for(Mapping m : newmappings) {
 				writer.write(m.toCSV() + '\n');
 				writer.flush();
