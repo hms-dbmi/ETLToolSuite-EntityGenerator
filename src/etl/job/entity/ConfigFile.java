@@ -67,7 +67,7 @@ public class ConfigFile {
 				"mappingfile=" + mappingfile + "\n" +
 				"patientmappingfile=" + patientmappingfile + "\n" +
 				"writedir=" + writedir + "\n" +
-				"skipmapperheader=" + skipmapperheader + "\n" +
+				"mappingskipheader=" + skipmapperheader + "\n" +
 				"skipdataheader=" + skipdataheader + "\n" +
 				"datadelimiter=" + ddlimit + "\n" +
 				"mappingdelimiter=" + mappingdelimiter + "\n" +

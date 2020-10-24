@@ -5,6 +5,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.charset.MalformedInputException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -72,7 +74,7 @@ public class DbgapTreeBuilder2 extends BDCJob {
 		} catch (IOException | ParserConfigurationException | SAXException e) {
 			
 			System.err.println(e);
-			
+			e.printStackTrace();
 		}	
 	}
 	
@@ -134,14 +136,14 @@ public class DbgapTreeBuilder2 extends BDCJob {
 		
 		File dir = new File(DATA_DIR);
 		
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "mapping.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_mapping.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 		
 			if(dir.isDirectory()) {
 				
 				for(File file: dir.listFiles()) {
 					
 					if(!file.getName().startsWith("phs")) continue;
-					
+					if(!file.getName().endsWith("txt")) continue;
 					//if(file.getName().toUpperCase().contains("MULTI")) continue;
 
 					String pht = getPht(file);
@@ -182,16 +184,22 @@ public class DbgapTreeBuilder2 extends BDCJob {
 			ROOT_NODE = rootNodes.get(phs);
 			if(!phs.contains("phs")) throw new IOException("BAD File " + phs); 
 		}
-		
+		if(ROOT_NODE == null) {
+			throw new IOException("root node not found in managed input for " + TRIAL_ID);
+		}
 		for(String header: headers) {
 			//if(file.getName().toUpperCase().contains("MULTI")) continue;
 			Mapping mapping = new Mapping();
 			
-			for(Entry<String, List<String>> entry: missingHeaders.entrySet()) {
-				if(entry.getValue().contains(header)) continue;
+			boolean isHeaderMissing = false;
+			
+			String pht = getPht(file);
+			
+			if(missingHeaders.containsKey(pht)) {
+				if( missingHeaders.get(pht).contains(header)) isHeaderMissing = true;
 			}
 			
-			if(!missingHeaders.containsKey(header)) {
+			if(!isHeaderMissing) {
 				
 				String varDesc = findVariableDescription(header,dictionary);
 				
@@ -225,6 +233,9 @@ public class DbgapTreeBuilder2 extends BDCJob {
 					
 				} else {
 					
+					// dont create mapping if missing var description
+					continue; 
+					/*
 					StringBuilder conceptPathSB = new StringBuilder();
 					
 					conceptPathSB.append(PATH_SEPARATOR);
@@ -237,14 +248,14 @@ public class DbgapTreeBuilder2 extends BDCJob {
 						conceptPathSB.append(desc.replaceAll("\"", ""));
 					
 						conceptPathSB.append(PATH_SEPARATOR);
-					}
+					} 
 					
 					mapping.setKey(file.getName() + ":" + x);
 										
 					mapping.setRootNode(conceptPathSB.toString());
 					
 					mapping.setDataType("TEXT");
-
+					*/
 				}
 			}
 			
@@ -371,7 +382,7 @@ public class DbgapTreeBuilder2 extends BDCJob {
 	
 	private static String[] getDataHeaders(File file) throws IOException {
 		
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(file.getAbsolutePath()))) {
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(file.getAbsolutePath()), StandardCharsets.ISO_8859_1)) {
 			
 			String line;
 			
@@ -383,6 +394,14 @@ public class DbgapTreeBuilder2 extends BDCJob {
 				if(record[0].startsWith("#")) continue;
 				if(record[0].toLowerCase().contains("dbgap_subject")) return record;
 				
+			}
+		} catch (IOException e) {
+			if(e instanceof MalformedInputException) {
+				System.err.println("Error with malformed file, needs further examination: " + file.getName());
+				
+				return null;
+			} else {
+				throw e;
 			}
 		}
 		return null;
@@ -519,8 +538,6 @@ public class DbgapTreeBuilder2 extends BDCJob {
 			
 			}
 		}
-		
-
 
 		return desc;
 	}

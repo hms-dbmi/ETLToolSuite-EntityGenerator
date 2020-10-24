@@ -13,13 +13,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.logging.log4j.core.parser.ParseException;
 
 import com.opencsv.CSVReader;
 
-import etl.etlinputs.managedinputs.ManagedInput;
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 import etl.jobs.Job;
 import etl.jobs.jobproperties.JobProperties;
@@ -118,6 +118,17 @@ public class ConsentGroupGenerator extends BDCJob {
 		
 		//System.out.println("Building Topmed Consents");
 		//List<String[]> _topmed_consent = generateConsents(managedInputs, patientMappings,"topmed");
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+			
+			for(Entry<String, List<String[]>> entry: consents.entrySet()) {
+				
+				for(String[] line: entry.getValue()) {
+					writer.write(toCsv(line));	
+				}
+				
+			}
+			
+		}
 		
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "parent_consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 			for(String[] line: consents.get("PARENT")) {

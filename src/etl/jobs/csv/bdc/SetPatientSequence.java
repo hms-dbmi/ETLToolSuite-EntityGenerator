@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,6 +23,7 @@ import com.opencsv.CSVReader;
 
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 import etl.jobs.jobproperties.JobProperties;
+import etl.jobs.mappings.PatientMapping;
 
 public class SetPatientSequence extends BDCJob{
 
@@ -51,9 +54,11 @@ public class SetPatientSequence extends BDCJob{
 		public String toString() {
 			
 			return "trialid=" + studyName + "\n" + 
-					"patientnumstartseq=" + startingSeqNum;
+					"patientnumstartseq=" + startingSeqNum  + "\n" +
+					"patientmappingfile=" + studyName.toUpperCase() + "_PatientMapping.v2.csv" + "\n" +
+					"usepatientmapping=" + "Y" + "\n" +
+					"patientcol=" + "0";
 		}
-		
 		
 	}
 	
@@ -98,6 +103,39 @@ public class SetPatientSequence extends BDCJob{
 		detectCollisions();
 		
 		printConfigs();
+		
+		updateMappings();
+	}
+
+	private static void updateMappings() {
+		// key = study name, value = StudySequencingMeta
+		seqMeta.entrySet().stream().forEach(ssmEntry -> {
+			
+			List<PatientMapping> patientMappings = PatientMapping.readPatientMappingFile(DATA_DIR + ssmEntry.getKey() + "_PatientMapping.v2.csv");
+			
+			if(patientMappings.isEmpty()) System.err.println(ssmEntry.getKey() + " patient mapping does not exist generating new one.");
+			
+			Map<String, Integer> seqMap = PatientMapping.buildSeqMap(patientMappings);
+			
+			Integer maxId = Collections.max(seqMap.values()) + 1;
+			
+			for(String patient: ssmEntry.getValue().patientCount) {
+				if(seqMap.containsKey(patient)) continue;
+				else {
+					
+					String[] p = new String[] { patient, ssmEntry.getKey(), maxId.toString()};
+					
+					PatientMapping pm = new PatientMapping(p);
+					
+					patientMappings.add(pm);
+					
+					maxId++;
+				}
+			}
+			
+			PatientMapping.writePatientMappings(patientMappings,Paths.get(WRITE_DIR + ssmEntry.getKey() + "_PatientMapping.v2.csv"));
+		});
+		
 	}
 
 	private static void detectCollisions() {
@@ -149,7 +187,7 @@ public class SetPatientSequence extends BDCJob{
 	private static int getMaxSeq() {
 		int max = 1;
 		for(Entry<String, StudySequencingMeta> entry: seqMeta.entrySet()) {
-			if(entry.getValue().startingSeqNum > max) max = entry.getValue().startingSeqNum + entry.getValue().patientCount.size();
+			if(entry.getValue().startingSeqNum > max) max = entry.getValue().startingSeqNum + entry.getValue().patientCount.size() + 100;
 		}
 		return max;
 	}
@@ -178,12 +216,13 @@ public class SetPatientSequence extends BDCJob{
 		
 		// if missing subject multi file fail job completely as it is critical to have all patient counts for new data load
 		if(BDCJob.getStudySubjectMultiFile(managedInput) == null) {
-			throw new IOException("Critical error: " + managedInput.toString() + " missing subject multi file! All studies must have a subject multi file to proceed ahead!");
+			throw new IOException("Critical error: " + managedInput.toString() + 
+					" missing subject multi file! All studies must have a subject multi file to proceed ahead!");
 		}
 		
 		Set<String> patientSet = new HashSet<>();
 		
-		try(CSVReader reader = readRawBDCDataset(Paths.get(DATA_DIR + BDCJob.getStudySubjectMultiFile(managedInput)))){
+		try(CSVReader reader = readRawBDCDataset(Paths.get(DATA_DIR + BDCJob.getStudySubjectMultiFile(managedInput)),true)){
 			reader.readNext(); // skip header
 			String[] line;
 			

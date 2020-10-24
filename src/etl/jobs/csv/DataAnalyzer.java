@@ -34,7 +34,7 @@ import etl.utils.Utils;
 public class DataAnalyzer extends Job {
 
 	public static double NUMERIC_THRESHOLD = .85;
-
+	
 	public static void main(String[] args) throws Exception {
 		try {
 			setVariables(args, buildProperties(args));
@@ -48,6 +48,7 @@ public class DataAnalyzer extends Job {
 	}
 
 	private static void execute() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+		
 		List<Mapping> mappings = Mapping.generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
 
 		List<Mapping> newMappings = analyzeData(mappings);
@@ -55,7 +56,10 @@ public class DataAnalyzer extends Job {
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(MAPPING_FILE), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 			Utils.writeToCsv(buffer, newMappings, MAPPING_QUOTED_STRING, MAPPING_DELIMITER);
 		}
+		
 	}
+	
+	
 
 	private static List<Mapping> analyzeData(List<Mapping> mappings) throws IOException {
 		List<Mapping> newMappings = new ArrayList<Mapping>();
@@ -78,23 +82,28 @@ public class DataAnalyzer extends Job {
 			
 		}
 		
-		mappingsMap.entrySet().stream().forEach(entry ->{
+		mappingsMap.entrySet().forEach(entry ->{
 			
-			for(Mapping m: entry.getValue()) {
-
+			//for(Mapping m: entry.getValue()) {
+			entry.getValue().parallelStream().forEach(m -> {
 				Path path = Paths.get(DATA_DIR + File.separatorChar + entry.getKey());
 				
-				if(!Files.exists(path)) continue; 
+				if(Files.exists(path)) { 
 
-				try {
-					newMappings.add(analyzeData(m,path));
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					try {
+						
+						newMappings.add(analyzeData(m,path));
+						
+					} catch (IOException e) {
+						
+						e.printStackTrace();
+					}
 				}
-			}
+			});
 		});
+		
 		return newMappings;
+		
 	}
 
 	private static Mapping analyzeData(Mapping mapping, Path path) throws IOException {
@@ -102,6 +111,7 @@ public class DataAnalyzer extends Job {
 		int col = new Integer(mapping.getKey().split(":")[1]);
 		
 		try(BufferedReader buffer = Files.newBufferedReader(path)){
+			
 			RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
 					.withSeparator(DATA_SEPARATOR)
 					.withQuoteChar(DATA_QUOTED_STRING);
@@ -119,9 +129,10 @@ public class DataAnalyzer extends Job {
 			
 			int numericVals = 0;
 			int alphaVals = 0;
+			
 			while((newLine = csvreader.readNext()) != null){
 				
-				if(col < newLine.length) {
+				if(col < newLine.length - 1) {
 				
 					String val = newLine[col];
 					if(val.isEmpty()) {
@@ -134,24 +145,26 @@ public class DataAnalyzer extends Job {
 					};
 				}
 			}
+			
 			BigDecimal bd = new BigDecimal(numericVals + alphaVals);
 			
-			if(!new BigDecimal(numericVals + alphaVals).equals(new BigDecimal(0))) {
+			if(!bd.equals(new BigDecimal(0))) {
 				
-				BigDecimal percentNumeric = new BigDecimal(numericVals).divide(new BigDecimal(numericVals + alphaVals), MathContext.DECIMAL128 );
+				BigDecimal percentNumeric = new BigDecimal(numericVals).divide(bd, MathContext.DECIMAL128 );
 				
-				percentNumeric.compareTo(new BigDecimal(NUMERIC_THRESHOLD));
+				BigDecimal numThres = new BigDecimal(NUMERIC_THRESHOLD, MathContext.DECIMAL128 );
 				
-				if(percentNumeric.compareTo(new BigDecimal(NUMERIC_THRESHOLD)) >= 0) {
-					
-					if(mapping.getDataType().equals("TEXT")) System.out.println("New numeric variable found: " + mapping.toCSV());
-					
+				//percentNumeric.compareTo(numThres);
+				
+				if(percentNumeric.compareTo(numThres) >= 0) {
+										
 					mapping.setDataType("NUMERIC");
 					
 				}
 			}
 		}
 		return mapping;
+		
 	}
 
 }

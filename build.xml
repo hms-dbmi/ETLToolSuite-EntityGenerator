@@ -379,6 +379,30 @@
 		    <fileset dir="bin" includes="**/*.class" />
 			<fileset dir="bin" includes="*.xml"></fileset>
 	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
-		</jar>  
+		</jar>
+		<jar destfile="SetPatientSequence.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.SetPatientSequence"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+		<jar destfile="FHSShareTreeBuilder.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.FHSShareTreeBuilder"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+	    	<jar destfile="ParentNodeModifier.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.ParentNodeModifier"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
     	</target>
 </project>

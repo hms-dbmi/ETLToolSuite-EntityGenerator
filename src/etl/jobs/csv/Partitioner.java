@@ -129,6 +129,8 @@ public class Partitioner extends Job {
                 
                 cf.trialid = TRIAL_ID;
                 
+                cf.skipmapperheader = "N";
+                
                 cf.writedir = PROCESSING_FOLDER + partition + '_';
                
                 try(OutputStream output = new FileOutputStream(MAPPING_OUTPUT_DIR + "/mapping.part" + partition + ".csv")) {

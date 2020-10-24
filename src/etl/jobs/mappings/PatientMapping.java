@@ -1,15 +1,21 @@
 package etl.jobs.mappings;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.opencsv.CSVReader;
+
+import etl.jobs.Job;
+import etl.jobs.csv.bdc.BDCJob;
 
 /**
  * Parent class for patient mapping
@@ -61,25 +67,30 @@ public class PatientMapping {
 		
 		List<PatientMapping> pm = new ArrayList<PatientMapping>();
 		
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(patientMappingFileURI))) {
+		if(Files.exists(Paths.get(patientMappingFileURI))) {
 			
-			CSVReader reader = new CSVReader(buffer);
-			
-			String[] line; 
-			
-			while((line = reader.readNext()) != null) {
+			try(BufferedReader buffer = Files.newBufferedReader(Paths.get(patientMappingFileURI))) {
 				
-				if(line[0].equals("SOURCE_ID")) continue; // skip header
+				CSVReader reader = new CSVReader(buffer);
 				
-				pm.add(new PatientMapping(line));
+				String[] line; 
 				
+				while((line = reader.readNext()) != null) {
+					
+					if(line[0].equals("SOURCE_ID")) continue; // skip header
+					
+					pm.add(new PatientMapping(line));
+					
+				}
+				
+				
+			} catch (IOException e) {
+				System.err.println("Error reading Patient Mapping File " + patientMappingFileURI);
+				e.printStackTrace();
 			}
 			
-			
-		} catch (IOException e) {
-			System.err.println("Error reading Patient Mapping File " + patientMappingFileURI);
-			e.printStackTrace();
 		}
+		
 		return pm;
 	}
 
@@ -90,6 +101,34 @@ public class PatientMapping {
 			map.put(pm.getSourceId() + pm.getSourceId(), pm.getPatientNum());
 		}
 		return map;
+	}
+
+	public static void writePatientMappings(List<PatientMapping> patientMappings, Path path) {
+		try(BufferedWriter writer = Files.newBufferedWriter(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
+			for(PatientMapping pm: patientMappings) {
+				writer.write(pm.toCSV());
+			}
+		} catch (IOException e) {
+			System.err.println("Error writing " + path.getFileName());
+			e.printStackTrace();
+		}
+	}
+
+	private char[] toCSV() {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append('"');
+		sb.append(this.sourceId);
+		sb.append('"');
+		sb.append(',');
+		sb.append('"');
+		sb.append(this.sourceName);
+		sb.append('"');
+		sb.append(',');
+		sb.append(this.patientNum);
+		sb.append('"');
+		sb.append('\n');
+		return sb.toString().toCharArray();
 	}
 	
 	

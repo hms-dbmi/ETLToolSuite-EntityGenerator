@@ -31,7 +31,6 @@ public class BDCMetadata implements Metadata {
 		add("consentcol");
 		add("gencons");
 		
-
 	}};
 	
 	public BDCMetadata(List<ManagedInput> managedInputs) throws IOException {
@@ -51,10 +50,12 @@ public class BDCMetadata implements Metadata {
 			if(consentGroups.containsKey(managedInput.getStudyAbvName())) {
 				
 				int clinicalCount = getClinicalVariableCount(managedInput);
+				
 				for(Entry<String, String> entry: consentGroups.get(managedInput.getStudyAbvName()).entrySet()) {
+					
 					BDCMetadataElements bdcm = new BDCMetadataElements();
 					
-					bdcm.study_identifer = managedInput.getStudyIdentifier();
+					bdcm.study_identifier = managedInput.getStudyIdentifier();
 					
 					bdcm.study_type = managedInput.getStudyType();
 				
@@ -62,11 +63,11 @@ public class BDCMetadata implements Metadata {
 				
 					bdcm.full_study_name = managedInput.getStudyFullName();
 					
-					bdcm.consent_group_code = entry.getKey();
+					bdcm.consent_group_code = "c" + entry.getKey();
 				
 					bdcm.consent_group_name = entry.getValue();
 				
-					bdcm.request_access = REQEUST_ACCESS_LINK + bdcm.study_identifer;
+					bdcm.request_access = REQEUST_ACCESS_LINK + bdcm.study_identifier;
 					
 					bdcm.clinical_variable_count = clinicalCount;
 							
@@ -74,7 +75,7 @@ public class BDCMetadata implements Metadata {
 					
 					if(bdcm.genetic_sample_size == 0 && bdcm.clinical_sample_size == 0) {
 						
-						bdcm.data_type = "NONE";
+						bdcm.data_type = "";
 						
 					} else if(bdcm.genetic_sample_size == 0 && bdcm.clinical_sample_size > 0) {
 						
@@ -92,7 +93,7 @@ public class BDCMetadata implements Metadata {
 				
 					bdcm.study_phase = BDCJob.getPhase(managedInput);
 				
-					bdcm.top_level_path = "\\" + bdcm.full_study_name + " ( " + bdcm.study_identifer + " )" + "\\";
+					bdcm.top_level_path = "\\" + bdcm.full_study_name + " ( " + bdcm.study_identifier + " )" + "\\";
 				
 					bdcm.is_harmonized = managedInput.getIsHarmonized();
 				
@@ -188,7 +189,7 @@ public class BDCMetadata implements Metadata {
 	private void addMissingConsents(BDCManagedInput managedInput) {
 		BDCMetadataElements bdcm = new BDCMetadataElements();
 		
-		bdcm.study_identifer = managedInput.getStudyIdentifier();
+		bdcm.study_identifier = managedInput.getStudyIdentifier();
 		
 		bdcm.study_type = managedInput.getStudyType();
 	
@@ -214,7 +215,7 @@ public class BDCMetadata implements Metadata {
 	
 		bdcm.study_phase = "";
 	
-		bdcm.top_level_path = "\\" + bdcm.full_study_name + " ( " + bdcm.study_identifer + " )" + "\\";
+		bdcm.top_level_path = "\\" + bdcm.full_study_name + " ( " + bdcm.study_identifier + " )" + "\\";
 	
 		bdcm.is_harmonized = managedInput.getIsHarmonized();
 	

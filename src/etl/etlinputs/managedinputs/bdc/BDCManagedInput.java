@@ -38,6 +38,7 @@ public class BDCManagedInput extends ManagedInput {
 		List<ManagedInput> inputs = new ArrayList<>();
 		for(String[] input: managedInputs) {
 			if(input[0].equalsIgnoreCase("Study Abbreviated Name")) continue;
+			if(input.length > 7 && input[7].equalsIgnoreCase("no")) continue; 
 			inputs.add(new BDCManagedInput(input));
 		}
 		return inputs;
@@ -71,7 +72,23 @@ public class BDCManagedInput extends ManagedInput {
 	public String toString() {
 		return "BDCManagedInput [studyIdentifier=" + studyIdentifier + ", studyType=" + studyType + ", studyFullName="
 				+ studyFullName + ", dataType=" + dataType + ", isHarmonized=" + isHarmonized + ", phsSubjectIdColumn="
-				+ phsSubjectIdColumn + "]";
-	}	
+				+ phsSubjectIdColumn + ", studyAbvName=" + studyAbvName + "]";
+	}
+
+	public static List<String> getPhsAccessions(String studyAbvName, List<BDCManagedInput> managedInputs) {
+		
+		List<String> list = new ArrayList<>();
+		
+		for(BDCManagedInput input: managedInputs) {
+			if(input.getStudyAbvName().equalsIgnoreCase(studyAbvName)) {
+				list.add(input.getStudyIdentifier());
+			}
+		}
+		
+		return list;
+		
+	}
+
+
 	
 }

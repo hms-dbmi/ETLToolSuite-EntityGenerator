@@ -55,8 +55,6 @@ public class JsonMetadataGenerator extends Job {
 		try {
 			execute();
 		} catch (JsonProcessingException e) {
-			
-			
 			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -83,57 +81,9 @@ public class JsonMetadataGenerator extends Job {
 		
 	}
 	
-/*
-	private static Map<String, String> getConsentGroups(String[] studyAccession) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	// this is for json meta data to find 
-	private static Map<String, String> buildConsentLookup(String studyIdentifier) throws IOException {
-		
-		Map<String, String> consentLookup = new HashMap<String,String>();
-		boolean dataDictExists = false;
-		boolean subjectMultiExists = false;
-		
-		File dataDir = new File(DATA_DIR);
-		
-		if(dataDir.isDirectory()) {
-			
-			String[] fileNames = dataDir.list(new FilenameFilter() {
-				
-				@Override
-				public boolean accept(File dir, String name) {
-					if(name.startsWith(studyIdentifier) && name.toLowerCase().contains("subject.multi") && name.toLowerCase().endsWith(".txt")) {
-						return true;
-					} else if(name.startsWith(studyIdentifier) && name.toLowerCase().contains("subject.data_dict") && name.toLowerCase().endsWith(".xml")) {
-						return true;
-					} else {
-						return false;
-					}
-				}
-			});
-			
-			if(fileNames.length < 2) {
-				
-				System.err.println("Expecting a subject.multi and subject.data_dict for the" + studyIdentifier + " aborting!");
-				
-			}
-			
-			
-			
-		} else {
-			throw new IOException("parameter DATA_DIR = " + DATA_DIR + " is not a directory!", new Throwable().fillInStackTrace() );
-		}
-		
-		return consentLookup;
-	}
-	*/
 	private static void setLocalVariables(String[] args, JobProperties buildProperties) {
 		// TODO Auto-generated method stub
 		
 	}
-
-
 
 }

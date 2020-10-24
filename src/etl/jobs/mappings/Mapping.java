@@ -1,6 +1,7 @@
 package etl.jobs.mappings;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -14,15 +15,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import com.opencsv.CSVReader;
 import com.opencsv.bean.CsvBindByPosition;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
-
-import etl.job.entity.hpds.AllConcepts;
-import etl.utils.Utils;
 
 public class Mapping implements Cloneable, Comparable<Mapping>{
 	
@@ -110,8 +107,13 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 		if(!Files.exists(Paths.get(filePath))) {
 			throw new IOException(filePath + " does not exist.");
 		}
-		
+		if(new File(filePath).length() == 0) {
+			System.err.println(filePath + " is empty returning empty list.");
+			return new ArrayList<Mapping>();
+		}
 		List<Mapping> list = new ArrayList<Mapping>();
+		
+		
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(filePath))){
 
@@ -123,10 +125,9 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 					.withType(Mapping.class)
 					.build();			
 			
+			
 			list = beans.parse();
-			for(Mapping m: list) {
-				//m.setRootNode(m.getRootNode().replace('\\', '/'));
-			}
+
 		}
 		
 		return list;
@@ -455,6 +456,19 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 				+ makeStringSafe("Supplemental Path") + ',' + makeStringSafe("DataType") + ',' + makeStringSafe("Options");
 	}
 	
-	
+	public static String buildConceptPath(List<String> pathNodes,CharSequence pathSeperator) {
+		if(pathNodes.isEmpty()) return "";
+		StringBuilder sb = new StringBuilder(); 
+		sb.append(pathSeperator);
+		for(String node: pathNodes) {
+			if(node.isEmpty()) continue;
+			
+			sb.append(node);
+			
+			sb.append(pathSeperator);
+		}
+		
+		return sb.toString();
+	}
 	
 }

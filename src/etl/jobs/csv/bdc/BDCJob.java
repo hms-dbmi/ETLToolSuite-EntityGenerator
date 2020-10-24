@@ -30,8 +30,7 @@ import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 import etl.jobs.Job;
 
 public abstract class BDCJob extends Job {
-	
-	
+
 	public static CSVReader readRawBDCDataset(Path fileName) throws IOException {
 		return readRawBDCDataset(fileName,false);
 	}
@@ -212,17 +211,18 @@ public abstract class BDCJob extends Job {
 	
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			
-			
-			DocumentBuilder builder;
-				builder = factory.newDocumentBuilder();
+			DocumentBuilder builder = factory.newDocumentBuilder();
 					
 			return builder.parse(dictionaryFile);
 			
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			// TODO Auto-generated catch block
+			
 			System.err.println("Error processing dictionary file " + dictionaryFile.getAbsolutePath());
+			
 			System.err.println(e.toString());
+			
 			e.printStackTrace();
+			
 		}
 		return null;
 	}
@@ -546,6 +546,14 @@ public abstract class BDCJob extends Job {
 		
 		return Job.getPatientMappings(ManagedInputFactory.readManagedInput(METADATA_TYPE,MANAGED_INPUT));
 		
+	}
+	
+	public static String getPhs(String dbGapFileName) {
+		String[] fileNameArr = dbGapFileName.split("\\.");
+		for(String str: fileNameArr) {
+			if(str.contains("phs")) return str;
+		}
+		return null;
 	}
 }
 

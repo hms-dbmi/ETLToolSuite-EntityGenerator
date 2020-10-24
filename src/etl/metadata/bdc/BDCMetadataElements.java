@@ -2,7 +2,7 @@ package etl.metadata.bdc;
 
 public class BDCMetadataElements {
 
-	public String study_identifer = "";
+	public String study_identifier = "";
 	
 	public String study_type = "";
 
