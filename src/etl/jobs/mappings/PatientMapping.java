@@ -98,13 +98,16 @@ public class PatientMapping {
 		HashMap<String,Integer> map = new HashMap<>();
 		
 		for(PatientMapping pm : patientMappings) {
-			map.put(pm.getSourceId() + pm.getSourceId(), pm.getPatientNum());
+			map.put(pm.getSourceName() + pm.getSourceId(), pm.getPatientNum());
 		}
 		return map;
 	}
 
 	public static void writePatientMappings(List<PatientMapping> patientMappings, Path path) {
+		
 		try(BufferedWriter writer = Files.newBufferedWriter(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
+			
+			writer.write(csvHeaders());
 			for(PatientMapping pm: patientMappings) {
 				writer.write(pm.toCSV());
 			}
@@ -114,6 +117,22 @@ public class PatientMapping {
 		}
 	}
 
+	private static char[] csvHeaders() {
+		StringBuilder sb = new StringBuilder();
+		sb.append('"');
+		sb.append("SOURCE_ID");
+		sb.append('"');
+		sb.append(',');
+		sb.append('"');
+		sb.append("SOURCE_NAME");
+		sb.append('"');
+		sb.append(',');
+		sb.append('"');
+		sb.append("PATIENT_NUM");
+		sb.append('"');
+		sb.append('\n');
+		return sb.toString().toCharArray();
+	}
 	private char[] toCSV() {
 		StringBuilder sb = new StringBuilder();
 
@@ -125,6 +144,7 @@ public class PatientMapping {
 		sb.append(this.sourceName);
 		sb.append('"');
 		sb.append(',');
+		sb.append('"');
 		sb.append(this.patientNum);
 		sb.append('"');
 		sb.append('\n');

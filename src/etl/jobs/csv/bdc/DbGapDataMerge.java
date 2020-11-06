@@ -47,6 +47,7 @@ public class DbGapDataMerge extends Job {
 			ProcessBuilder processBuilder = new ProcessBuilder();
 			
 			processBuilder.command("bash", "-c", "cat " + entry.getValue() + " >> " + WRITE_DIR + "allConcepts.csv");
+
 			
 			Process process = processBuilder.start();
 			
@@ -61,6 +62,7 @@ public class DbGapDataMerge extends Job {
 			}
 
 			int exitVal = process.waitFor();
+			System.out.println(exitVal);
 			if (exitVal == 0) {
 				System.out.print(entry.getKey() + " merge Success!");
 				System.out.println(output);
@@ -86,9 +88,9 @@ public class DbGapDataMerge extends Job {
 				if(f.getName().contains("_allConcepts")) {
 					
 					
-					try(BufferedReader buffer = Files.newBufferedReader(Paths.get(f.getAbsolutePath()))){
+					try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + f.getName()))){
 						String line;
-						String studyid = f.getAbsolutePath();
+						String studyid = DATA_DIR + f.getName();
 						while((line = buffer.readLine()) != null) {
 							String[] record = line.split(",");
 							if(record.length < 1) continue;

@@ -17,8 +17,15 @@ import com.opencsv.CSVReader;
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 
 public class SampleIdGenerator extends BDCJob {
-	private static String STUDY_ID_W_ACCESSIONS = "studyid_with_accessions.csv";
 
+	private static List<String> SAMPLE_HEADERS = new ArrayList<String>();
+	static {
+		
+		SAMPLE_HEADERS.add("SAMPLE_ID");
+		SAMPLE_HEADERS.add("SAMPLEID");
+		SAMPLE_HEADERS.add("SAMPID");
+
+	}
 	public static void main(String[] args) {
 		try {
 			setVariables(args, buildProperties(args));
@@ -79,14 +86,13 @@ public class SampleIdGenerator extends BDCJob {
 								if(!line[0].toUpperCase().equals("DBGAP_SUBJECT_ID")) continue;
 								
 								for(String col: line) {
-									if(col.toUpperCase().equals("SAMPLE_ID")) {
+									if(SAMPLE_HEADERS.contains(col.toUpperCase())) {
 										sampidIdx = x;
 										break;
 									} else {
 										x++;
 									}
 								}
-								
 								if(line[0].toUpperCase().equals("DBGAP_SUBJECT_ID")) break;
 								
 							}

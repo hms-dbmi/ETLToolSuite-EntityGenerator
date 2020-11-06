@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -160,6 +161,7 @@ public class DbgapTreeBuilder2 extends BDCJob {
 					
 					String[] headers = getDataHeaders(file);
 					if(headers == null) continue;
+					if(headers.length == -1) continue;
 					missingHeaders = findMissingHeadersInDictionary(dictionary,headers);
 					
 					generateMappings(buffer, file, headers, dictionary);
@@ -175,7 +177,6 @@ public class DbgapTreeBuilder2 extends BDCJob {
 		// get the description from root data table
 		
 		String desc = findDescription(dictionary);
-		int x = 0;
 		
 		List<Mapping> mappings = new ArrayList<>();
 		
@@ -225,14 +226,13 @@ public class DbgapTreeBuilder2 extends BDCJob {
 						conceptPathSB.append(PATH_SEPARATOR);
 					}
 					
-					mapping.setKey(file.getName() + ":" + x);
+					mapping.setKey(file.getName() + ":" + Arrays.asList(headers).indexOf(header));
 					
 					mapping.setRootNode(conceptPathSB.toString());
 					
 					mapping.setDataType("TEXT");
 					
 				} else {
-					
 					// dont create mapping if missing var description
 					continue; 
 					/*
@@ -265,7 +265,6 @@ public class DbgapTreeBuilder2 extends BDCJob {
 				buffer.flush();
 			
 			}
-			x++;
 		}
 		
 	}
@@ -380,32 +379,7 @@ public class DbgapTreeBuilder2 extends BDCJob {
 		return missingHeaders;
 	}
 	
-	private static String[] getDataHeaders(File file) throws IOException {
-		
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(file.getAbsolutePath()), StandardCharsets.ISO_8859_1)) {
-			
-			String line;
-			
-			while((line = buffer.readLine()) != null) {
-				
-				String[] record = line.split(new Character('\t').toString());
-				
-				if(record[0] == null) continue;
-				if(record[0].startsWith("#")) continue;
-				if(record[0].toLowerCase().contains("dbgap_subject")) return record;
-				
-			}
-		} catch (IOException e) {
-			if(e instanceof MalformedInputException) {
-				System.err.println("Error with malformed file, needs further examination: " + file.getName());
-				
-				return null;
-			} else {
-				throw e;
-			}
-		}
-		return null;
-	}
+
 	
 	private static List<String> lookForDictionaries() throws ParserConfigurationException, SAXException, IOException {
 		

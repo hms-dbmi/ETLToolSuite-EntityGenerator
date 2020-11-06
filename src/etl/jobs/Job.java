@@ -30,7 +30,7 @@ public abstract class Job implements Serializable {
 
 	protected static String MANAGED_INPUT = "data/Managed_Inputs.csv";
 	
-	protected static boolean SKIP_HEADERS = true;
+	protected static boolean SKIP_HEADERS = false;
 
 	protected static String WRITE_DIR = "./completed/";
 	
@@ -42,7 +42,7 @@ public abstract class Job implements Serializable {
 
 	protected static String MAPPING_DIR = "./mappings/";
 	
-	protected static boolean MAPPING_SKIP_HEADER = true;
+	protected static boolean MAPPING_SKIP_HEADER = false;
 
 	protected static char MAPPING_DELIMITER = ',';
 

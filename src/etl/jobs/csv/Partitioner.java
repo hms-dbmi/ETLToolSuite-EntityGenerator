@@ -106,7 +106,7 @@ public class Partitioner extends Job {
     			MAPPING_FILE = prop.getProperty("mappingfile");
     			
     			for(Entry<String,Set<Mapping>> entry: mappings.entrySet()) {
-    				
+    				/*
     				ConfigFile cf = new ConfigFile(prop);
     				
                 cf.mappingfile = "./mappings/mapping.part" + partition + ".csv";
@@ -125,14 +125,16 @@ public class Partitioner extends Job {
                 
                 cf.encounternumstartseq= new Integer(1).toString();
                 
-                cf.patientnumstartseq  = new Integer(3).toString();
+                //cf.patientnumstartseq  = new Integer(3).toString();
                 
                 cf.trialid = TRIAL_ID;
                 
                 cf.skipmapperheader = "N";
                 
                 cf.writedir = PROCESSING_FOLDER + partition + '_';
-               
+               */
+    				String jobConfig = buildJobConfig(partition, prop);
+    				
                 try(OutputStream output = new FileOutputStream(MAPPING_OUTPUT_DIR + "/mapping.part" + partition + ".csv")) {
                 		for(Mapping newmapping: entry.getValue()) {
                 			output.write((newmapping.toCSV() + '\n').getBytes());
@@ -144,7 +146,7 @@ public class Partitioner extends Job {
                 
                 try(OutputStream output = new FileOutputStream(CONFIG_OUTPUT_DIR + "/config.part" + partition + ".config")) {
                 	
-    	            		output.write(cf.toString().getBytes());
+    	            		output.write(jobConfig.getBytes());
     	            		output.flush();
     	            		output.close();
             		
@@ -159,6 +161,17 @@ public class Partitioner extends Job {
             ex.printStackTrace();
         }		
 	}
+	private static String buildJobConfig(int partition, Properties prop) {
+		return "trialid=" + TRIAL_ID + "\n" + 
+				"mappingfile=" + "./mappings/mapping.part" + partition + ".csv" + "\n" +
+				"patientnumstartseq=" + prop.getProperty("patientnumstartseq")  + "\n" +
+				"patientmappingfile=data/" + TRIAL_ID + "_PatientMapping.v2.csv" + "\n" +
+				"usepatientmapping=" + "Y" + "\n" +
+				"patientcol=" + "0" + "\n" +
+				"writedir=" + PROCESSING_FOLDER + partition + '_';
+
+	}
+
 	/**
 	 * deletes old partition configs
 	 */

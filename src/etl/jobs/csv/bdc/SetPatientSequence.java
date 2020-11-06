@@ -55,7 +55,7 @@ public class SetPatientSequence extends BDCJob{
 			
 			return "trialid=" + studyName + "\n" + 
 					"patientnumstartseq=" + startingSeqNum  + "\n" +
-					"patientmappingfile=" + studyName.toUpperCase() + "_PatientMapping.v2.csv" + "\n" +
+					"patientmappingfile=data/" + studyName.toUpperCase() + "_PatientMapping.v2.csv" + "\n" +
 					"usepatientmapping=" + "Y" + "\n" +
 					"patientcol=" + "0";
 		}
@@ -117,10 +117,10 @@ public class SetPatientSequence extends BDCJob{
 			
 			Map<String, Integer> seqMap = PatientMapping.buildSeqMap(patientMappings);
 			
-			Integer maxId = Collections.max(seqMap.values()) + 1;
+			Integer maxId = seqMap.values().isEmpty() ? ssmEntry.getValue().startingSeqNum: Collections.max(seqMap.values()) + 1;
 			
 			for(String patient: ssmEntry.getValue().patientCount) {
-				if(seqMap.containsKey(patient)) continue;
+				if(seqMap.containsKey(ssmEntry.getKey() + patient)) continue;
 				else {
 					
 					String[] p = new String[] { patient, ssmEntry.getKey(), maxId.toString()};

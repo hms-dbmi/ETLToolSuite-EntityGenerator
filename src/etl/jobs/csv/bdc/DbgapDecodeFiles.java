@@ -117,7 +117,7 @@ public class DbgapDecodeFiles extends Job {
 			
 			String[] line;
 			
-			String[] headers = getHeaders(reader);
+			String[] headers = BDCJob.getHeaders(reader);
 			
 			if(headers != null) {
 				
@@ -161,31 +161,7 @@ public class DbgapDecodeFiles extends Job {
 	
 	}
 
-	private static String[] getHeaders(CSVReader reader) throws IOException {
 
-		String[] line;
-		
-		while((line = reader.readNext()) != null) {
-			if(line[0].equalsIgnoreCase("dbgap_subject_id")) {
-				return line;
-			}
-		}
-		return null;
-	}
-
-	private static String[] getHeaders(File data) throws IOException {
-
-		CSVReader reader = new CSVReader(Files.newBufferedReader(Paths.get(data.getAbsolutePath())), '\t');
-
-		String[] line;
-		
-		while((line = reader.readNext()) != null) {
-			if(line[0].equalsIgnoreCase("dbgap_subject_id")) {
-				return line;
-			}
-		}
-		return null;
-	}
 
 	private static Document buildDictionary(File dictionaryFile) {
 		if(dictionaryFile == null) return null;

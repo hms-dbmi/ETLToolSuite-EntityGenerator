@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.charset.MalformedInputException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -372,8 +374,17 @@ public abstract class BDCJob extends Job {
 		int patientIdCol = findRawDataColumnIdx(Paths.get(DATA_DIR + subjectFileName), managedInput.getPhsSubjectIdColumn());
 		
 		if(patientIdCol == -1) {
-			System.err.println("Error no subject id column found for " + managedInput.getStudyAbvName() + " - " + managedInput.getPhsSubjectIdColumn());
-			return patientSet;
+			System.err.println("Error no subject id column found for " + managedInput.getStudyAbvName() + " - " + managedInput.getPhsSubjectIdColumn() +
+					" in subject file for " + subjectFileName + " will try SUBJECT_ID");
+			
+			patientIdCol = findRawDataColumnIdx(Paths.get(DATA_DIR + subjectFileName), "SUBJECT_ID");
+			
+			if(patientIdCol == -1) {
+				System.err.println("Error no subject id column found for " + managedInput.getStudyAbvName() + " - " + "SUBJECT_ID" +
+						" in subject file for " + subjectFileName + " will try SUBJECT_ID");
+				return patientSet;
+
+			}
 		}
 		
 		if(cgcidx != -1) {
@@ -414,8 +425,18 @@ public abstract class BDCJob extends Job {
 		int patientIdCol = findRawDataColumnIdx(Paths.get(DATA_DIR + sampleFileName), managedInput.getPhsSubjectIdColumn()); 
 		
 		if(patientIdCol == -1) {
-			System.err.println("Error no subject id column found for " + managedInput.getStudyAbvName() + " - " + managedInput.getPhsSubjectIdColumn());
-			return patientSet;
+			System.err.println("Error no subject id column found for " + managedInput.getStudyAbvName() + " - " +
+					managedInput.getPhsSubjectIdColumn() + " in sample multi file for " + sampleFileName
+						);
+			
+			patientIdCol = findRawDataColumnIdx(Paths.get(DATA_DIR + sampleFileName), "SUBJECT_ID");
+			
+			if(patientIdCol == -1) {
+				System.err.println("Error no subject id column found for " + managedInput.getStudyAbvName() + " - " + "SUBJECT_ID" +
+						" in subject file for " + sampleFileName + " will try SUBJECT_ID");
+				return patientSet;
+
+			}		
 		}
 		
 		BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + sampleFileName));
@@ -552,6 +573,57 @@ public abstract class BDCJob extends Job {
 		String[] fileNameArr = dbGapFileName.split("\\.");
 		for(String str: fileNameArr) {
 			if(str.contains("phs")) return str;
+		}
+		return null;
+	}
+	public static String[] getHeaders(CSVReader reader) throws IOException {
+
+		String[] line;
+		
+		while((line = reader.readNext()) != null) {
+			if(line[0].toLowerCase().startsWith("dbgap")) {
+				return line;
+			}
+		}
+		return null;
+	}
+
+	public static String[] getHeaders(File data) throws IOException {
+
+		CSVReader reader = new CSVReader(Files.newBufferedReader(Paths.get(data.getAbsolutePath())), '\t');
+
+		String[] line;
+		
+		while((line = reader.readNext()) != null) {
+			if(line[0].toLowerCase().startsWith("dbgap")) {
+				return line;
+			}
+		}
+		return null;
+	}
+	public static String[] getDataHeaders(File file) throws IOException {
+		
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(file.getAbsolutePath()), StandardCharsets.ISO_8859_1)) {
+			
+			String line;
+			
+			while((line = buffer.readLine()) != null) {
+				
+				String[] record = line.split(new Character('\t').toString());
+				
+				if(record[0] == null) continue;
+				if(record[0].startsWith("#")) continue;
+				if(record[0].toLowerCase().contains("dbgap")) return record;
+				
+			}
+		} catch (IOException e) {
+			if(e instanceof MalformedInputException) {
+				System.err.println("Error with malformed file, needs further examination: " + file.getName());
+				
+				return null;
+			} else {
+				throw e;
+			}
 		}
 		return null;
 	}

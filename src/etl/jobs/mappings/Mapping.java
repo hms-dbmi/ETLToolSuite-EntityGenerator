@@ -138,7 +138,10 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 		if(!Files.exists(Paths.get(filePath))) {
 			throw new IOException(filePath + " does not exist.");
 		}
-		
+		if(new File(filePath).length() == 0) {
+			System.err.println(filePath + " is empty returning empty list.");
+			return new ArrayList<Mapping>();
+		}
 		List<Mapping> list = new ArrayList<>();
 		/*Set<Mapping> list = new TreeSet<>( new Comparator<Mapping>() {
 			

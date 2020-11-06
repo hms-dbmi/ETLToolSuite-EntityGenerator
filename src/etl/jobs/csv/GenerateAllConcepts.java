@@ -287,13 +287,13 @@ public class GenerateAllConcepts extends Job{
 			AllConcepts allConcept = new AllConcepts();
 			
 			allConcept.setConceptPath(mapping.getRootNode());
-			
-			allConcept.setPatientNum(sequencePatient(line[PATIENT_COL]));
-			
+						
 			if(DO_PATIENT_NUM_SEQUENCE) {
 				allConcept.setPatientNum(sequencePatient(line[PATIENT_COL]));
 			} else {
-				allConcept.setPatientNum(new Integer(line[PATIENT_COL]));
+				if(NumberUtils.isCreatable(line[PATIENT_COL])) {
+					allConcept.setPatientNum(new Integer(line[PATIENT_COL]));
+				}
 			}
 			
 			allConcept.setNvalNum("");
@@ -313,7 +313,9 @@ public class GenerateAllConcepts extends Job{
 				if(DO_PATIENT_NUM_SEQUENCE) {
 					allConcept.setPatientNum(sequencePatient(line[PATIENT_COL]));
 				} else {
-					allConcept.setPatientNum(new Integer(line[PATIENT_COL]));
+					if(NumberUtils.isCreatable(line[PATIENT_COL])) {
+						allConcept.setPatientNum(new Integer(line[PATIENT_COL]));
+					}
 				}
 				
 				allConcept.setNvalNum(line[column].trim());
