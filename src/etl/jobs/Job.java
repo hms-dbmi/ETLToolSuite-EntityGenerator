@@ -481,6 +481,7 @@ public abstract class Job implements Serializable {
 				return pm[2];
 			}
 		}*/
+		if(result == null) return null;
 		return result.getValue();
 		
 	}

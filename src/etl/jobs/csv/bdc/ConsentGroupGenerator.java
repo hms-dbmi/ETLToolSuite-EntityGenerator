@@ -129,24 +129,27 @@ public class ConsentGroupGenerator extends BDCJob {
 			}
 			
 		}
-		
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "parent_consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-			for(String[] line: consents.get("PARENT")) {
-				writer.write(toCsv(line));
+		if(consents.containsKey("PARENT")) {
+			try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "parent_consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+				for(String[] line: consents.get("PARENT")) {
+					writer.write(toCsv(line));
+				}
 			}
 		}
-		
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "topmed_consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-			for(String[] line: consents.get("TOPMED")) {
-				writer.write(toCsv(line));
+		if(consents.containsKey("TOPMED")) {
+			try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "topmed_consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+				for(String[] line: consents.get("TOPMED")) {
+					writer.write(toCsv(line));
+				}
 			}
 		}
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "harmonized_consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-			for(String[] line: _harmonized_consents) {
-				writer.write(toCsv(line));
+		if(_harmonized_consents != null) {
+			try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "harmonized_consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+				for(String[] line: _harmonized_consents) {
+					writer.write(toCsv(line));
+				}
 			}
 		}
-		
 		System.out.println("Finished building consents");
 	}
 
@@ -366,7 +369,7 @@ public class ConsentGroupGenerator extends BDCJob {
 						if(line[consentidx].isEmpty()) continue;
 						
 						String hpds_id = mappingLookup(line[0], patientMappings.get(studyAbvName));
-						
+						if(hpds_id == null) continue;
 						String consentCode = "c" + line[consentidx];
 						
 						String consentVal = studyIdentifier + "." + consentCode;
