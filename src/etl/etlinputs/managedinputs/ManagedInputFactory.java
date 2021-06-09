@@ -14,7 +14,7 @@ import etl.metadata.bdc.BDCMetadata;
 
 public class ManagedInputFactory {
 
-	public static List<ManagedInput> builManagedInputs(String type, List<String[]> managedInputs) throws IOException {
+	public static List<ManagedInput> buildManagedInputs(String type, List<String[]> managedInputs) throws IOException {
 		if("BDC".equalsIgnoreCase(type)) return BDCManagedInput.buildAll(managedInputs);
 		
 		return null;
@@ -31,7 +31,7 @@ public class ManagedInputFactory {
 			
 			List<String[]> records = new CSVReader(buffer).readAll();
 			
-			return ManagedInputFactory.builManagedInputs(type, records);
+			return ManagedInputFactory.buildManagedInputs(type, records);
 			
 		}
 	}

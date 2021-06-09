@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -120,6 +122,8 @@ public abstract class Job implements Serializable {
 			if(properties.contains("skipdataheader")) {
 				if(new String(StringUtils.substring(properties.getProperty("skipdataheader"),0,1)).equalsIgnoreCase("N")){
 					SKIP_HEADERS = false;
+				} else {
+					SKIP_HEADERS = true;
 				}
 			}
 			///////////////////////
@@ -188,7 +192,9 @@ public abstract class Job implements Serializable {
 				String skip = checkPassedArgs(arg, args);
 				if(skip.equalsIgnoreCase("N")) {
 					SKIP_HEADERS = false;
-				} 
+				} else {
+					SKIP_HEADERS = true;
+				}
 			}
 			if(arg.equalsIgnoreCase( "-mappingskipheaders" )){
 				String skip = checkPassedArgs(arg, args);
@@ -204,6 +210,9 @@ public abstract class Job implements Serializable {
 				String md = checkPassedArgs(arg, args);
 				MAPPING_DELIMITER = md.charAt(0);
 			}
+			if(arg.equalsIgnoreCase( "-metadatatype" )){
+				METADATA_TYPE = checkPassedArgs(arg, args);
+			} 
 			if(arg.equalsIgnoreCase( "-patientmappingfile" )){
 				PATIENT_MAPPING_FILE = checkPassedArgs(arg, args);
 			} 
@@ -333,9 +342,19 @@ public abstract class Job implements Serializable {
 	protected static Map<String,Map<String,String>> getPatientMappings(List<ManagedInput> managedInputs) throws IOException {
 		Map<String,Map<String,String>> returnPMMap = new HashMap<String,Map<String,String>>();
 		
+		Set<String> studyIds = new TreeSet<String>();
+		
+		
 		for(ManagedInput managedInput: managedInputs) {
+			if(!managedInput.getReadyToProcess().toLowerCase().startsWith("y")) continue;
+			
 			String studyid = managedInput.getStudyAbvName();
 			
+			studyIds.add(studyid);
+			
+		}
+		
+		for(String studyid: studyIds) {
 			if(!Files.exists(Paths.get(DATA_DIR + studyid.toUpperCase() +"_PatientMapping.v2.csv"))) {
 				System.err.println(studyid.toUpperCase() + " study is missing.  Make sure the shortname for trial id is correct in managed inputs.");
 				continue;
@@ -350,13 +369,14 @@ public abstract class Job implements Serializable {
 				
 				
 				while((line = reader.readNext()) != null) {
-					if(returnPMMap.containsKey(managedInput.getStudyAbvName())) {
-						returnPMMap.get(managedInput.getStudyAbvName()).put(line[0], line[2]);
+					if(line.length < 3) continue;
+					if(returnPMMap.containsKey(studyid)) {
+						returnPMMap.get(studyid).put(line[0], line[2]);
 					} else {
 						
 						Map<String,String> innermap = new HashMap<>();
 						innermap.put(line[0], line[2]);
-						returnPMMap.put(managedInput.getStudyAbvName(),innermap);
+						returnPMMap.put(studyid,innermap);
 					}
 				}
 			}

@@ -11,8 +11,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -26,13 +28,16 @@ import org.xml.sax.SAXException;
 
 import com.opencsv.CSVReader;
 
-import etl.etlinputs.managedinputs.ManagedInput;
 import etl.etlinputs.managedinputs.ManagedInputFactory;
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 import etl.jobs.Job;
 
 public abstract class BDCJob extends Job {
-
+	public static Set<String> NON_DBGAP_STUDY = new HashSet<String>(){{
+		
+		add("ORCHID");
+		
+	}};
 	public static CSVReader readRawBDCDataset(Path fileName) throws IOException {
 		return readRawBDCDataset(fileName,false);
 	}
@@ -248,6 +253,34 @@ public abstract class BDCJob extends Job {
 				}
 			});
 	
+			if(fileNames.length == 1) {
+				return fileNames[0];
+			}
+			else return null;
+		} else {
+			throw new IOException(dataDir + " is not a directory.  Check datadir parameter", new Throwable().fillInStackTrace());
+		}
+	}
+	
+	public static String getStudySubjectMultiFile(BDCManagedInput managedInput, String directory) throws IOException {
+		File dataDir = new File(directory);
+		
+		String studyIdentifier = managedInput.getStudyIdentifier();
+		
+		if(dataDir.isDirectory()) {
+			
+			String[] fileNames = dataDir.list(new FilenameFilter() {
+				
+				@Override
+				public boolean accept(File dir, String name) {
+					if(name.startsWith(studyIdentifier) && name.toLowerCase().contains("subject.multi") && name.toLowerCase().endsWith(".txt")) {
+						return true;
+					} else {
+						return false;
+					}
+				}
+			});
+	
 			if(fileNames.length >= 1) return fileNames[0];
 			else return null;
 		} else {
@@ -255,6 +288,29 @@ public abstract class BDCJob extends Job {
 		}
 	}
 	
+	public static String[] getStudySampleMultiFile() throws IOException {
+		File dataDir = new File(DATA_DIR);
+						
+		if(dataDir.isDirectory()) {
+			
+			String[] fileNames = dataDir.list(new FilenameFilter() {
+				
+				@Override
+				public boolean accept(File dir, String name) {
+					if(name.toLowerCase().contains("sample.multi") && name.toLowerCase().endsWith(".txt")) {
+						return true;
+					} else {
+						return false;
+					}
+				}
+			});
+	
+			
+			return fileNames;
+		} else {
+			throw new IOException(dataDir + " is not a directory.  Check datadir parameter", new Throwable().fillInStackTrace());
+		}		
+	}
 	public static String getStudySampleMultiFile(BDCManagedInput managedInput) throws IOException {
 		File dataDir = new File(DATA_DIR);
 				
@@ -419,6 +475,7 @@ public abstract class BDCJob extends Job {
 		
 		return patientSet;
 	}
+	
 	public static List<String> getPatientSetFromSampleFile(String sampleFileName, BDCManagedInput managedInput) throws IOException {
 		List<String> patientSet = new ArrayList<>();
 		
@@ -474,7 +531,7 @@ public abstract class BDCJob extends Job {
 		} else {
 			for(String filePart: subjMultiFile.split("\\.")) {
 				
-				if(filePart.toLowerCase().startsWith("v")) {
+				if(filePart.matches("v[0-9]+")) {
 					return filePart;
 				}
 					
@@ -490,11 +547,11 @@ public abstract class BDCJob extends Job {
 			return null;
 		} else {
 			for(String filePart: subjMultiFile.split("\\.")) {
-				
-				if(filePart.matches("p[0-9]")) {
+				filePart="p11";
+				if(filePart.matches("p[0-9]+")) {
 					return filePart;
 				}
-					
+				
 			}
 			return null;
 		}
@@ -613,6 +670,7 @@ public abstract class BDCJob extends Job {
 				
 				if(record[0] == null) continue;
 				if(record[0].startsWith("#")) continue;
+				if(record[0].trim().isEmpty()) continue;
 				if(record[0].toLowerCase().contains("dbgap")) return record;
 				
 			}
@@ -627,5 +685,99 @@ public abstract class BDCJob extends Job {
 		}
 		return null;
 	}
+	
+	public static boolean hasPatientMapping(BDCManagedInput managedInput) throws IOException {
+		File file = new File(DATA_DIR);
+
+		if(file.isDirectory()) {
+			
+			String[] files = file.list(new FilenameFilter() {
+				
+				@Override
+				public boolean accept(File dir, String name) {
+					
+					if(name.equalsIgnoreCase(managedInput.getStudyAbvName() + "_PatientMapping.v2.csv")) {
+						return true;
+					}
+					
+					return false;
+					
+				}
+				
+			});
+			
+			if(files.length > 0) {
+				return true;
+			} else {
+				return false;
+			}
+			
+		} else {
+			throw new IOException(DATA_DIR + " is not a directory!");
+		}
+	}
+	
+	public static Map<String,String> getDbgapToSubjectIdMappingFromRawData(BDCManagedInput managedInput) throws IOException {
+		Map<String,String> subjIds = new HashMap<>();
+		
+		String multi = BDCJob.getStudySubjectMultiFile(managedInput);
+		
+		CSVReader reader = BDCJob.readRawBDCDataset(new File(DATA_DIR + multi), true);		
+		
+		int idx = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + multi), managedInput.getPhsSubjectIdColumn());
+		
+		String[] line;
+		
+		while((line = reader.readNext())!= null) {
+			
+			subjIds.put(line[0],line[idx]);
+		}
+		
+		return subjIds;
+	}
+	
+	public static List<String> getDbgapSubjIdsFromRawData(BDCManagedInput managedInput) throws IOException {
+		List<String> subjIds = new ArrayList<String>();
+		
+		String multi = BDCJob.getStudySubjectMultiFile(managedInput);
+		
+		CSVReader reader = BDCJob.readRawBDCDataset(new File(DATA_DIR + multi), true);		
+		
+		String[] line;
+		
+		while((line = reader.readNext())!= null) {
+			subjIds.add(line[0]);
+		}
+		
+		return subjIds;
+	}
+
+	public static Map<String, String> getDbgapToSubjectIdMappingFromRawData(BDCManagedInput managedInput,
+			Map<String, String> overrides) throws IOException {
+		// TODO Auto-generated method stub
+		Map<String,String> subjIds = new HashMap<>();
+		
+		String multi = BDCJob.getStudySubjectMultiFile(managedInput);
+		
+		CSVReader reader = BDCJob.readRawBDCDataset(new File(DATA_DIR + multi), true);		
+		
+		int idx = -1;
+		
+		if(overrides.containsKey(managedInput.getStudyAbvName())) {
+			idx = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + multi), overrides.get(managedInput.getStudyAbvName()));
+		} else {
+			idx = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + multi), managedInput.getPhsSubjectIdColumn());
+		}
+		String[] line;
+		
+		while((line = reader.readNext())!= null) {
+			
+			subjIds.put(line[0],line[idx]);
+		}
+		
+		return subjIds;
+	}
+	
+	
 }
 

@@ -28,6 +28,8 @@ public class BDCManagedInput extends ManagedInput {
 		this.dataType = inputCsv[4];
 		this.isHarmonized = inputCsv[5];
 		this.phsSubjectIdColumn = inputCsv[6];
+		this.readyToProcess = inputCsv[7];
+		this.dataProcessed = inputCsv[8];
 	}
 	
 	public static List<ManagedInput> buildAll(List<String[]> managedInputs){
@@ -39,9 +41,26 @@ public class BDCManagedInput extends ManagedInput {
 		for(String[] input: managedInputs) {
 			if(input[0].equalsIgnoreCase("Study Abbreviated Name")) continue;
 			if(input.length > 7 && input[7].equalsIgnoreCase("no")) continue; 
+			//if(input.length > 8 && input[8].equalsIgnoreCase("no")) continue;
 			inputs.add(new BDCManagedInput(input));
 		}
 		return inputs;
+	}
+
+	public String getReadyToProcess() {
+		return readyToProcess;
+	}
+
+	public void setReadyToProcess(String readyToProcess) {
+		this.readyToProcess = readyToProcess;
+	}
+
+	public String getDataProcessed() {
+		return dataProcessed;
+	}
+
+	public void setDataProcessed(String dataProcessed) {
+		this.dataProcessed = dataProcessed;
 	}
 
 	public String getStudyIdentifier() {

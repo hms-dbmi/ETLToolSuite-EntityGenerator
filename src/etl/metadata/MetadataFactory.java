@@ -1,5 +1,6 @@
 package etl.metadata;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -20,5 +21,18 @@ public class MetadataFactory {
 		
 		return null;
 	}
+
+
+	public static BDCMetadata buildMetadata(String type, List<ManagedInput> managedInputs, File metadata) throws IOException {
+		if("BDC".equalsIgnoreCase(type)) return new BDCMetadata(managedInputs, metadata);
+		
+		return null;
+	}
 	
+	
+	public static BDCMetadata readMetadata(String type, File file) {
+		if("BDC".equalsIgnoreCase(type)) return BDCMetadata.readMetadata(file);
+		
+		return null;
+	}
 }

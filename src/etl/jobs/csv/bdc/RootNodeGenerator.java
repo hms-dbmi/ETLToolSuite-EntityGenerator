@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 import etl.jobs.mappings.Mapping;
@@ -52,21 +53,30 @@ public class RootNodeGenerator extends BDCJob {
 		Map<String, List<String>> map = new HashMap<>();
 		
 		for(BDCManagedInput managedInput: managedInputs) {
-			
+			if(!managedInput.getReadyToProcess().toLowerCase().startsWith("y")) continue;
+			if(BDCJob.NON_DBGAP_STUDY.contains(managedInput.getStudyAbvName())) continue;
 			String rootNode = managedInput.getStudyFullName() + " ( " + managedInput.getStudyIdentifier() + " )";
 			if(patientMappings.containsKey(managedInput.getStudyAbvName())) {
 			
-				try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + managedInput.getStudyAbvName() + "rootnode.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+				try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + managedInput.getStudyIdentifier() + "rootnode.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 				
-					for(String patientNum: patientMappings.get(managedInput.getStudyAbvName()).values()) {
-						String[] line = new String[] { patientNum, "TRUE" };
-						writer.write(toCsv(line));
+					// 
+
+					
+					List<String> dbgapSubjIds = BDCJob.getDbgapSubjIdsFromRawData(managedInput);
+					
+					for(Entry<String,String> entry: patientMappings.get(managedInput.getStudyAbvName()).entrySet()) {
+						if(dbgapSubjIds.contains(entry.getKey())) {
+							String[] line = new String[] { entry.getValue(), "TRUE" };
+							writer.write(toCsv(line));
+						}
 					}
 					
 				}
 				try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "rootnode_mapping.csv"), StandardOpenOption.CREATE, StandardOpenOption.APPEND )) {
-					Mapping mapping = new Mapping( managedInput.getStudyAbvName() + "rootnode.csv:1", rootNode, "", "TEXT", "");
+					Mapping mapping = new Mapping( managedInput.getStudyIdentifier() + "rootnode.csv:1", "µ_studiesµ" + rootNode + "µ", "", "TEXT", "");
 					writer.write(mapping.toCSV() + '\n');
+					
 				}
 			}
 			

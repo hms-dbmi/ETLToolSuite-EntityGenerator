@@ -108,8 +108,8 @@ public class HarmonizedSyncPatients extends Job {
 					ac.setPatientNum(new Integer(patIdMap.get(hrmnId)));
 					records.add(ac);
 				} else {
-					records.add(ac);
-					//System.err.println("No matching id for " + line[0]);
+					//records.add(ac);
+					System.err.println("No matching id for " + line[0]);
 				}
 			}
 			
@@ -299,7 +299,7 @@ public class HarmonizedSyncPatients extends Job {
 
 	private static List<String[]> getPatientMappings() throws IOException {
 	
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "HRMN_PatientMapping.csv"))) {
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "HRMN_PatientMapping.v2.csv"))) {
 		
 			CSVReader reader = new CSVReader(buffer, ',', '\"', '√');
 			

@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,6 +24,7 @@ import com.opencsv.CSVReader;
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 import etl.jobs.Job;
 import etl.jobs.jobproperties.JobProperties;
+import etl.jobs.mappings.Mapping;
 
 
 /**
@@ -110,25 +112,80 @@ public class ConsentGroupGenerator extends BDCJob {
 
 		Map<String,Map<String,String>> patientMappings = getPatientMappings();
 		
-		//System.out.println("Building Parent Consents");
 		
-		Map<String,List<String[]>> consents = generateConsents(managedInputs, patientMappings);
+		// use the hpds id to reverse look up from consents that are generated
+		// the value will store the study abv name of the id to validate.
+		List<String[]> hrmnPM = BDCJob.getPatientMappings("HRMN");
 		
-		//List<String[]> _consents = 
-		
-		//System.out.println("Building Topmed Consents");
-		//List<String[]> _topmed_consent = generateConsents(managedInputs, patientMappings,"topmed");
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+		for(String[] hc: hrmnPM) {
 			
-			for(Entry<String, List<String[]>> entry: consents.entrySet()) {
+			if(patientMappings.containsKey("HRMN")) {
+				patientMappings.get("HRMN").put(hc[2], hc[1]);
+
+			} else {
+				Map<String,String> innerMap = new HashMap<>();
+				innerMap.put(hc[2], hc[1]);
 				
-				for(String[] line: entry.getValue()) {
-					writer.write(toCsv(line));	
-				}
-				
+				patientMappings.put("HRMN", innerMap);
 			}
 			
 		}
+		//System.out.println("Building Parent Consents");
+		
+		Map<String,List<String[]>> consents = generateConsents(managedInputs, patientMappings);
+				
+		//System.out.println("Building Topmed Consents");
+		//List<String[]> _topmed_consent = generateConsents(managedInputs, patientMappings,"topmed");
+		
+		
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+			
+			for(String[] line: consents.get("PARENT")) {
+				writer.write(toCsv(line));
+			}
+			
+			for(String[] line: consents.get("TOPMED")) {
+				writer.write(toCsv(line));
+			}
+			
+		}
+		
+		/*	
+		for(Entry<String,List<String[]>> entry: consents.entrySet()) {
+				
+			for(String[] line: entry.getValue()) {
+				String consent = line[1];
+
+				try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + consent + "_studies_consents.csv"),StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+
+					String[] newLine = new String[2];
+					newLine[0] = line[0];
+					newLine[1] = "TRUE";
+					
+					writer.write(toCsv(newLine));
+				}
+			
+			}
+
+		}
+		
+		File dir = new File(WRITE_DIR);
+		File[] files = dir.listFiles(new FilenameFilter() {
+			
+			@Override
+			public boolean accept(File dir, String name) {
+				if(name.contains("_studies_consents.csv")) return true;
+				return false;
+			}
+		});
+		
+		for(File f: files) {
+			try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "studies_consents_mapping.csv"), StandardOpenOption.CREATE, StandardOpenOption.APPEND )) {
+				Mapping mapping = new Mapping( f.getName().split("\\_")[0] + "_studies_consents.csv:1", "µ_studies_consentsµ" + f.getName().split("\\_")[0] + "µ", "", "TEXT", "");
+				writer.write(mapping.toCSV() + '\n');
+			}
+		}
+*/
 		if(consents.containsKey("PARENT")) {
 			try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "parent_consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 				for(String[] line: consents.get("PARENT")) {
@@ -175,11 +232,44 @@ public class ConsentGroupGenerator extends BDCJob {
 			}
 			if(managedInput.getIsHarmonized().equalsIgnoreCase("Y") && !HARMONIZE_OMISSION.contains(studyAbvName.toUpperCase())) {
 				
-				addHarmonizedConsents(studyIdentifier,studyAbvName,patientMappings);
+				addHarmonizedConsents2(studyAbvName,buildConsents(studyIdentifier,studyAbvName,patientMappings),patientMappings);
 				
 			}
 		}
 		return consents;
+	}
+
+	private static void addHarmonizedConsents2(String studyAbvName, List<String[]> buildConsents,
+			Map<String, Map<String, String>> patientMappings) {
+		
+		if(patientMappings.containsKey("HRMN")) {
+			
+			Map<String,String> hrmnPatientMappings = patientMappings.get("HRMN");
+			
+			for(String[] currentConsent: buildConsents) {
+				
+				if(hrmnPatientMappings.containsKey(currentConsent[0])) {
+					
+					if(hrmnPatientMappings.get(currentConsent[0]).equalsIgnoreCase(studyAbvName)) {
+						
+						_harmonized_consents.add(currentConsent);
+						
+					} else {
+						
+						System.err.println("HPDS source ids do not match between Harmonized and Study - " + studyAbvName + ":" + currentConsent[0] );
+						
+					}
+					
+				}
+				
+			}
+				
+		} else {
+			
+			System.err.println("MISSING HRMN PATIENT MAPPING!");
+		
+		}
+		
 	}
 
 	private static List<String[]> generateConsents(List<BDCManagedInput> managedInputs, Map<String,Map<String,String>> patientMappings, String consentType) throws IOException, ParseException {
@@ -203,6 +293,8 @@ public class ConsentGroupGenerator extends BDCJob {
 					
 				}
 					
+			} else if(managedInput.getStudyAbvName().equalsIgnoreCase("ORCHID")) {
+				_consents.addAll(buildOrchidConsents());
 			}
 			
 		}
@@ -210,6 +302,21 @@ public class ConsentGroupGenerator extends BDCJob {
 	}
 
 	
+	private static Collection<? extends String[]> buildOrchidConsents() throws IOException {
+		List<String[]> rs = new ArrayList<>();
+		
+		
+		List<String[]> list = BDCJob.getPatientMappings("ORCHID");
+		
+		for(String[] x: list) {
+			if(x.length > 2) {
+				rs.add(new String[] {x[2],"phs002299.c1"});
+			}
+		}
+		
+		return rs;
+	}
+
 	private static void addHarmonizedConsents(String studyIdentifier, String studyAbvName,
 			Map<String, Map<String, String>> patientMappings) throws IOException, ParseException {
 		File dataDir = new File(DATA_DIR);

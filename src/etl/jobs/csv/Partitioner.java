@@ -86,6 +86,7 @@ public class Partitioner extends Job {
 		
 		for(Mapping m: mappingFile) {
 			if(mappings.containsKey(m.getRootNode())){
+				 
 				mappings.get(m.getRootNode()).add(m);
  			} else {
  				mappings.put(m.getRootNode(), new HashSet<Mapping>(Arrays.asList(m)));
@@ -104,6 +105,8 @@ public class Partitioner extends Job {
     			int currentConceptSeq = CONCEPT_CD_STARTING_SEQ;
     			    			
     			MAPPING_FILE = prop.getProperty("mappingfile");
+    			
+    			checkDataTypes(mappings);
     			
     			for(Entry<String,Set<Mapping>> entry: mappings.entrySet()) {
     				/*
@@ -135,22 +138,23 @@ public class Partitioner extends Job {
                */
     				String jobConfig = buildJobConfig(partition, prop);
     				
-                try(OutputStream output = new FileOutputStream(MAPPING_OUTPUT_DIR + "/mapping.part" + partition + ".csv")) {
-                		for(Mapping newmapping: entry.getValue()) {
-                			output.write((newmapping.toCSV() + '\n').getBytes());
-                		}
-                		output.flush();
-                		output.close();
-                		
-                }
-                
-                try(OutputStream output = new FileOutputStream(CONFIG_OUTPUT_DIR + "/config.part" + partition + ".config")) {
-                	
-    	            		output.write(jobConfig.getBytes());
-    	            		output.flush();
-    	            		output.close();
-            		
-                }
+	                try(OutputStream output = new FileOutputStream(MAPPING_OUTPUT_DIR + "/mapping.part" + partition + ".csv")) {
+	                		for(Mapping newmapping: entry.getValue()) {
+	                			
+	                			output.write((newmapping.toCSV() + '\n').getBytes());
+	                		}
+	                		output.flush();
+	                		output.close();
+	                		
+	                }
+	                
+	                try(OutputStream output = new FileOutputStream(CONFIG_OUTPUT_DIR + "/config.part" + partition + ".config")) {
+	                	
+	    	            		output.write(jobConfig.getBytes());
+	    	            		output.flush();
+	    	            		output.close();
+	            		
+	                }
 
                 //Iterate sequence for next partition in the loop
                 //buffer is not enough setting to 50 to avoid conficts
@@ -161,6 +165,33 @@ public class Partitioner extends Job {
             ex.printStackTrace();
         }		
 	}
+	private static void checkDataTypes(Map<String, Set<Mapping>> mappings) {
+
+		
+		for(Entry<String,Set<Mapping>> m1: mappings.entrySet()) {
+			boolean mixedDataTypes = false;
+			boolean isTval = false;
+			boolean isNval = false;
+			for(Mapping m2: m1.getValue()) {
+				if(m2.getDataType().equalsIgnoreCase("text")) isTval = true;
+				if(m2.getDataType().equalsIgnoreCase("numeric")) isNval = true;
+			}
+			if(isTval == isNval) mixedDataTypes = true;
+			if(mixedDataTypes) {
+				for(Mapping m2: m1.getValue()) {
+					System.err.println("setting data type");
+					m2.setDataType("TEXT");
+				}
+				for(Mapping m2: m1.getValue()) {
+					System.out.println(m2.getRootNode());
+					System.err.println(m2.getDataType());
+					
+				}
+			}
+		}
+		
+	}
+
 	private static String buildJobConfig(int partition, Properties prop) {
 		return "trialid=" + TRIAL_ID + "\n" + 
 				"mappingfile=" + "./mappings/mapping.part" + partition + ".csv" + "\n" +

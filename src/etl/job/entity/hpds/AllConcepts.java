@@ -7,6 +7,15 @@ public class AllConcepts {
 	private String nvalNum;
 	private String startDate = "0";
 	
+	public AllConcepts(String[] line) {
+		this.patientNum = new Integer(line[0]);
+		this.conceptPath = line[1];
+		this.nvalNum = line[2];
+		this.tvalChar = line[3];
+	}
+	public AllConcepts() {
+		// TODO Auto-generated constructor stub
+	}
 	public Integer getPatientNum() {
 		return patientNum;
 	}
@@ -37,14 +46,20 @@ public class AllConcepts {
 	public void setNvalNum(String nvalNum) {
 		this.nvalNum = nvalNum;
 	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((conceptPath == null) ? 0 : conceptPath.hashCode());
 		result = prime * result + ((patientNum == null) ? 0 : patientNum.hashCode());
+		result = prime * result + ((tvalChar == null) ? 0 : tvalChar.hashCode());
+		result = prime * result + ((nvalNum == null) ? 0 : nvalNum.hashCode());
+		result = prime * result + ((startDate == null) ? 0 : startDate.hashCode());
+
 		return result;
 	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -64,7 +79,21 @@ public class AllConcepts {
 				return false;
 		} else if (!patientNum.equals(other.patientNum))
 			return false;
-		
+		if (tvalChar == null) {
+			if (other.tvalChar != null)
+				return false;
+		} else if (!tvalChar.equals(other.tvalChar))
+			return false;
+		if (nvalNum == null) {
+			if (other.nvalNum != null)
+				return false;
+		} else if (!nvalNum.equals(other.nvalNum))
+			return false;
+		if (startDate == null) {
+			if (other.startDate != null)
+				return false;
+		} else if (!startDate.equals(other.startDate))
+			return false;
 		return true;
 	}
 	
@@ -76,6 +105,7 @@ public class AllConcepts {
 	public boolean isValid() {
 		
 		if(patientNum == null) return false;
+		if(patientNum == -1) return false;
 		//if(Integer.isEmpty) return false;
 		if(conceptPath == null) return false;
 		if(tvalChar.equals("null")) return false;

@@ -11,15 +11,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -55,7 +54,7 @@ public class GenerateAllConcepts extends Job{
 	private static Set<String> MAPPINGS_WITH_BAD_DATA_TYPES = new HashSet<>();
 	
 	// Static map to see if patient has been created
-	private static Map<String,Integer> SEQUENCE_MAP = new HashedMap<String,Integer>();
+	private static Map<String,Integer> SEQUENCE_MAP = new HashMap<String,Integer>();
 		
 	public static void main(String[] args) {
 		
@@ -185,9 +184,7 @@ public class GenerateAllConcepts extends Job{
 						
 						}
 					}
-					
-					Iterator<String[]> iter = csvreader.iterator();
-					
+										
 					String[] line;
 						// hash set to store  unique concepts
 					Set<AllConcepts> records = new TreeSet<>( new Comparator<AllConcepts>() {
@@ -202,18 +199,31 @@ public class GenerateAllConcepts extends Job{
 								return conceptpath;
 							}
 							
-							return o1.getPatientNum().compareTo(o2.getPatientNum());
+							int patientNum = o1.getPatientNum().compareTo(o2.getPatientNum());
+							
+							if(patientNum != 0) {
+								return patientNum;
+							}
+							
+							int tvalChar = o1.getTvalChar().compareTo(o2.getTvalChar());
+							
+							if(tvalChar != 0) {
+								return tvalChar;
+							}
+							
+							return(o1.getNvalNum().compareTo(o2.getNvalNum()));
+							
 													
 						}
 						
 					} ); 
 					
-					while((line = iter.next()) != null) {
+					while((line = csvreader.readNext()) != null) {
 						if(line.length == 0) continue;
 						// hotfix for dbgap
 						if(line[0].toLowerCase().contains("dbgap")) continue;
 						if(line.length - 1 >= column && line.length - 1 >= PATIENT_COL) {
-							
+							if(line[0].trim().isEmpty()) continue;
 							if(line[column].trim().isEmpty()) continue;
 							if(line[0].charAt(0) == '#') continue;
 							AllConcepts allConcept = generateAllConcepts(mapping,line,column);
@@ -242,7 +252,7 @@ public class GenerateAllConcepts extends Job{
 				} catch (IOException e1) {
 					
 					System.err.println(e1);
-					
+					e1.printStackTrace();
 				}
 				
 			});
@@ -299,7 +309,7 @@ public class GenerateAllConcepts extends Job{
 			allConcept.setNvalNum("");
 			
 			allConcept.setTvalChar(line[column].trim().replaceAll("\"", "'"));
-			
+
 			return allConcept;
 			
 		} else if(mapping.getDataType().equalsIgnoreCase("NUMERIC")) {
@@ -344,9 +354,8 @@ public class GenerateAllConcepts extends Job{
 		if(SEQUENCE_MAP.containsKey(patientNum)) {
 			return SEQUENCE_MAP.get(patientNum);
 		} else {
-			SEQUENCE_MAP.put(patientNum, PATIENT_NUM_STARTING_SEQ);
-			PATIENT_NUM_STARTING_SEQ++;
-			return PATIENT_NUM_STARTING_SEQ - 1;
+			System.out.println("Patient Mapping missing for: " + patientNum );
+			return -1;
 		}
 	}
 

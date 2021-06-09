@@ -196,6 +196,126 @@
   	    <zipgroupfileset dir="bin" includes="**/*.jar" />
   		</jar>  
   		-->
+    	<jar destfile="StudiesConsentsGenerator.jar">
+    				<manifest>
+    				<attribute name="Main-Class" value="etl.jobs.csv.bdc.StudiesConsentsGenerator"/>
+    				</manifest>
+    			    <fileset dir="bin" includes="**/*.class" />
+    				<fileset dir="bin" includes="*.xml"></fileset>
+    		    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    	</jar>
+		<jar destfile="RemoveConsentZeroPatients.jar">
+			<manifest>
+			<attribute name="Main-Class" value="etl.jobs.csv.bdc.RemoveConsentZeroPatients"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+		<jar destfile="VariantPatientIdentifier.jar">
+    			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.VariantPatientIdentifier"/>
+    			</manifest>
+    		    <fileset dir="bin" includes="**/*.class" />
+    			<fileset dir="bin" includes="*.xml"></fileset>
+    	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    	</jar>
+    	<jar destfile="UpdateCountsInJsonMetadata.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.UpdateCountsInJsonMetadata"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar> 
+    	<jar destfile="HarmonizedPatientMappingGenerator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.HarmonizedPatientMappingGenerator"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar> 
+    	<jar destfile="ValidatePatientMappings.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.ValidatePatientMappings"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar> 
+    	<jar destfile="CleanupPatientNums.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.CleanupPatientNums"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar> 
+    	<jar destfile="MergeGlobalAllConcepts.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.MergeGlobalAllConcepts"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>    	
+    	<jar destfile="SortGlobal.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.SortGlobal"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+    	<jar destfile="BDCValidations.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.BDCValidations"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+    	<jar destfile="HPDSPatientNumTracker.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.HPDSPatientNumTracker"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+    	<jar destfile="CollectIdentifiers.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.CollectIdentifiers"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+    	<jar destfile="BuildCounts.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.BuildCounts"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+    	<jar destfile="PurgePatients.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.PurgePatients"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+  		</jar>
+		<jar destfile="AllConceptsInsertStudy.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.AllConceptsInsertStudy"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+  		</jar>
     		<jar destfile="BDCShareTreeBuilder.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.bdc.BDCShareTreeBuilder"/>
@@ -276,6 +396,14 @@
 			<fileset dir="bin" includes="*.xml"></fileset>
 		    <zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar>-->
+    		<jar destfile="VcfIndexSync.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.VcfIndexSync"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+		    <zipgroupfileset dir="bin" includes="**/*.jar" />
+    		</jar> 
 		<jar destfile="GenerateAllConcepts.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.GenerateAllConcepts"/>
@@ -310,7 +438,7 @@
 		</jar> 
 		<jar destfile="HarmonizedSyncPatients.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.jobs.csv.bdc.HarmonizedSyncPatients"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.HarmonizedSyncPatients2"/>
 			</manifest>
 		    <fileset dir="bin" includes="**/*.class" />
 			<fileset dir="bin" includes="*.xml"></fileset>
@@ -375,6 +503,15 @@
     		<jar destfile="JsonMetadataGenerator.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.JsonMetadataGenerator"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+    	 
+    	<jar destfile="JsonMetadataGenerator2.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.JsonMetadataGenerator2"/>
 			</manifest>
 		    <fileset dir="bin" includes="**/*.class" />
 			<fileset dir="bin" includes="*.xml"></fileset>

@@ -27,29 +27,29 @@ public class ParentNodeModifier extends BDCJob {
 
 	// global removes ( regex matches ); 
 	// removes entire layer and moves lower layer up
-	private static Set<String> GLOBAL_REMOVES = new HashSet<String>(Arrays.asList("The dataset provides" ,"This subject phenotype data"));
+	private static Set<String> GLOBAL_REMOVES = new HashSet<String>(Arrays.asList("The dataset provides" ,"This subject phenotype data", "This subject phenotype table", "This subject sample mapping data table includes a mapping"));
 
 	// scenario one
 	// removes all text after regex match
 	// preserves all text before the match
-	private static Set<String> S1_STUDIES = new HashSet<String>(Arrays.asList("GENOA"));
+	private static Set<String> S1_STUDIES = new HashSet<String>(Arrays.asList("phs001238", "phs001345"));
 	private static final String S1_REGEX = "This dataset include.*";
 	
 	// scenario two
 	// removes all text after regex match
 	// preserves all text before the match
-	private static Set<String> S2_STUDIES = new HashSet<String>(Arrays.asList("ARIC"));
+	private static Set<String> S2_STUDIES = new HashSet<String>(Arrays.asList("phs000280", "phs001211"));
 	private static final String S2_REGEX = "\\..*";
 	
 	// scenario three
 	// removes all text after regex match
 	// preserves all text before the match
-	private static Set<String> S3_STUDIES = new HashSet<String>(Arrays.asList("WHI"));
-	private static final String S3_REGEX = "--.*";	
+	private static Set<String> S3_STUDIES = new HashSet<String>(Arrays.asList("phs000200", "phs001237"));
+	private static final String S3_REGEX = " --.*";	
 	
 	// scenario four
 	// when node contains "Data Contains" only preserve Year #
-	private static Set<String> S4_STUDIES = new HashSet<String>(Arrays.asList("CHS"));
+	private static Set<String> S4_STUDIES = new HashSet<String>(Arrays.asList("phs000287", "phs001368"));
 	private static final String S4_REGEX = "\\(all > 65 years of age\\).*";
 	private static final String S4_REPLACE_VALUE = "(all > 65 years of age)";
 

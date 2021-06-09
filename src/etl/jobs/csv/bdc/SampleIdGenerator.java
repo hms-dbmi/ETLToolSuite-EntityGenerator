@@ -129,13 +129,16 @@ public class SampleIdGenerator extends BDCJob {
 		Map<String,String> map = new HashMap<>();
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + studyId.toUpperCase() + "_PatientMapping.v2.csv"))){
+			
+			System.out.println(studyId.toUpperCase() + "_PatientMapping.v2.csv");
 			CSVReader reader = new CSVReader(buffer);
 			
 			String[] arr;
 			
 			while((arr = reader.readNext()) != null) {
-				
-				map.put(arr[0], arr[2]);
+				if(arr.length > 2) {
+					map.put(arr[0], arr[2]);
+				}
 			}
 		}
 		return map;

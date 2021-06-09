@@ -2,6 +2,7 @@ package etl.jobs.csv;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -71,7 +72,7 @@ public class JsonMetadataGenerator extends Job {
 		
 		List<ManagedInput> managedInputs = ManagedInputFactory.readManagedInput(METADATA_TYPE,MANAGED_INPUT);
 
-		Metadata etlm = MetadataFactory.buildMetadata(METADATA_TYPE,managedInputs);
+		Metadata etlm = MetadataFactory.buildMetadata(METADATA_TYPE,managedInputs,new File(DATA_DIR + "metadata.json"));
 
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + WRITE_FILE_NAME) , StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 			

@@ -11,11 +11,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import com.opencsv.CSVReader;
-
-import etl.jobs.Job;
-import etl.jobs.csv.bdc.BDCJob;
 
 /**
  * Parent class for patient mapping
@@ -37,6 +36,10 @@ public class PatientMapping {
 		this.sourceId = pmRecord[0];
 		this.sourceName = pmRecord[1];
 		this.patientNum = new Integer(pmRecord[2]);
+	}
+
+	public PatientMapping() {
+		// TODO Auto-generated constructor stub
 	}
 
 	public String getSourceId() {
@@ -98,7 +101,7 @@ public class PatientMapping {
 		HashMap<String,Integer> map = new HashMap<>();
 		
 		for(PatientMapping pm : patientMappings) {
-			map.put(pm.getSourceName() + pm.getSourceId(), pm.getPatientNum());
+			map.put(pm.getSourceId(), pm.getPatientNum());
 		}
 		return map;
 	}
@@ -133,7 +136,7 @@ public class PatientMapping {
 		sb.append('\n');
 		return sb.toString().toCharArray();
 	}
-	private char[] toCSV() {
+	public char[] toCSV() {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append('"');
@@ -149,6 +152,42 @@ public class PatientMapping {
 		sb.append('"');
 		sb.append('\n');
 		return sb.toString().toCharArray();
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((sourceId == null) ? 0 : sourceId.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PatientMapping other = (PatientMapping) obj;
+		if (sourceId == null) {
+			if (other.sourceId != null)
+				return false;
+		} else if (!sourceId.equals(other.sourceId))
+			return false;
+
+		return true;
+	}
+
+	public static Set<Integer> getHpdsPatIdKeySet(List<PatientMapping> patientMappings) {
+		Set<Integer> pmSet = new TreeSet<Integer>();
+		
+		for(PatientMapping pm: patientMappings) {
+			pmSet.add(pm.getPatientNum());
+		}
+		
+		return pmSet;
 	}
 	
 	

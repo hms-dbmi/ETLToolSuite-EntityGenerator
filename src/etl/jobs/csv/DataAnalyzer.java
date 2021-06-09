@@ -33,7 +33,7 @@ import etl.utils.Utils;
 
 public class DataAnalyzer extends Job {
 
-	public static double NUMERIC_THRESHOLD = .85;
+	public static double NUMERIC_THRESHOLD = .99;
 	
 	public static void main(String[] args) throws Exception {
 		try {
@@ -51,6 +51,8 @@ public class DataAnalyzer extends Job {
 		
 		List<Mapping> mappings = Mapping.generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
 
+		if(mappings.isEmpty()) System.err.println("NO MAPPINGS FOR " + TRIAL_ID);
+		
 		List<Mapping> newMappings = analyzeData(mappings);
 		
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(MAPPING_FILE), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){

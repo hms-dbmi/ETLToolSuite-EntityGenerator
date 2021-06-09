@@ -46,8 +46,9 @@ public class DbGapDataMerge extends Job {
 			System.out.println("merging " + entry.getKey());
 			ProcessBuilder processBuilder = new ProcessBuilder();
 			
-			processBuilder.command("bash", "-c", "cat " + entry.getValue() + " >> " + WRITE_DIR + "allConcepts.csv");
+			//processBuilder.command("bash", "-c", "cat " + entry.getValue() + " >> " + WRITE_DIR + "allConcepts.csv");
 
+			processBuilder.command("bash", "-c", "sed 's/µ/\\\\/g' " + entry.getValue() + " >> " + WRITE_DIR + "allConcepts.csv");
 			
 			Process process = processBuilder.start();
 			

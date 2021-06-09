@@ -1,5 +1,6 @@
 package etl.jobs.csv.bdc;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -7,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,17 @@ import etl.jobs.Job;
 
 public class DbgapDecodeFiles extends Job {
 
+	public static List<String> SAMPLE_ID = new ArrayList() {{
+		add("DBGAP_SAMPLE_ID");
+		add("DBGAP SAMPID");
+	}};
+	public static List<String> SUBJECT_ID = new ArrayList() {{
+		add("dbGaP_Subject_ID".toUpperCase());
+		add("dbGaP SubjID".toUpperCase());
+
+	}};
+	private static Map<String,String> SAMPLE_TO_SUBJECT_ID = new HashMap<>();
+	
 	public static void main(String[] args) {
 		try {
 			
@@ -66,7 +79,10 @@ public class DbgapDecodeFiles extends Job {
 		if(Files.isDirectory(Paths.get(DATA_DIR))) {
 
 			File[] dataFiles = new File(DATA_DIR).listFiles();
-
+			File f = new File(DATA_DIR);
+			
+			setSampleToSubject();
+			
 			for(File data: dataFiles) {
 
 				String[] fileNameArr = data.getName().split("\\.");
@@ -87,6 +103,43 @@ public class DbgapDecodeFiles extends Job {
 		}
 		
 	}
+	private static void setSampleToSubject() throws IOException {
+		String[] sampleFiles = BDCJob.getStudySampleMultiFile();
+		
+		for(String samplefile:sampleFiles) {
+			String[] headers = BDCJob.getHeaders(new File(DATA_DIR + samplefile));
+			
+			int sampColId = -1; 
+			int subjColId = -1;
+			
+			for(String sampid: SAMPLE_ID) {
+				if(BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), sampid) != -1) {
+					sampColId = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), sampid);
+				}
+			}
+			for(String subjid: SUBJECT_ID) {
+				if(BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), subjid) != -1) {
+					subjColId = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), subjid);
+				}
+			}
+			
+			if(subjColId == -1) continue;
+			
+			if(sampColId == -1) continue;
+			
+			try(CSVReader reader = BDCJob.readRawBDCDataset(Paths.get(DATA_DIR + samplefile), true)){
+				String[] line;
+				while((line = reader.readNext())!= null) {
+					// skill header
+					if(SUBJECT_ID.contains(line[subjColId].toUpperCase())) continue;
+					SAMPLE_TO_SUBJECT_ID.put(line[sampColId], line[subjColId]);
+					
+				}
+			}
+		}
+			
+	}
+
 	/**
 	 * 
 	 * Take the data and dictionary file 
@@ -119,34 +172,54 @@ public class DbgapDecodeFiles extends Job {
 			
 			String[] headers = BDCJob.getHeaders(reader);
 			
+			
 			if(headers != null) {
+				boolean isSampleId = SAMPLE_ID.contains(headers[0].toUpperCase());
+				
+				boolean hasDbgapSubjId = SUBJECT_ID.contains(headers[0].toUpperCase());
 				
 				String[] lineToWrite = new String[headers.length];
-
-				while((line = reader.readNext()) != null) {
-					int colidx = 0;
-					for(String cell: line) {
-						if(headers.length - 1 < colidx) continue;
-
-						String header = headers[colidx];
-						
-						if(valueLookup != null && valueLookup.containsKey(header)) {
+				
+				if(hasDbgapSubjId || isSampleId) {
+					while((line = reader.readNext()) != null) {
+						int colidx = 0;
+						for(String cell: line) {
+							if(headers.length - 1 < colidx) continue;
+	
+							String header = headers[colidx];
 							
-							Map<String,String> codedValues = valueLookup.get(header);
-
-							if(codedValues.containsKey(cell)) {
-
-								cell = codedValues.get(cell);	
+							if(valueLookup != null && valueLookup.containsKey(header)) {
+								
+								Map<String,String> codedValues = valueLookup.get(header);
+	
+								if(codedValues.containsKey(cell)) {
+	
+									cell = codedValues.get(cell);	
+									
+								}
 								
 							}
+							lineToWrite[colidx] = cell;
 							
+	
 							
+							colidx++;
 						}
-						lineToWrite[colidx] = cell;
-						colidx++;
+						if(isSampleId) {
+							lineToWrite[0] = findSampleToSubjectID(lineToWrite[0]);
+						}
+						if(lineToWrite[0] == null) continue;
+							
+						buffer.write(toCsv(lineToWrite));
+						buffer.flush();
 					}
-					buffer.write(toCsv(lineToWrite));
+				} else {
+					System.err.println("Missing dbgap subject id in file: " + data.getName());
+					
 					buffer.flush();
+					buffer.close();
+					
+					Files.delete(Paths.get(WRITE_DIR + data.getName()));
 				}
 			} else {
 				
@@ -162,6 +235,11 @@ public class DbgapDecodeFiles extends Job {
 	}
 
 
+
+	private static String findSampleToSubjectID(String string) {
+		if (SAMPLE_TO_SUBJECT_ID.containsKey(string)) return SAMPLE_TO_SUBJECT_ID.get(string);
+		return null;
+	}
 
 	private static Document buildDictionary(File dictionaryFile) {
 		if(dictionaryFile == null) return null;

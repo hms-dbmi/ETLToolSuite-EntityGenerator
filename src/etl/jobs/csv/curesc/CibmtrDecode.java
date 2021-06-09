@@ -69,13 +69,13 @@ public class CibmtrDecode extends Job {
 			
 			while((line = reader.readNext()) != null ) {
 				
-				conceptpaths.put(line[0] , 'µ' + "CIBMTR - Cure Sickle Cell Disease" +'µ' + line[3] + 'µ' + line[4] + 'µ');
+				conceptpaths.put(line[0].toUpperCase() , 'µ' + "Hematopoietic Cell Transplant for Sickle Cell Disease (HCT for SCD) ( phs002385 )" +'µ' + line[3] + 'µ' + line[4] + 'µ');
 				
 			}
 			
 		}
 		List<Mapping> mappings = new ArrayList<Mapping>();
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get("./data/curesc_mcw_year2.csv"))) {
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get("./data/curesc_year2_v2.csv"))) {
 			
 			CSVReader reader = new CSVReader(buffer);
 			String[] headers = reader.readNext();
@@ -101,7 +101,7 @@ public class CibmtrDecode extends Job {
 	}
 
 	private static void decode(Map<String, String> dataDict) throws IOException {
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get("./data/curesc_mcw_year2.csv"))) {
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get("./data/curesc_year2_v2.csv"))) {
 			
 			try(BufferedWriter writer = Files.newBufferedWriter(Paths.get("./data/curesc_decoded.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 				
@@ -118,7 +118,7 @@ public class CibmtrDecode extends Job {
 					String[] linetowrite = new String[line.length];
 					for(String cell: line) {
 						String newCell = cell.replaceAll("\\.0", "");
-						String key = header[x] + ':' + newCell;
+						String key = header[x].toLowerCase() + ':' + newCell;
 						
 						if(!cell.isEmpty() && dataDict.containsKey(key)) {
 							newCell = dataDict.get(key);

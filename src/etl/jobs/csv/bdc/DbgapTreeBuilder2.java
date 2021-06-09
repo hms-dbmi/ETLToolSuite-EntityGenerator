@@ -95,9 +95,10 @@ public class DbgapTreeBuilder2 extends BDCJob {
 		List<BDCManagedInput> managedInputs = getManagedInputs();
 		
 		for(BDCManagedInput managedInput: managedInputs) {
-			if(TRIAL_ID.trim().equalsIgnoreCase(managedInput.getStudyAbvName().trim())) {
+			
+			if(TRIAL_ID.trim().equalsIgnoreCase(managedInput.getStudyIdentifier().trim())) {
 				
-				rootNodes.put(managedInput.getStudyIdentifier(), managedInput.getStudyFullName() + " ( " + managedInput.getStudyIdentifier() + " )");
+				rootNodes.put(managedInput.getStudyIdentifier().toUpperCase(), managedInput.getStudyFullName() + " ( " + managedInput.getStudyIdentifier() + " )");
 
 			}
 		}
@@ -143,7 +144,7 @@ public class DbgapTreeBuilder2 extends BDCJob {
 				
 				for(File file: dir.listFiles()) {
 					
-					if(!file.getName().startsWith("phs")) continue;
+					if(!file.getName().toLowerCase().startsWith(TRIAL_ID.toLowerCase())) continue;
 					if(!file.getName().endsWith("txt")) continue;
 					//if(file.getName().toUpperCase().contains("MULTI")) continue;
 
@@ -182,7 +183,7 @@ public class DbgapTreeBuilder2 extends BDCJob {
 		
 		if(!PRESERVE_ROOT_NODE) {
 			String phs = file.getName().split("\\.")[0];
-			ROOT_NODE = rootNodes.get(phs);
+			ROOT_NODE = rootNodes.get(phs.toUpperCase());
 			if(!phs.contains("phs")) throw new IOException("BAD File " + phs); 
 		}
 		if(ROOT_NODE == null) {

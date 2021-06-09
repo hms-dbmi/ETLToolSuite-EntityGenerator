@@ -261,7 +261,7 @@ public class SetPatientSequence extends BDCJob{
 		return 0;
 	}
 
-	private static boolean hasPatientMapping(BDCManagedInput managedInput) throws IOException {
+	public static boolean hasPatientMapping(BDCManagedInput managedInput) throws IOException {
 		File file = new File(DATA_DIR);
 
 		if(file.isDirectory()) {

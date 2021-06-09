@@ -39,7 +39,7 @@ public class PatientMappingBuilder extends BDCJob {
 		} catch (IOException e) {
 			
 			System.err.println(e);
-			
+			e.printStackTrace();
 		}
 	}
 
