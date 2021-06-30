@@ -54,7 +54,7 @@ public class RootNodeGenerator extends BDCJob {
 		
 		for(BDCManagedInput managedInput: managedInputs) {
 			if(!managedInput.getReadyToProcess().toLowerCase().startsWith("y")) continue;
-			if(BDCJob.NON_DBGAP_STUDY.contains(managedInput.getStudyAbvName())) continue;
+			if(BDCJob.NON_DBGAP_STUDY.contains(managedInput.getStudyAbvName().toUpperCase())) continue;
 			String rootNode = managedInput.getStudyFullName() + " ( " + managedInput.getStudyIdentifier() + " )";
 			if(patientMappings.containsKey(managedInput.getStudyAbvName())) {
 			

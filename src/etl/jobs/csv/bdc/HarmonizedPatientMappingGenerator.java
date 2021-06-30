@@ -31,7 +31,7 @@ public class HarmonizedPatientMappingGenerator extends BDCJob {
 		
 		STUDY_ID_SYNONYM.put("AMISH", "Amish");
 		
-		STUDY_ID_SYNONYM.put("HCHSSOL", "HSHS_SOL");
+		STUDY_ID_SYNONYM.put("HCHSSOL", "HCHS_SOL");
 
 		STUDY_ID_SYNONYM.put("COPDGENE", "COPDGene");
 

@@ -36,8 +36,10 @@ public abstract class BDCJob extends Job {
 	public static Set<String> NON_DBGAP_STUDY = new HashSet<String>(){{
 		
 		add("ORCHID");
-		
+		add("HCT_FOR_SCD");
+	
 	}};
+	
 	public static CSVReader readRawBDCDataset(Path fileName) throws IOException {
 		return readRawBDCDataset(fileName,false);
 	}
@@ -70,6 +72,7 @@ public abstract class BDCJob extends Job {
 			
 		
 	}
+	
 	public static CSVReader readRawBDCDataset(File file, boolean removeComments) throws IOException {
 		return readRawBDCDataset(Paths.get(file.getCanonicalPath()), removeComments);
 	}
@@ -754,7 +757,7 @@ public abstract class BDCJob extends Job {
 
 	public static Map<String, String> getDbgapToSubjectIdMappingFromRawData(BDCManagedInput managedInput,
 			Map<String, String> overrides) throws IOException {
-		// TODO Auto-generated method stub
+
 		Map<String,String> subjIds = new HashMap<>();
 		
 		String multi = BDCJob.getStudySubjectMultiFile(managedInput);

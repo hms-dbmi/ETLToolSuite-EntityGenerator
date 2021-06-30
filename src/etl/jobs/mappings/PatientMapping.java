@@ -189,6 +189,12 @@ public class PatientMapping {
 		
 		return pmSet;
 	}
+
+	@Override
+	public String toString() {
+		return "PatientMapping [sourceId=" + sourceId + ", sourceName=" + sourceName + ", patientNum=" + patientNum
+				+ "]";
+	}
 	
 	
 	
