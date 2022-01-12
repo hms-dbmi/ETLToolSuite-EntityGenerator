@@ -83,7 +83,7 @@ public class JsonMetadataGenerator2 extends Job {
 		Map<String,String> genomic_counts = buildGenomicMap();
 
 		
-		Map<String,String> concept_counts = buildPatientMap();
+		Map<String,String> concept_counts = buildConceptMap();
 		
 		updateCounts(patient_counts,concept_counts,genomic_counts,etlm);
 		

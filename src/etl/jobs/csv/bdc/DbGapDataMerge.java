@@ -17,6 +17,15 @@ import java.util.TreeMap;
 
 public class DbGapDataMerge extends Job {
 
+	private static final String[] AC_HEADERS = new String[5];
+	static {
+		AC_HEADERS[0] = "PATIENT_NUM";
+		AC_HEADERS[1] = "CONCEPT_PATH";
+		AC_HEADERS[2] = "NVAL_NUM";
+		AC_HEADERS[3] = "TVAL_CHAR";
+		AC_HEADERS[4] = "DATE_TIME";
+	}
+
 	public static void main(String[] args) {
 		try {
 			setVariables(args, buildProperties(args));
@@ -39,6 +48,7 @@ public class DbGapDataMerge extends Job {
 		Map<String, String> rootNodeSort = sortByRootNodes();
 		
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "allConcepts.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
+			buffer.write(BDCJob.toCsv(AC_HEADERS));
 			buffer.close();
 		}
 			
@@ -75,6 +85,7 @@ public class DbGapDataMerge extends Job {
 		}
 		
 	}
+
 	// filename and rootnode
 	private static Map<String, String> sortByRootNodes() throws IOException {
 		

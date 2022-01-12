@@ -103,43 +103,6 @@ public class DbgapDecodeFiles extends Job {
 		}
 		
 	}
-	private static void setSampleToSubject() throws IOException {
-		String[] sampleFiles = BDCJob.getStudySampleMultiFile();
-		
-		for(String samplefile:sampleFiles) {
-			String[] headers = BDCJob.getHeaders(new File(DATA_DIR + samplefile));
-			
-			int sampColId = -1; 
-			int subjColId = -1;
-			
-			for(String sampid: SAMPLE_ID) {
-				if(BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), sampid) != -1) {
-					sampColId = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), sampid);
-				}
-			}
-			for(String subjid: SUBJECT_ID) {
-				if(BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), subjid) != -1) {
-					subjColId = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), subjid);
-				}
-			}
-			
-			if(subjColId == -1) continue;
-			
-			if(sampColId == -1) continue;
-			
-			try(CSVReader reader = BDCJob.readRawBDCDataset(Paths.get(DATA_DIR + samplefile), true)){
-				String[] line;
-				while((line = reader.readNext())!= null) {
-					// skill header
-					if(SUBJECT_ID.contains(line[subjColId].toUpperCase())) continue;
-					SAMPLE_TO_SUBJECT_ID.put(line[sampColId], line[subjColId]);
-					
-				}
-			}
-		}
-			
-	}
-
 	/**
 	 * 
 	 * Take the data and dictionary file 
@@ -152,15 +115,15 @@ public class DbgapDecodeFiles extends Job {
 	private static void translateData(File data, File dictionaryFile) {
 		
 		Document dataDic = buildDictionary(dictionaryFile);
-
+	
 		Map<String,String> headerLookup = new HashMap<>();
 		 
 		Map<String,String> phvLookup = new HashMap<>();
 		
 		Map<String, Map<String, String>> valueLookup = (dataDic == null) ? null: buildValueLookup(dataDic);
-
+	
 		if(dataDic != null) buildHeaderLookup(dataDic, headerLookup, phvLookup);
-
+	
 		// Start a writer stream to output translated data file
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + data.getName()), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 			
@@ -200,9 +163,7 @@ public class DbgapDecodeFiles extends Job {
 								
 							}
 							lineToWrite[colidx] = cell;
-							
-	
-							
+
 							colidx++;
 						}
 						if(isSampleId) {
@@ -234,7 +195,42 @@ public class DbgapDecodeFiles extends Job {
 	
 	}
 
-
+	private static void setSampleToSubject() throws IOException {
+		String[] sampleFiles = BDCJob.getStudySampleMultiFile();
+		
+		for(String samplefile:sampleFiles) {
+			String[] headers = BDCJob.getHeaders(new File(DATA_DIR + samplefile));
+			
+			int sampColId = -1; 
+			int subjColId = -1;
+			
+			for(String sampid: SAMPLE_ID) {
+				if(BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), sampid) != -1) {
+					sampColId = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), sampid);
+				}
+			}
+			for(String subjid: SUBJECT_ID) {
+				if(BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), subjid) != -1) {
+					subjColId = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), subjid);
+				}
+			}
+			
+			if(subjColId == -1) continue;
+			
+			if(sampColId == -1) continue;
+			
+			try(CSVReader reader = BDCJob.readRawBDCDataset(Paths.get(DATA_DIR + samplefile), true)){
+				String[] line;
+				while((line = reader.readNext())!= null) {
+					// skill header
+					if(SUBJECT_ID.contains(line[subjColId].toUpperCase())) continue;
+					SAMPLE_TO_SUBJECT_ID.put(line[sampColId], line[subjColId]);
+					
+				}
+			}
+		}
+			
+	}
 
 	private static String findSampleToSubjectID(String string) {
 		if (SAMPLE_TO_SUBJECT_ID.containsKey(string)) return SAMPLE_TO_SUBJECT_ID.get(string);

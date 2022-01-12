@@ -39,7 +39,8 @@ public class Text extends DataType {
 			List<Object> relationalValues) throws Exception {
 		
 		if(mapping == null || values == null || values.isEmpty()) {
-			
+			System.err.println("bad record found");
+
 			return new HashSet<AllConcepts>();
 			
 		}
@@ -54,10 +55,12 @@ public class Text extends DataType {
 		for(Object relationalValue: relationalValues) {
 			for(Object v: values) {
 				if( v == null || v instanceof Map) {
+					System.err.println("bad record found");
 					continue;
 				}
 								
 				String value = v.toString();
+				
 				if(value != null){						
 			
 					if(options.containsKey("REGEXEDIT") && value instanceof String){

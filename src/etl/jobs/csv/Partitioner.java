@@ -193,9 +193,12 @@ public class Partitioner extends Job {
 	}
 
 	private static String buildJobConfig(int partition, Properties prop) {
+		
+		String startingSeq = prop.containsKey("patientnumstartseq") ? prop.getProperty("patientnumstartseq") : "-1";
+		
 		return "trialid=" + TRIAL_ID + "\n" + 
 				"mappingfile=" + "./mappings/mapping.part" + partition + ".csv" + "\n" +
-				"patientnumstartseq=" + prop.getProperty("patientnumstartseq")  + "\n" +
+				"patientnumstartseq=" + startingSeq  + "\n" +
 				"patientmappingfile=data/" + TRIAL_ID + "_PatientMapping.v2.csv" + "\n" +
 				"usepatientmapping=" + "Y" + "\n" +
 				"patientcol=" + "0" + "\n" +

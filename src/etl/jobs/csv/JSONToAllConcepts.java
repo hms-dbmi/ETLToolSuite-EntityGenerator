@@ -118,12 +118,20 @@ public class JSONToAllConcepts extends Job {
 				
 				processEntities(mappingFile,(LinkedHashMap) record);
 				
+			} else {
+				System.err.println("bad record");
 			}
 			
 		};
 
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID.toUpperCase() + "_allConcepts.csv"), StandardOpenOption.APPEND, StandardOpenOption.CREATE)){
-			
+			String[] header = new String[5];
+			header[0] = "patient_num";
+			header[1] = "concept_path";
+			header[2] = "nval_num";
+			header[3] = "tval_char";
+			header[4] = "start_date";
+			writer.write(toCsv(header));
 			for(AllConcepts a: ac) {
 				
 				if(a.getNvalNum() == null) a.setNvalNum("");
@@ -287,7 +295,10 @@ public class JSONToAllConcepts extends Job {
 								for(int x = 0; x < values.size(); x++) {
 									
 									String value = values.get(0).toString();
-									
+									if(mask.equals("yyyy")) {
+										value = value + "-01-01";
+										mask = "yyyy-MM-dd";
+									}
 									endDateExclusive = value.isEmpty() ? null: LocalDate.parse(value, DateTimeFormatter.ofPattern(mask) );
 									
 									if(endDateExclusive != null) {
@@ -317,16 +328,21 @@ public class JSONToAllConcepts extends Job {
 									startDateInclusive = LocalDate.now();
 								} else {
 									
-									Object fromO = 
+									Object fromO = findValueByKey(new LinkedHashMap(record), dateDiffFrom.split(":")) == null ? null: 
 											findValueByKey(new LinkedHashMap(record), dateDiffFrom.split(":")).get(0);
 
 									if(mask != null) {
 										if(fromO != null) {
 											
 											String from = fromO.toString();
-											
+											if(mask.equals("yyyy")) {
+												from = from + "-01-01";
+												mask = "yyyy-MM-dd";
+											}
 											startDateInclusive = LocalDate.parse(from, DateTimeFormatter.ofPattern(mask) );
 											
+										} else {
+											continue;
 										}
 										
 									} else throw new Exception("No mask given");							
@@ -334,10 +350,13 @@ public class JSONToAllConcepts extends Job {
 								for(int x = 0; x < values.size(); x++) {
 									if(values.get(0) != null) {
 										String value = values.get(0).toString();
-										
+										if(mask.equals("yyyy")) {
+											
+											mask = "yyyy-MM-dd";
+										}
 										endDateExclusive = value.isEmpty() ? null: LocalDate.parse(value, DateTimeFormatter.ofPattern(mask) );
 										
-										if(endDateExclusive != null) {
+										if(endDateExclusive != null && startDateInclusive != null) {
 											
 											Period period = Period.between(startDateInclusive, endDateExclusive);
 											
@@ -434,7 +453,7 @@ public class JSONToAllConcepts extends Job {
 	private static List<Object> findValueByKey(Map record, String[] key) throws Exception {
 		
 		Map record2 = new LinkedHashMap(record);
-		
+		//System.out.println(key[key.length -1]);
 		Iterator<String> iter = new ArrayList(Arrays.asList(key)).iterator();
 		while(iter.hasNext()) {
 			
@@ -464,7 +483,7 @@ public class JSONToAllConcepts extends Job {
 					
 					}
 					
-				} else if ( obj instanceof String || obj instanceof Boolean ) {
+				} else if ( obj instanceof String || obj instanceof Boolean || obj instanceof Integer ) {
 
 					return new ArrayList(Arrays.asList(obj));
 					

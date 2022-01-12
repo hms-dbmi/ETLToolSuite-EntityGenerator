@@ -46,16 +46,16 @@ public class BDCValidations extends BDCJob {
 		
 		Set<String> _studies = new HashSet<>();
 		
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "allConcepts.csv"))){
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "GLOBAL_allConcepts.csv"))){
 			
-			CSVReader reader = new CSVReader(buffer, ',', '\"', 'µ');
+			CSVReader reader = new CSVReader(buffer, ',', '\"', '\\');
 			String[] line;
 			
 			String currentNode = "";
 			
 			while((line = reader.readNext())!=null) {
 				// validate distinct patient counts in each study
-				String rootConcept = line[1].split("\\\\")[1];
+				String rootConcept = line[1].split("µ")[1];
 
 				if(!rootConcept.equals(currentNode)) {
 					System.out.println("Working on " + rootConcept);
@@ -85,7 +85,7 @@ public class BDCValidations extends BDCJob {
 
 				if(rootConcept.equalsIgnoreCase("_studies")) {
 					
-					_studies.add(line[1].split("\\\\")[2]);
+					_studies.add(line[1].split("µ")[2]);
 					
 				}
 

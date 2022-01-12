@@ -47,9 +47,8 @@ public class GenerateAllConcepts extends Job{
 
 	private static final char OLD_SEPARATOR = 'µ';
 
-	private static boolean USE_PATIENT_MAPPING = false;
+	private static boolean USE_PATIENT_MAPPING = true;
 	
-	private static Integer PATIENT_COL = 0;
 	
 	private static Set<String> MAPPINGS_WITH_BAD_DATA_TYPES = new HashSet<>();
 	
@@ -67,8 +66,7 @@ public class GenerateAllConcepts extends Job{
 		} catch (Exception e) {
 			
 			System.err.println("Error processing variables");
-			
-			System.err.println(e);
+			e.printStackTrace();
 			
 		}	
 		
@@ -181,7 +179,7 @@ public class GenerateAllConcepts extends Job{
 						} catch (IOException e) {
 	
 							System.err.println(e);
-						
+						    e.printStackTrace();
 						}
 					}
 										
@@ -327,7 +325,7 @@ public class GenerateAllConcepts extends Job{
 						allConcept.setPatientNum(new Integer(line[PATIENT_COL]));
 					}
 				}
-				
+								
 				allConcept.setNvalNum(line[column].trim());
 				
 				allConcept.setTvalChar("");

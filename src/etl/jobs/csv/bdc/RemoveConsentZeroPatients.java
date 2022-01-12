@@ -41,7 +41,15 @@ public class RemoveConsentZeroPatients extends BDCJob {
 	private static int acPostCount = 0;
 	
 	private static int totCZpat = 0;
-	
+	private static final String[] AC_HEADERS = new String[5];
+	static {
+		AC_HEADERS[0] = "PATIENT_NUM";
+		AC_HEADERS[1] = "CONCEPT_PATH";
+		AC_HEADERS[2] = "NVAL_NUM";
+		AC_HEADERS[3] = "TVAL_CHAR";
+		AC_HEADERS[4] = "DATE_TIME";
+	}
+
 	public static void main(String[] args) {
 		
 		try {
@@ -137,7 +145,13 @@ public class RemoveConsentZeroPatients extends BDCJob {
 		for(BDCManagedInput input: managedInputs) {
 			
 			if(input.getStudyType().trim().equalsIgnoreCase("TOPMED")) {
-				set.addAll(globalNonConsentZeroPatientNums.get(input.getStudyIdentifier()));
+				if(globalNonConsentZeroPatientNums.containsKey(input.getStudyIdentifier())) {
+					set.addAll(globalNonConsentZeroPatientNums.get(input.getStudyIdentifier()));
+				} else {
+					System.err.println("Missing Topmed patients from " + input.getStudyIdentifier());
+
+				}
+				
 			}
 			
 		}
@@ -150,7 +164,11 @@ public class RemoveConsentZeroPatients extends BDCJob {
 		for(BDCManagedInput input: managedInputs) {
 			
 			if(input.getIsHarmonized().equalsIgnoreCase("Y")) {
-				set.addAll(globalNonConsentZeroPatientNums.get(input.getStudyIdentifier()));
+				if(globalNonConsentZeroPatientNums.containsKey(input.getStudyIdentifier())) {
+					set.addAll(globalNonConsentZeroPatientNums.get(input.getStudyIdentifier()));
+				} else {
+					System.err.println("Missing harmonized patients from " + input.getStudyIdentifier());
+				}
 			}
 			
 		}
@@ -172,9 +190,10 @@ public class RemoveConsentZeroPatients extends BDCJob {
 			String line[];
 			
 			BufferedReader br = Files.newBufferedReader(Paths.get(WRITE_DIR + "allConcepts.csv"));
-				
+			bw.write(BDCJob.toCsv(AC_HEADERS));
+
 			CSVReader csvreader = new CSVReader(br, ',', '\"', 'µ');
-			
+			int x = 0;
 			while((line = csvreader.readNext())!=null) {
 				
 				if(line[1].split("\\\\").length <=1) continue;
@@ -235,6 +254,7 @@ public class RemoveConsentZeroPatients extends BDCJob {
 					}
 				}
 				
+				bw.flush();
 			}
 		}
 		

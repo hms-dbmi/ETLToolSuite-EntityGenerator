@@ -196,6 +196,31 @@
   	    <zipgroupfileset dir="bin" includes="**/*.jar" />
   		</jar>  
   		-->
+    	
+    	<jar destfile="GenericGlobalConceptsGenerator.jar">
+    	    				<manifest>
+    	    				<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenericGlobalConceptsGenerator"/>
+    	    				</manifest>
+    	    			    <fileset dir="bin" includes="**/*.class" />
+    	    				<fileset dir="bin" includes="*.xml"></fileset>
+    	    	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    	    	    	</jar>
+    	<jar destfile="GenericMappingGenerator.jar">
+    				<manifest>
+    				<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenericMappingGenerator"/>
+    				</manifest>
+    			    <fileset dir="bin" includes="**/*.class" />
+    				<fileset dir="bin" includes="*.xml"></fileset>
+    	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    	    	</jar>
+    	<jar destfile="DbgapTreeBuilder3.jar">
+			<manifest>
+			<attribute name="Main-Class" value="etl.jobs.csv.bdc.DbgapTreeBuilder3"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    	</jar>
     	<jar destfile="StudiesConsentsGenerator.jar">
     				<manifest>
     				<attribute name="Main-Class" value="etl.jobs.csv.bdc.StudiesConsentsGenerator"/>
@@ -476,14 +501,14 @@
 			<fileset dir="bin" includes="*.xml"></fileset>
 	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar> 
-		<!--<jar destfile="DbGapPMGenerator.jar">
+		<jar destfile="GenerateConceptMapping.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.jobs.csv.DbGapPMGenerator"/>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenerateConceptMapping"/>
 			</manifest>
 		    <fileset dir="bin" includes="**/*.class" />
 			<fileset dir="bin" includes="*.xml"></fileset>
 	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
-		</jar> -->
+		</jar>
 	    	<jar destfile="MergePartitions.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.MergePartitions"/>

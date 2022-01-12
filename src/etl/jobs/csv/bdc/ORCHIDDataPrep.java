@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -18,6 +20,7 @@ import java.util.TreeSet;
 import com.opencsv.CSVReader;
 
 import etl.jobs.mappings.Mapping;
+import etl.jobs.mappings.PatientMapping;
 
 public class ORCHIDDataPrep extends BDCJob {
 
@@ -33,7 +36,7 @@ public class ORCHIDDataPrep extends BDCJob {
 		try {
 			execute();
 		} catch (IOException e) {
-			
+			e.printStackTrace();
 			System.err.println(e);
 			
 		}		
@@ -61,13 +64,51 @@ public class ORCHIDDataPrep extends BDCJob {
 		Map<String, DataDictionary> dataDict = readDataDictionary(Paths.get(DATA_DIR + "alldata_dd.csv"));
 		dataDict.putAll(readDataDictionary(Paths.get(DATA_DIR + "derived_vars_dd.csv")));
 		
-		Set<Mapping> set = buildMappings(dataDict,Paths.get(DATA_DIR + ("alldata.csv")));
+		//Set<Mapping> set = buildMappings(dataDict,Paths.get(DATA_DIR + ("alldata.csv")));
 		
-		set.addAll(buildMappings(dataDict,Paths.get(DATA_DIR + ("derived_vars.csv"))));
+		//set.addAll(buildMappings(dataDict,Paths.get(DATA_DIR + ("derived_vars.csv"))));
 		
-		Set<Mapping> set2 = buildMappings(dataDict,Paths.get(DATA_DIR + ("derived_vars.csv")));
+		Set<Mapping> set2 = buildMappings(dataDict,Paths.get(DATA_DIR + ("ORCHID_manuscript_dataset_idenfied.csv")));
+		
+		writeMapping(set2);
+		
+		updatePatientMapping();
+	}
 
-		writeMapping(set);
+	private static void updatePatientMapping() throws IOException {
+		
+			
+		List<PatientMapping>  patientMappings = PatientMapping.readPatientMappingFile("data/ORCHID_PatientMapping.v2_OLD.csv");
+		
+		List<String[]> orchidPatientIds = getPatientIdMap();
+		
+		
+		for(PatientMapping pm: patientMappings) {
+			for(String[] arr: orchidPatientIds) {
+				if(pm.getSourceId().equalsIgnoreCase(arr[arr.length-1])) {
+					System.out.println(arr[arr.length-1]);
+					pm.setSourceId(arr[1]);
+				}
+			}
+		}
+		
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "ORCHID_PatientMapping.v2.csv"),
+				StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+			for(PatientMapping pm: patientMappings) {
+				
+				writer.write(pm.toCSV());
+				
+			}
+		}
+	}
+
+	private static List<String[]> getPatientIdMap() throws IOException {
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "orchid_id_key.csv"))) {
+			CSVReader reader = new CSVReader(buffer);
+			
+			return reader.readAll();
+		}
+		
 	}
 
 	private static void writeMapping(Set<Mapping> mappings) throws IOException {
@@ -91,7 +132,14 @@ public class ORCHIDDataPrep extends BDCJob {
 				return o1.getRootNode().compareTo(o2.getRootNode());
 			}
 		});
-		try(BufferedReader buffer = Files.newBufferedReader(path)) {
+		try(BufferedReader buffer = Files.newBufferedReader(path,StandardCharsets.ISO_8859_1)) {
+			
+			String line;
+			
+			/*while((line = buffer.readLine())!=null) {
+				System.out.println(line);
+			}*/
+			
 			CSVReader reader = new CSVReader(buffer);
 			
 			String[] headersArr = reader.readNext();
@@ -127,7 +175,7 @@ public class ORCHIDDataPrep extends BDCJob {
 				
 				mapping.setRootNode(conceptPath);
 				
-				mapping.setDataType(dataDict.type.equalsIgnoreCase("num") ? "TEXT": "TEXT");
+				mapping.setDataType(dataDict.type.equalsIgnoreCase("num") ? "NUMERIC": "TEXT");
 				
 				mappings.add(mapping);
 				

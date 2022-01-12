@@ -55,6 +55,9 @@ public class RootNodeGenerator extends BDCJob {
 		for(BDCManagedInput managedInput: managedInputs) {
 			if(!managedInput.getReadyToProcess().toLowerCase().startsWith("y")) continue;
 			if(BDCJob.NON_DBGAP_STUDY.contains(managedInput.getStudyAbvName().toUpperCase())) continue;
+			if(managedInput.getStudyType().equalsIgnoreCase("BIOLINCC")) continue;
+			if(managedInput.getStudyType().equalsIgnoreCase("other")) continue;
+
 			String rootNode = managedInput.getStudyFullName() + " ( " + managedInput.getStudyIdentifier() + " )";
 			if(patientMappings.containsKey(managedInput.getStudyAbvName())) {
 			
@@ -81,7 +84,11 @@ public class RootNodeGenerator extends BDCJob {
 			}
 			
 			ArrayList<String> list = new ArrayList<>();
-			list.addAll(patientMappings.get(managedInput.getStudyAbvName()).values());
+			
+			if(patientMappings.containsKey(managedInput.getStudyAbvName())) {
+				list.addAll(patientMappings.get(managedInput.getStudyAbvName()).values());
+
+			}
 			map.put(managedInput.getStudyFullName() + " ( " + managedInput.getStudyIdentifier() + " )"
 					, list);
 			

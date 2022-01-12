@@ -82,7 +82,8 @@ public class HPDSPatientNumTracker extends BDCJob {
 			
 			for(BDCManagedInput managedInput: managedInputs) {
 				
-				if(NON_DBGAP_STUDY.contains(managedInput.getStudyAbvName().toUpperCase())) continue;
+				//if(NON_DBGAP_STUDY.contains(managedInput.getStudyAbvName().toUpperCase())) continue;
+				
 				if(managedInput.getDataProcessed().toUpperCase().startsWith("Y")) continue;
 				if(managedInput.getReadyToProcess().toUpperCase().startsWith("N")) continue;
 				List<String[]> pms = updatePatientMapping(managedInput);
@@ -149,7 +150,13 @@ public class HPDSPatientNumTracker extends BDCJob {
 		return pms;
 	}
 	private static Set<String> getPatientSet(BDCManagedInput managedInput) throws IOException {
-		if(NON_DBGAP_STUDY.contains(managedInput.getStudyAbvName().toUpperCase())) return new HashSet<>();
+		// ADDING code to handle nondbgap studies
+		//if(NON_DBGAP_STUDY.contains(managedInput.getStudyAbvName().toUpperCase())) return new HashSet<>();
+		if(!managedInput.getStudyType().equalsIgnoreCase("TOPMED") && !managedInput.getStudyType().equalsIgnoreCase("PARENT")) {
+			// READ ALL DATA SETS IN DATA DIR AND COLLECT SET OF SUBJECT IDS
+			return getGenericPatientSet(managedInput);
+		}
+		
 		// if missing subject multi file fail job completely as it is critical to have all patient counts for new data load
 		if(BDCJob.getStudySubjectMultiFile(managedInput) == null) {
 			throw new IOException("Critical error: " + managedInput.toString() + 
@@ -169,6 +176,52 @@ public class HPDSPatientNumTracker extends BDCJob {
 		}
 		return patientSet;
 	}
+
+	private static Set<String> getGenericPatientSet(BDCManagedInput managedInput) throws IOException {
+		File f = new File(DATA_DIR);
+		
+		Set<String>  patientSet = new HashSet<>();
+		
+		if(f.isDirectory()) {
+			File[] files = new File(DATA_DIR).listFiles(new FilenameFilter() {
+				
+				//apply a filter
+				@Override
+				public boolean accept(File dir, String name) {
+					boolean result;
+					if(name.toUpperCase().endsWith(".CSV")){
+						if(name.contains("Managed_Inputs.csv")) {
+							return false;
+						}
+						result=true;
+					}
+					else{
+						result=false;
+					}
+					return result;
+				}
+			
+			});
+			for(File file: files) {
+				try(BufferedReader buffer = Files.newBufferedReader(Paths.get(file.getAbsolutePath()))) {
+					CSVReader reader = new CSVReader(buffer);
+					
+					String[] line;
+					line = reader.readNext();
+					if(line == null) continue;
+					while((line = reader.readNext()) != null) {
+						if(line.length -1 >= PATIENT_COL) {
+							patientSet.add(line[PATIENT_COL]);
+						}
+					}
+					
+				}
+				
+			}
+		}
+		return patientSet;
+	}
+
 
 	private static void populatePatientNums() throws IOException {
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + PATIENT_NUM_FILE))) {

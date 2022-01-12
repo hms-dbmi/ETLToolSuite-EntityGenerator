@@ -55,7 +55,7 @@ public class DataAnalyzer extends Job {
 		
 		List<Mapping> newMappings = analyzeData(mappings);
 		
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(MAPPING_FILE), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "redcoralmapping.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 			Utils.writeToCsv(buffer, newMappings, MAPPING_QUOTED_STRING, MAPPING_DELIMITER);
 		}
 		
@@ -111,7 +111,7 @@ public class DataAnalyzer extends Job {
 	private static Mapping analyzeData(Mapping mapping, Path path) throws IOException {
 		
 		int col = new Integer(mapping.getKey().split(":")[1]);
-		
+		System.out.println(mapping);
 		try(BufferedReader buffer = Files.newBufferedReader(path)){
 			
 			RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
@@ -162,6 +162,8 @@ public class DataAnalyzer extends Job {
 										
 					mapping.setDataType("NUMERIC");
 					
+				} else {
+					mapping.setDataType("TEXT");
 				}
 			}
 		}

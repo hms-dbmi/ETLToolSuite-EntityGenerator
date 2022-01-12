@@ -81,7 +81,8 @@ public class PatientMapping {
 				while((line = reader.readNext()) != null) {
 					
 					if(line[0].equals("SOURCE_ID")) continue; // skip header
-					
+					if(line[0].isEmpty()) continue;
+					if(line[0] == null) continue;
 					pm.add(new PatientMapping(line));
 					
 				}

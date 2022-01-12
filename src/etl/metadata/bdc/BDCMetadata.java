@@ -28,6 +28,7 @@ public class BDCMetadata implements Metadata {
 
 	public static List<String> STATIC_META = new ArrayList<String>() {{
 		add("ORCHID");
+		add("HCT_for_SCD");
 	}};
 	
 	private static List<String> CONSENT_HEADERS = new ArrayList<String>()
@@ -175,7 +176,9 @@ public class BDCMetadata implements Metadata {
 					bdcm.request_access = REQEUST_ACCESS_LINK + bdcm.study_identifier;
 					
 					bdcm.raw_clinical_variable_count = clinicalCount;
-							
+					
+					bdcm.clinical_variable_count = clinicalCount;
+					
 					getCounts(bdcm, managedInput, entry.getKey());
 					
 					if(bdcm.raw_clinical_sample_size == -1) {
@@ -247,9 +250,11 @@ public class BDCMetadata implements Metadata {
 		
 		if(subjectFileName != null && !subjectFileName.isEmpty()) {
 			subjectFilePatientSet = BDCJob.getPatientSetForConsentFromRawData(subjectFileName, managedInput, CONSENT_HEADERS, consent_group_code);
-			
+			//bdcm.clinical_sample_size = subjectFilePatientSet.size();
 			bdcm.raw_clinical_sample_size = subjectFilePatientSet.size();
 		} else {
+			//bdcm.clinical_sample_size = -1;
+
 			bdcm.raw_clinical_sample_size = -1;
 		}
 
@@ -267,7 +272,8 @@ public class BDCMetadata implements Metadata {
 				.collect(Collectors.toSet());
 		
 		bdcm.raw_genetic_sample_size = filteredSampleSet.size();
-		
+		//bdcm.genetic_sample_size = filteredSampleSet.size();
+
 	}
 
 

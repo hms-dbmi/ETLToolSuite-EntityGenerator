@@ -37,7 +37,8 @@ public abstract class BDCJob extends Job {
 		
 		add("ORCHID");
 		add("HCT_FOR_SCD");
-	
+		add("RED_CORAL");
+		
 	}};
 	
 	public static CSVReader readRawBDCDataset(Path fileName) throws IOException {
@@ -550,7 +551,6 @@ public abstract class BDCJob extends Job {
 			return null;
 		} else {
 			for(String filePart: subjMultiFile.split("\\.")) {
-				filePart="p11";
 				if(filePart.matches("p[0-9]+")) {
 					return filePart;
 				}

@@ -50,7 +50,7 @@ public class UpdateCountsInJsonMetadata extends BDCJob {
 
 	private static void execute() throws IOException {
 		
-		Map<String, Set<String>> phenoCounts = readPhenoCounts("phenoCounts.csv");
+		Map<String, String> phenoCounts = readPhenoCounts("Patient_Count_Per_Consents.csv");
 		
 		Map<String, String> genoCounts = readCounts(1,"genoCounts.csv");
 		
@@ -74,36 +74,17 @@ public class UpdateCountsInJsonMetadata extends BDCJob {
 		}
 	}
 
-	private static Map<String, Set<String>> readPhenoCounts(String dataFile) throws IOException {
-		Map<String, Set<String>> counts = new HashMap<>();
+	private static Map<String, String> readPhenoCounts(String dataFile) throws IOException {
+		Map<String, String> counts = new HashMap<>();
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + dataFile))) {
 			
 			CSVReader reader = new CSVReader(buffer);
 			
-			reader.readNext();
+			//reader.readNext();
 			String[] line;
 			while((line = reader.readNext()) != null) {
-				if(line.length == -1) continue;
-				if(!line[line.length - 1].isEmpty()) {
-					if(counts.containsKey(line[line.length - 1]) ) {
-						counts.get(line[line.length - 1]).add(line[0]);
-					} else {
-						Set<String> set = new HashSet<>();
-						set.add(line[0]);
-						counts.put(line[line.length - 1], set );
-					}
-				}
-				if(!line[line.length - 2].isEmpty()) {
-	
-					if(counts.containsKey(line[line.length - 2]) ) {
-						counts.get(line[line.length - 2]).add(line[0]);
-					} else {
-						Set<String> set = new HashSet<>();
-						set.add(line[0]);
-						counts.put(line[line.length - 2], set );
-					}
-				}
+				counts.put(line[0], line[1]);
 			}
 		}
 		
@@ -135,10 +116,10 @@ public class UpdateCountsInJsonMetadata extends BDCJob {
 		meta.bio_data_catalyst = posCountMeta;
 	}
 
-	private static void updatePhenoCount(BDCMetadataElements element, Map<String, Set<String>> phenoCounts) {
+	private static void updatePhenoCount(BDCMetadataElements element, Map<String, String> phenoCounts) {
 		
 		if(phenoCounts.containsKey(element.study_identifier + "." + element.consent_group_code)) {
-			element.clinical_sample_size = phenoCounts.get(element.study_identifier + "." + element.consent_group_code).size();
+			element.clinical_sample_size = new Integer(phenoCounts.get(element.study_identifier + "." + element.consent_group_code));
 			element.clinical_variable_count = element.raw_clinical_variable_count;
 		} else {
 			

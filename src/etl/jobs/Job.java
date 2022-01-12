@@ -64,6 +64,8 @@ public abstract class Job implements Serializable {
 
 	protected  static String ROOT_NODE = PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR;
 	
+	protected static Integer PATIENT_COL = 0;
+
 	// Sequencing Variables
 	protected static boolean DO_SEQUENCING = true;
 	
@@ -178,7 +180,12 @@ public abstract class Job implements Serializable {
 					DO_INSTANCE_NUM_SEQUENCE = false;
 				}
 			}
-			
+			if(properties.contains("patientcol")) {
+				
+				PATIENT_COL = new Integer(properties.get("patientcol").toString());
+				
+				
+			}
 			CONCEPT_CD_STARTING_SEQ = properties.contains("conceptcdstartseq") ? Integer.valueOf(properties.getProperty("conceptcdstartseq")) : CONCEPT_CD_STARTING_SEQ;
 			ENCOUNTER_NUM_STARTING_SEQ = properties.contains("encounternumstartseq") ? Integer.valueOf(properties.getProperty("encounternumstartseq")) : ENCOUNTER_NUM_STARTING_SEQ;
 			PATIENT_NUM_STARTING_SEQ = properties.contains("patientnumstartseq") ? Integer.valueOf(properties.getProperty("patientnumstartseq")) : PATIENT_NUM_STARTING_SEQ;
@@ -188,6 +195,11 @@ public abstract class Job implements Serializable {
 		 *  Flags override all settings
 		 */
 		for(String arg: args) {
+			if(arg.equalsIgnoreCase("patientcol")) {
+				
+				PATIENT_COL = new Integer(checkPassedArgs(arg, args));
+				
+			}
 			if(arg.equalsIgnoreCase("-skipheaders")){
 				String skip = checkPassedArgs(arg, args);
 				if(skip.equalsIgnoreCase("N")) {
@@ -224,6 +236,9 @@ public abstract class Job implements Serializable {
 			} 
 			if(arg.equalsIgnoreCase( "-datadir" )){
 				DATA_DIR = checkPassedArgs(arg, args);
+			}
+			if(arg.equalsIgnoreCase( "-rootnode" )){
+				ROOT_NODE = checkPassedArgs(arg, args);
 			} 
 			if(arg.equalsIgnoreCase( "-writedir" )){
 				WRITE_DIR = checkPassedArgs(arg, args);
