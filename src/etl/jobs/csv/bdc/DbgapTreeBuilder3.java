@@ -68,6 +68,8 @@ public class DbgapTreeBuilder3 extends BDCJob {
 
 	private static TreeSet<String> VARIABLES_MISSING_DATA_TYPE = new TreeSet<>();
 
+	private static TreeSet<String> FILES_MISSING_DICTIONARIES = new TreeSet<>();
+
 	static {
 		NUMERIC_DATA_TYPES.add("numeric");
 		NUMERIC_DATA_TYPES.add("integer");
@@ -149,6 +151,7 @@ public class DbgapTreeBuilder3 extends BDCJob {
 					if(dictionary == null) {
 
 						System.err.println("Missing dictionary file for " + file.getName());
+						FILES_MISSING_DICTIONARIES.add(file.getName());
 						if(PROCESS_MISSING_DICTIONARY == false) continue;
 					
 					}
@@ -178,6 +181,13 @@ public class DbgapTreeBuilder3 extends BDCJob {
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_MissingDataTypes.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 			for(String mdt: VARIABLES_MISSING_DATA_TYPE) {
 				buffer.write(mdt + '\n');
+			}
+			buffer.flush();
+			buffer.close();
+		}
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_FilesMissingDictionaries.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+			for(String fmd: FILES_MISSING_DICTIONARIES) {
+				buffer.write(fmd + '\n');
 			}
 			buffer.flush();
 			buffer.close();
