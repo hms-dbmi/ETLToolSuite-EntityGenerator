@@ -145,10 +145,10 @@ public class DbgapTreeBuilder3 extends BDCJob {
 					
 					Document dictionary = getDictionary(pht);
 					
-					collectDictionaryKeys(dictionary);
 					
 					if(dictionary == null) {
-						
+						collectDictionaryKeys(dictionary);
+
 						System.err.println("Missing dictionary file for " + file.getName());
 						if(PROCESS_MISSING_DICTIONARY == false) continue;
 					
