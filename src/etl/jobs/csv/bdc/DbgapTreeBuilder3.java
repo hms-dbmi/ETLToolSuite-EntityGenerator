@@ -147,13 +147,14 @@ public class DbgapTreeBuilder3 extends BDCJob {
 					
 					
 					if(dictionary == null) {
-						collectDictionaryKeys(dictionary);
 
 						System.err.println("Missing dictionary file for " + file.getName());
 						if(PROCESS_MISSING_DICTIONARY == false) continue;
 					
 					}
 					//
+					collectDictionaryKeys(dictionary);
+
 					String[] headers = getDataHeaders(file);
 					if(headers == null) continue;
 					if(headers.length == -1) continue;
