@@ -210,7 +210,7 @@ public class BDCMetadata implements Metadata {
 				
 					bdcm.study_phase = BDCJob.getPhase(managedInput);
 				
-					bdcm.top_level_path = "\\" + bdcm.full_study_name + " ( " + bdcm.study_identifier + " )" + "\\";
+					bdcm.top_level_path = "\\" + bdcm.study_identifier + "\\";
 				
 					bdcm.is_harmonized = managedInput.getIsHarmonized();
 					
@@ -292,7 +292,7 @@ public class BDCMetadata implements Metadata {
 				continue;
 			}
 			
-			File subjectDataDict = BDCJob.FindDictionaryFile(subjectMultiFile);
+			File subjectDataDict = BDCJob.FindDictionaryFile(subjectMultiFile, BDCJob.DATA_DIR + "raw/" );
 			
 			Map<String, Map<String, String>> valueLookup = DataDictionaryReader.buildValueLookup(subjectDataDict);
 
@@ -345,7 +345,7 @@ public class BDCMetadata implements Metadata {
 	
 		bdcm.study_phase = "";
 	
-		bdcm.top_level_path = "\\" + bdcm.full_study_name + " ( " + bdcm.study_identifier + " )" + "\\";
+		bdcm.top_level_path = "\\" + bdcm.study_identifier + "\\";
 	
 		bdcm.is_harmonized = managedInput.getIsHarmonized();
 		if(!this.bio_data_catalyst.contains(bdcm)) {

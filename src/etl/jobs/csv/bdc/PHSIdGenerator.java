@@ -59,6 +59,8 @@ public class PHSIdGenerator extends BDCJob {
 				writer.write(toCsv(accessionid));
 			}
 		}
+		
+		
 	}
 	
 

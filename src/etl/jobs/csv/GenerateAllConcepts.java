@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
@@ -38,7 +40,7 @@ import etl.jobs.mappings.PatientMapping;
  * 
  *
  */
-public class GenerateAllConcepts extends Job{
+public class GenerateAllConcepts extends Job {
 	
 	/**
 	 * 
@@ -49,12 +51,130 @@ public class GenerateAllConcepts extends Job{
 
 	private static boolean USE_PATIENT_MAPPING = true;
 	
-	
 	private static Set<String> MAPPINGS_WITH_BAD_DATA_TYPES = new HashSet<>();
 	
 	// Static map to see if patient has been created
 	private static Map<String,Integer> SEQUENCE_MAP = new HashMap<String,Integer>();
+	
+	private static Map<String,VariableAnalysis> VARIABLE_ANALYSIS = new TreeMap<>();
+	
+	public static class VariableAnalysis {
 		
+		private static final String ANALYSIS_DIR = "./reports/";
+		public String fileName;
+		public int colIdx;
+		public String conceptPath;
+		public String mappingDataType;
+		public int totalFileRecordCount;  // valid + invalid variables + null/empty values
+		public int totalVariableCount;  // valid + invalid variables 
+		public int totalValidVariableCount;  // valid variables only
+		public int totalBadNumericCount; // invalid variables duxe to bad data type
+		public int totalEmptyOrNullValueCount; // 
+		public int totalPossibleNumericVariablesAsTextCount; // Text value that pass numeric isCreateable.
+		
+		public BigDecimal badNumericPercent;
+		public BigDecimal possibleNumericVariablesAsTextPercentage;
+
+		public Map<String,Integer> badNumericalVariables = new HashMap<>();
+		public Map<String,Integer> possibleNumericVariablesAsText = new HashMap<>();
+		
+		public VariableAnalysis(Mapping mapping) {
+		
+			this.fileName = mapping.getKey().split(":")[0];
+			this.colIdx = new Integer(mapping.getKey().split(":")[1]);
+			this.mappingDataType = mapping.getDataType();
+			this.conceptPath = mapping.getRootNode();
+			this.totalFileRecordCount = 0;
+			this.totalVariableCount = 0;
+			this.totalValidVariableCount = 0;
+			this.totalBadNumericCount = 0;
+			this.totalEmptyOrNullValueCount = 0;
+			this.totalPossibleNumericVariablesAsTextCount = 0;
+			
+		}
+
+		public static void writeReports() throws IOException {
+			writeReportOverview();
+			writeVariableReports();
+		}
+		private static void writeVariableReports() throws IOException {
+			for(Entry<String,VariableAnalysis> VAEntry: VARIABLE_ANALYSIS.entrySet()) {
+
+				try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(ANALYSIS_DIR + TRIAL_ID + "_" + VAEntry.getKey() + "_VariableReport.csv"), StandardOpenOption.APPEND, StandardOpenOption.CREATE)) {
+					
+					VariableAnalysis va = VAEntry.getValue();
+					
+					if(va.mappingDataType.equalsIgnoreCase("TEXT")) {
+						String[] headers = { "FILENAME", "COLUMN_INDEX", "CONCEPT_PATH", "MAPPING_DATA_TYPE", "POSSIBLE_NUMERIC_VALUE", "FREQUENCY" };
+						
+						buffer.write(toCsv(headers));
+						for(Entry<String,Integer> pnv: va.possibleNumericVariablesAsText.entrySet()) {
+							String[] lineToWrite = new String[headers.length];
+							lineToWrite[0] = va.fileName;
+							lineToWrite[1] = new Integer(va.colIdx).toString();
+							lineToWrite[2] = va.conceptPath;
+							lineToWrite[3] = va.mappingDataType;
+							lineToWrite[4] = pnv.getKey();
+							lineToWrite[5] = pnv.getValue().toString();
+							
+							buffer.write(toCsv(lineToWrite));
+						}
+					}
+					if(va.mappingDataType.equalsIgnoreCase("NUMERIC")) {
+						String[] headers = { "FILENAME", "COLUMN_INDEX", "CONCEPT_PATH", "MAPPING_DATA_TYPE", "INVALID_NUMERIC_VALUE", "FREQUENCY" };
+						
+						buffer.write(toCsv(headers));
+						for(Entry<String,Integer> bnv: va.badNumericalVariables.entrySet()) {
+							String[] lineToWrite = new String[headers.length];
+							lineToWrite[0] = va.fileName;
+							lineToWrite[1] = new Integer(va.colIdx).toString();
+							lineToWrite[2] = va.conceptPath;
+							lineToWrite[3] = va.mappingDataType;
+							lineToWrite[4] = bnv.getKey();
+							lineToWrite[5] = bnv.getValue().toString();
+							
+							buffer.write(toCsv(lineToWrite));
+						}
+					}
+					
+				}	
+			}
+			
+		}
+
+		private static void writeReportOverview() throws IOException {
+			try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(ANALYSIS_DIR + TRIAL_ID + "_VariableAnalysisOverview.csv"), StandardOpenOption.APPEND, StandardOpenOption.CREATE)) {
+				
+				String[] headers = { "FILENAME", "COLUMN_INDEX", "CONCEPT_PATH", "MAPPING_DATA_TYPE", "TOTAL_RECORDS_IN_FILE",
+						"TOTAL_VARIABLE_COUNT", "TOTAL_VALID_VARIABLE_COUNT", "BAD_NUMERIC_COUNT",
+						"EMPTY_OR_NULL_COUNT", "POSSIBLE_NUMERIC_VARIABLES_AS_TEXT" };
+				
+				buffer.write(toCsv(headers));
+				
+				for(Entry<String,VariableAnalysis> VAEntry: VARIABLE_ANALYSIS.entrySet()) {
+					VariableAnalysis va = VAEntry.getValue();
+					String[] lineToWrite = new String[headers.length];
+					lineToWrite[0] = va.fileName;
+					lineToWrite[1] = new Integer(va.colIdx).toString();
+					lineToWrite[2] = va.conceptPath;
+					lineToWrite[3] = va.mappingDataType;
+					lineToWrite[4] = new Integer(va.totalFileRecordCount).toString();
+					lineToWrite[5] = new Integer(va.totalVariableCount).toString();
+					lineToWrite[6] = new Integer(va.totalValidVariableCount).toString();
+					lineToWrite[7] = new Integer(va.totalBadNumericCount).toString();
+					lineToWrite[8] = new Integer(va.totalEmptyOrNullValueCount).toString();
+					lineToWrite[9] = new Integer(va.totalPossibleNumericVariablesAsTextCount).toString();
+					
+					buffer.write(toCsv(lineToWrite));
+				}
+				
+			}
+			
+		}
+		
+	}
+
+	
 	public static void main(String[] args) {
 		
 		try {
@@ -84,6 +204,7 @@ public class GenerateAllConcepts extends Job{
 
 	private static void execute() throws IOException {
 		Mapping.PATH_SEPARATOR = PATH_SEPARATOR;
+		
 		List<Mapping> mappings = Mapping.generateMappingListForHPDS(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
 		
 		List<PatientMapping> patientMappings = new ArrayList<>();
@@ -105,6 +226,18 @@ public class GenerateAllConcepts extends Job{
 		
 		doGenerateAllConcepts(patientMappings, mappings);
 		writeBadMappings();	
+		
+		VariableAnalysis.writeReports();;
+	}
+
+	private static void writeVariableAnalysis() throws IOException {
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_VariableAnalysis.txt"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+			for(String line: MAPPINGS_WITH_BAD_DATA_TYPES) {
+				buffer.write(line + '\n');
+			}
+		}
+		
+		
 	}
 
 	private static void writeBadMappings() throws IOException {
@@ -217,12 +350,14 @@ public class GenerateAllConcepts extends Job{
 					} ); 
 					
 					while((line = csvreader.readNext()) != null) {
+						analyzeVariable(mapping, line);
+						
 						if(line.length == 0) continue;
 						// hotfix for dbgap
 						if(line[0].toLowerCase().contains("dbgap")) continue;
 						if(line.length - 1 >= column && line.length - 1 >= PATIENT_COL) {
 							if(line[0].trim().isEmpty()) continue;
-							if(line[column].trim().isEmpty()) continue;
+							//if(line[column].trim().isEmpty()) continue;
 							if(line[0].charAt(0) == '#') continue;
 							AllConcepts allConcept = generateAllConcepts(mapping,line,column);
 							
@@ -290,9 +425,10 @@ public class GenerateAllConcepts extends Job{
 
 	private static AllConcepts generateAllConcepts(Mapping mapping, String[] line, Integer column) throws IOException {
 		
+		AllConcepts allConcept = new AllConcepts();
+		
 		if(mapping.getDataType().equalsIgnoreCase("TEXT")) {
 			
-			AllConcepts allConcept = new AllConcepts();
 			
 			allConcept.setConceptPath(mapping.getRootNode());
 						
@@ -307,13 +443,9 @@ public class GenerateAllConcepts extends Job{
 			allConcept.setNvalNum("");
 			
 			allConcept.setTvalChar(line[column].trim().replaceAll("\"", "'"));
-
-			return allConcept;
 			
 		} else if(mapping.getDataType().equalsIgnoreCase("NUMERIC")) {
-			
-			AllConcepts allConcept = new AllConcepts();
-			
+						
 			if(NumberUtils.isCreatable(line[column].trim())){
 			
 				allConcept.setConceptPath(mapping.getRootNode());
@@ -334,18 +466,75 @@ public class GenerateAllConcepts extends Job{
 				
 			} else {
 				
-				System.err.println("Value for record " + line[column].trim() + " in file " + mapping.getKey() + " is not numeric.");
+				//System.err.println("Value for record " + line[column].trim() + " in file " + mapping.getKey() + " is not numeric.");
 				
 				MAPPINGS_WITH_BAD_DATA_TYPES.add(mapping.getKey());
 				
-				return new AllConcepts();
 				
 			}
 		} else {
 			System.err.println("Invalid data type for " + mapping.getKey() + " " + mapping.getDataType());
-			return new AllConcepts();
 		
 		}
+		
+		//analyzeVariable(mapping, line);
+		
+		return allConcept;
+
+	}
+
+	private static void analyzeVariable(Mapping mapping, String[] line) {
+		
+		VariableAnalysis va;
+		//Map<String,Integer> invalidVariables;
+		
+		if(VARIABLE_ANALYSIS.containsKey(mapping.getKey())) {
+			va = VARIABLE_ANALYSIS.get(mapping.getKey());
+			//invalidVariables = VARIABLE_ANALYSIS.get(mapping.getKey()).invalidVariables;
+		} else {
+			va = new VariableAnalysis(mapping);
+		}
+
+		// iterate file record count
+		va.totalFileRecordCount++;
+		
+		String value = (line.length - 1 ) >= va.colIdx ? line[va.colIdx]: null;
+		
+		// Logic for null and empty values
+		if(value == null || value.trim().isEmpty()) {
+			// iterate empty or null value count
+			va.totalEmptyOrNullValueCount++;
+		} else {
+			// Increment total variable count as value is not null or empty
+			va.totalVariableCount++;
+			
+			// Text Data type analysis
+			if(mapping.getDataType().equalsIgnoreCase("TEXT")) {
+			// text is presumed to be valid unless it is empty or null
+				va.totalValidVariableCount++;
+			// Can text be numeric?
+				if(NumberUtils.isCreatable(value)) {
+					
+					va.totalPossibleNumericVariablesAsTextCount++;
+					
+					va.possibleNumericVariablesAsText.merge(value, 1, Integer::sum);
+	
+				} 
+			}
+			// Numeric Data type analysis
+			else if(mapping.getDataType().equalsIgnoreCase("NUMERIC")) {
+				// is a Createable Java Numerical type?
+				if(!NumberUtils.isCreatable(value)) {
+					// if create it is valid
+				    va.totalBadNumericCount++;
+				    
+				    va.badNumericalVariables.merge(value, 1, Integer::sum);
+					
+				}
+			}	
+		}
+		VARIABLE_ANALYSIS.put(mapping.getKey(), va);
+		
 	}
 
 	private static Integer sequencePatient(String patientNum) throws IOException {

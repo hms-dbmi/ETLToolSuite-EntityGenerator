@@ -54,7 +54,7 @@ public abstract class Job implements Serializable {
 
 	protected static char DATA_QUOTED_STRING = '"';
 	
-	protected static String DATA_DIR = "./data/";
+	public static String DATA_DIR = "./data/";
 
 	protected static String DICT_DIR = "./dict/";
 	

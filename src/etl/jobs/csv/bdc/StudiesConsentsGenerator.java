@@ -74,6 +74,8 @@ public class StudiesConsentsGenerator extends BDCJob {
 		// gather patient mappings for all studies
 		Map<String,Map<String,String>> patientMappings = getPatientMappings();
 
+		System.out.println(patientMappings.size());
+		System.out.println(patientMappings);
 		Set<Mapping> mappings = new HashSet<Mapping>();
 		
 		Set<String> generatedMappings = new HashSet<>();
@@ -85,7 +87,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 		Set<String> rootNodePatients = new HashSet<>();
 		
 		for(BDCManagedInput input: managedInputs) {
-			String firstLevelName = "µ_studies_consentsµ" + input.getStudyAbvName() + " (" + input.getStudyIdentifier() + ")µ";
+			String firstLevelName = "µ_studies_consentsµ" + input.getStudyIdentifier() + " (" + input.getStudyIdentifier() + ")µ";
 
 			mappings.add(new Mapping(input.getStudyAbvName() + "_" + input.getStudyIdentifier() + "_first_level.csv:1",
 						firstLevelName,
@@ -209,7 +211,9 @@ public class StudiesConsentsGenerator extends BDCJob {
 						if(line[consentidx].isEmpty()) continue;
 						
 						String hpds_id = mappingLookup(line[0], patientMappings.get(studyAbvName));
-						if(hpds_id == null) continue;
+						if(hpds_id == null) {
+							System.err.println("No HPDS ID found for " + line[0]);
+						};
 						
 						if(returnSet.containsKey(line[consentidx])) {
 							returnSet.get(line[consentidx]).add(hpds_id);
@@ -226,7 +230,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 			}
 			
 		} else {
-			throw new IOException("parameter DATA_DIR = " + DATA_DIR + " is not a directory!", new Throwable().fillInStackTrace() );
+			throw new IOException("parameter DATA_DIR = " + dataDir + " is not a directory!", new Throwable().fillInStackTrace() );
 		}
 		return returnSet;
 	}

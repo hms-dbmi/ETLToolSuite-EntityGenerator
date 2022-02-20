@@ -55,7 +55,7 @@ public class DataAnalyzer extends Job {
 		
 		List<Mapping> newMappings = analyzeData(mappings);
 		
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "redcoralmapping.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "mapping.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 			Utils.writeToCsv(buffer, newMappings, MAPPING_QUOTED_STRING, MAPPING_DELIMITER);
 		}
 		

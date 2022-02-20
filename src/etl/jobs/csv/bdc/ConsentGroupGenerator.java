@@ -139,15 +139,17 @@ public class ConsentGroupGenerator extends BDCJob {
 		
 		
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-			
-			for(String[] line: consents.get("PARENT")) {
-				writer.write(toCsv(line));
+			if(consents.containsKey("PARENT")) {
+				for(String[] line: consents.get("PARENT")) {
+					writer.write(toCsv(line));
+				}
 			}
-			
-			for(String[] line: consents.get("TOPMED")) {
-				writer.write(toCsv(line));
+			if(consents.containsKey("TOPMED")) {
+
+				for(String[] line: consents.get("TOPMED")) {
+					writer.write(toCsv(line));
+				}
 			}
-			
 		}
 		
 		/*	

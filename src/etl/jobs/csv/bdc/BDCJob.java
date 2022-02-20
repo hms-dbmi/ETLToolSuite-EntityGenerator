@@ -161,7 +161,51 @@ public abstract class BDCJob extends Job {
 		}
 		return null;
 	}
-	
+	public static File FindDictionaryFile(String fileName, String dataDirectory) {
+		if(!fileName.startsWith("phs")) {
+			System.err.println("Bad Filename - Expecting a valid accessions phsxxxxxx for: " + fileName);
+		
+		}
+		
+		File dataDir = new File(dataDirectory);
+		
+		String phs = null;
+		
+		String pht = null;
+		
+		if(dataDir.isDirectory()) {
+			
+		
+			String[] fileNameArr = fileName.split("\\.");
+			
+			phs = fileNameArr[0];
+			
+			final String finalPhs = phs;
+			
+			final String finalPht = getPht(fileName);
+			
+			File[] dataDicts = dataDir.listFiles(new FilenameFilter() {
+				
+				@Override
+				public boolean accept(File dir, String name) {
+					if(name.contains(finalPhs) && name.contains(finalPht) && name.toLowerCase().contains("data_dict")) {
+						return true;
+					}
+					return false;
+				}
+			});
+			
+			if(dataDicts.length < 1) {
+				System.err.println("Data Dictionary missing for " + fileName);
+				return null;
+			} else {
+				return dataDicts[0];
+			}
+		} else {
+			System.err.println(DATA_DIR + " IS NOT A DIRECTORY!");
+		}
+		return null;
+	}
 	private static Document findDictionary(String accession, String version, String phenotype) throws ParserConfigurationException, SAXException, IOException {
 		
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -239,7 +283,8 @@ public abstract class BDCJob extends Job {
 	}
 	
 	public static String getStudySubjectMultiFile(BDCManagedInput managedInput) throws IOException {
-		File dataDir = new File(DATA_DIR);
+		
+		File dataDir = new File(DATA_DIR + "decoded/");
 		
 		String studyIdentifier = managedInput.getStudyIdentifier();
 		
@@ -316,7 +361,7 @@ public abstract class BDCJob extends Job {
 		}		
 	}
 	public static String getStudySampleMultiFile(BDCManagedInput managedInput) throws IOException {
-		File dataDir = new File(DATA_DIR);
+		File dataDir = new File(DATA_DIR + "decoded/");
 				
 		String studyIdentifier = managedInput.getStudyIdentifier();
 		
@@ -421,17 +466,17 @@ public abstract class BDCJob extends Job {
 	}
 	public static List<String> getPatientSetForConsentFromRawData(String subjectFileName, BDCManagedInput managedInput, List<String> consentHeaders, String consent_group_code) throws IOException {
 		List<String> patientSet = new ArrayList<>();
-		if(!new File(DATA_DIR + subjectFileName).exists()) return patientSet;
+		if(!new File(DATA_DIR + "raw/" + subjectFileName).exists()) return patientSet;
 		int cgcidx = -1;
 		
 		for(String header: consentHeaders) {
 			
-			cgcidx = findRawDataColumnIdx(Paths.get(DATA_DIR + subjectFileName), header); 
+			cgcidx = findRawDataColumnIdx(Paths.get(DATA_DIR +"raw/"+ subjectFileName), header); 
 			if(cgcidx != -1) break;
 		
 		}
 
-		int patientIdCol = findRawDataColumnIdx(Paths.get(DATA_DIR + subjectFileName), managedInput.getPhsSubjectIdColumn());
+		int patientIdCol = findRawDataColumnIdx(Paths.get(DATA_DIR +"raw/" + subjectFileName), managedInput.getPhsSubjectIdColumn());
 		
 		if(patientIdCol == -1) {
 			System.err.println("Error no subject id column found for " + managedInput.getStudyAbvName() + " - " + managedInput.getPhsSubjectIdColumn() +
@@ -449,7 +494,7 @@ public abstract class BDCJob extends Job {
 		
 		if(cgcidx != -1) {
 			
-			BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + subjectFileName));
+			BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR +"raw/" + subjectFileName));
 			
 			CSVReader reader = new CSVReader(buffer, '\t', 'π');
 			
@@ -483,14 +528,14 @@ public abstract class BDCJob extends Job {
 	public static List<String> getPatientSetFromSampleFile(String sampleFileName, BDCManagedInput managedInput) throws IOException {
 		List<String> patientSet = new ArrayList<>();
 		
-		int patientIdCol = findRawDataColumnIdx(Paths.get(DATA_DIR + sampleFileName), managedInput.getPhsSubjectIdColumn()); 
+		int patientIdCol = findRawDataColumnIdx(Paths.get(DATA_DIR + "raw/" + sampleFileName), managedInput.getPhsSubjectIdColumn()); 
 		
 		if(patientIdCol == -1) {
 			System.err.println("Error no subject id column found for " + managedInput.getStudyAbvName() + " - " +
 					managedInput.getPhsSubjectIdColumn() + " in sample multi file for " + sampleFileName
 						);
 			
-			patientIdCol = findRawDataColumnIdx(Paths.get(DATA_DIR + sampleFileName), "SUBJECT_ID");
+			patientIdCol = findRawDataColumnIdx(Paths.get(DATA_DIR + "raw/" + sampleFileName), "SUBJECT_ID");
 			
 			if(patientIdCol == -1) {
 				System.err.println("Error no subject id column found for " + managedInput.getStudyAbvName() + " - " + "SUBJECT_ID" +
@@ -500,7 +545,7 @@ public abstract class BDCJob extends Job {
 			}		
 		}
 		
-		BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + sampleFileName));
+		BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "raw/" + sampleFileName));
 		
 		CSVReader reader = new CSVReader(buffer, '\t', 'π');
 		
@@ -565,7 +610,7 @@ public abstract class BDCJob extends Job {
 		
 		Map<String,Integer> phtCounts = new HashMap<>();
 		
-		File dataDir = new File(DATA_DIR);
+		File dataDir = new File(DATA_DIR + "raw/");
 		if(dataDir.isDirectory()) {
 			final String phsOnly = managedInput.getStudyIdentifier();
 			File[] files = dataDir.listFiles(new FilenameFilter() {
