@@ -136,15 +136,20 @@ public class BDCMetadata implements Metadata {
 	for(ManagedInput _managedInput: managedInputs) {
 		
 		System.out.println(_managedInput);
-		if(STATIC_META.contains(_managedInput.getStudyAbvName())) {
+		/*if(STATIC_META.contains(_managedInput.getStudyAbvName())) {
 			System.out.println("Skipping static metadata: " + _managedInput.getStudyAbvName());
 			continue;
-		}
+		}*/
 		if(!(_managedInput instanceof BDCManagedInput)) {
 			continue;
 		}
 		BDCManagedInput managedInput = (BDCManagedInput) _managedInput;
 		
+		
+		if(!managedInput.getStudyType().equalsIgnoreCase("TOPMED") && !managedInput.getStudyType().equalsIgnoreCase("PARENT")) {
+			buildGenericMetadata(managedInput,metadata);
+			continue;
+		}
 		if(managedInput.getStudyAbvName().toUpperCase().equalsIgnoreCase("STUDY ABBREVIATED NAME")) {
 			continue;
 		}
@@ -231,6 +236,50 @@ public class BDCMetadata implements Metadata {
 		}	
 	}
 	
+	private void buildGenericMetadata(BDCManagedInput managedInput, File metadata) {
+		BDCMetadataElements bdcm = new BDCMetadataElements();
+		
+		bdcm.study_identifier = managedInput.getStudyIdentifier();
+		
+		bdcm.study_type = managedInput.getStudyType();
+	
+		bdcm.abbreviated_name = managedInput.getStudyAbvName();
+	
+		bdcm.full_study_name = managedInput.getStudyFullName();
+		
+		bdcm.consent_group_code = "c1";
+	
+		bdcm.consent_group_name = "";
+		
+		bdcm.consent_group_name_abv = "";
+
+		bdcm.request_access = REQEUST_ACCESS_LINK + bdcm.study_identifier;
+		
+		bdcm.raw_clinical_variable_count = -1;
+		
+		bdcm.clinical_variable_count = -1;
+		
+		//getCounts(bdcm, managedInput, entry.getKey());
+		
+		bdcm.data_type = managedInput.getDataType();
+		
+		bdcm.study_version = "v1";
+	
+		bdcm.study_phase = "p1";
+	
+		bdcm.top_level_path = "\\" + bdcm.study_identifier + "\\";
+	
+		bdcm.is_harmonized = managedInput.getIsHarmonized();
+		
+		if(this.bio_data_catalyst.contains(bdcm)) {
+			System.out.println("replacing " + bdcm);
+			this.bio_data_catalyst.remove(bdcm);
+		}
+		
+		this.bio_data_catalyst.add(bdcm);	
+		
+	}
+
 	private int getClinicalVariableCount(BDCManagedInput managedInput) throws IOException {
 		Set<String> finishedDataSets = new HashSet<>();
 		

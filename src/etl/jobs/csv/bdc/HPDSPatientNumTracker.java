@@ -91,7 +91,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 				try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(DATA_DIR + managedInput.getStudyAbvName().toUpperCase() + "_PatientMapping.v2.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 				
 					for(String[] pm: pms) {
-				
+						if(pm[0].trim().isEmpty()) continue;
 						writer.write(toCsv(pm));
 					
 					}
@@ -211,7 +211,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 					if(line == null) continue;
 					while((line = reader.readNext()) != null) {
 						if(line.length -1 >= PATIENT_COL) {
-							patientSet.add(line[PATIENT_COL]);
+							if(!line[0].trim().isEmpty() ) patientSet.add(line[PATIENT_COL]);
 						}
 					}
 					

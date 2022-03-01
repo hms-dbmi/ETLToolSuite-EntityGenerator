@@ -88,7 +88,7 @@ public class GenericMappingGenerator extends BDCJob {
 						Mapping mapping = new Mapping();
 						
 						mapping.setKey(f.getName() + ":" + x);
-						mapping.setRootNode(PATH_SEPARATOR + ROOT_NODE + PATH_SEPARATOR + col + PATH_SEPARATOR);
+						mapping.setRootNode(PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + col + PATH_SEPARATOR);
 						mapping.setSupPath("");
 						mapping.setDataType("TEXT");
 						
