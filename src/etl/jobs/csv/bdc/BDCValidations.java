@@ -48,20 +48,26 @@ public class BDCValidations extends BDCJob {
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "GLOBAL_allConcepts.csv"))){
 			
-			CSVReader reader = new CSVReader(buffer, ',', '\"', '\\');
+			CSVReader reader = new CSVReader(buffer, ',', '\"', 'µ');
 			String[] line;
 			
 			String currentNode = "";
 			
 			while((line = reader.readNext())!=null) {
 				// validate distinct patient counts in each study
-				String rootConcept = line[1].split("µ")[1];
+				if(line[0].equalsIgnoreCase("PATIENT_NUM")) continue;  //skip header
+				if(line[1].split("\\\\").length < 2) {
+					System.out.println(line[1]);
+					continue;
+				}
+				
+				String rootConcept = line[1].split("\\\\")[1];
 
 				if(!rootConcept.equals(currentNode)) {
 					System.out.println("Working on " + rootConcept);
 					currentNode = rootConcept;
 				}
-				
+/*				
 				if(patientsPerStudy.containsKey(rootConcept)) {
 					
 					patientsPerStudy.get(rootConcept).add(line[0]);
@@ -71,7 +77,7 @@ public class BDCValidations extends BDCJob {
 					patientsPerStudy.put(rootConcept, new HashSet<String>(Arrays.asList(line[0])));
 					
 				}
-				
+*/				
 				// validate patients counts per consent group
 				if(rootConcept.equalsIgnoreCase("_consents")) {
 					
@@ -82,16 +88,16 @@ public class BDCValidations extends BDCJob {
 					}
 					
 				}
-
+/*
 				if(rootConcept.equalsIgnoreCase("_studies")) {
 					
-					_studies.add(line[1].split("µ")[2]);
+					_studies.add(line[1].split("\\\\")[2]);
 					
-				}
+				}*/
 
 			}
 							
-		}
+		}/*
 		// validate studies from Managed Inputs 
 		System.out.println("Validating Managed Inputs.");
 		List<ManagedInput> managedInputs = ManagedInputFactory.readManagedInput(METADATA_TYPE,MANAGED_INPUT);
@@ -99,13 +105,13 @@ public class BDCValidations extends BDCJob {
 		int topmedCount = 0;
 		
 		int parentCount = 0;
-		
+/*		
 		for(ManagedInput managedInput : managedInputs) {
 			if(managedInput instanceof BDCManagedInput) {
 				BDCManagedInput mi = (BDCManagedInput) managedInput;
 				if(mi.getReadyToProcess().equalsIgnoreCase("Yes")) {
-					String fullName = mi.getStudyFullName() + " ( " + mi.getStudyIdentifier() + " )";
-					
+					//String fullName = mi.getStudyFullName() + " ( " + mi.getStudyIdentifier() + " )";
+					String fullName = mi.getStudyIdentifier();
 					if(!patientsPerStudy.containsKey(fullName)) {
 						
 						System.err.println(fullName + " does not have any patients.");
@@ -119,7 +125,8 @@ public class BDCValidations extends BDCJob {
 				}
 			}
 			
-		}				
+		}		
+				
 		System.out.println("Studies contains " + _studies.size() + " values.");
 		Set<String> patientNums = new HashSet<>();
 		for(Entry<String, Set<String>> entry:patientsPerStudy.entrySet()) {
@@ -135,7 +142,7 @@ public class BDCValidations extends BDCJob {
 				writer.write(toCsv(new String[] { entry.getKey(), new Integer(entry.getValue().size()).toString()}));
 			}
 			
-		}
+		}*/
 		
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "Patient_Count_Per_Consents.csv"), StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING)) {
 			for(Entry<String,Set<String>> entry: patientsPerConsentGroup.entrySet()) {

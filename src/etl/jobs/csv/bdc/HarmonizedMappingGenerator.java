@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -54,16 +55,22 @@ public class HarmonizedMappingGenerator extends BDCJob {
 			Map<String,String> variableGroup = getVariableSubGroups();
 			
 			for(File f: dataDir.listFiles()) {
-				String[] fileNameArr = f.getName().split(".");
-				if(variableGroup.containsKey(fileNameArr[fileNameArr.length - 1])) {
-					Mapping m = new Mapping();
-					m.setKey(f.getName() + ":1");
-					m.setRootNode(PATH_SEPARATOR + "DCC Harmonized data set" + PATH_SEPARATOR + 
-							variableGroup.get(fileNameArr[fileNameArr.length - 1]) + PATH_SEPARATOR +
-							fileNameArr[fileNameArr.length - 1] + PATH_SEPARATOR);
-					m.setDataType("TEXT");
-					mappings.add(m);
-				}
+				if(f.getName().endsWith("json")) continue;
+				String fname = f.getName();
+				
+				String subgroup = fname.replace("topmed_dcc_harmonized_", "").replaceAll("\\_v[0-9]_.*", "");
+				
+				String varname = fname.split("\\.")[fname.split("\\.").length - 1];
+				
+				//System.out.println(varname);
+				Mapping m = new Mapping();
+				m.setKey(f.getName() + ":1");
+				m.setRootNode(PATH_SEPARATOR + "DCC Harmonized data set" + PATH_SEPARATOR + 
+						subgroup + PATH_SEPARATOR +
+						varname + PATH_SEPARATOR);
+				m.setDataType("TEXT");
+				mappings.add(m);
+			
 			}
 		}
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "mapping_new_search.csv"), StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING)) {
@@ -91,14 +98,13 @@ public class HarmonizedMappingGenerator extends BDCJob {
 					updateVarName.putAll(map);
 					updateVarName.put("var_name", varName);
 					updateVarName.remove("name");
-					System.out.println("here");
 					
 					mapper.writeValue(Paths.get(WRITE_DIR + f.getName()).toFile(), updateVarName);
 					
 				}
 			}
 		}
-		
+		Arrays.asList(subGroups);
 		return subGroups;
 	}
 
@@ -107,6 +113,7 @@ public class HarmonizedMappingGenerator extends BDCJob {
 		
 		if(processingDir.isDirectory()) {
 			for(File f: processingDir.listFiles()) {
+				
 				try(BufferedReader buffer = Files.newBufferedReader(Paths.get(f.getAbsolutePath()))) {
 					//skip header
 					String[] headers = buffer.readLine().split("\t");
@@ -119,14 +126,13 @@ public class HarmonizedMappingGenerator extends BDCJob {
 							varColumn++;
 						}
 					}
-					String[] line;
+					String linea;
 					
 					Map<String,List<String[]>> linesToWrite = new HashMap<>();
 					String variableName = null;
 					
-					
-					while((line = buffer.readLine().split("\t") )!=null ) {
-						
+					while((linea = buffer.readLine())!=null ) {
+						String[] line = linea.split("\t");
 						String varName = line[6];
 						
 						String[] lineToWrite = { line[1], line[line.length - 1]};
@@ -142,7 +148,7 @@ public class HarmonizedMappingGenerator extends BDCJob {
 					for(Entry<String,List<String[]>> outputData: linesToWrite.entrySet()) {
 						try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(DATA_DIR + f.getName() + "." + outputData.getKey()), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 							String[] headersToWrite = { "unique_subject_key", outputData.getKey()};
-							writer.write(toCsv(headersToWrite));
+							//ewriter.write(toCsv(headersToWrite));
 							
 							for(String[] record: outputData.getValue()) {
 								writer.write(toCsv(record));

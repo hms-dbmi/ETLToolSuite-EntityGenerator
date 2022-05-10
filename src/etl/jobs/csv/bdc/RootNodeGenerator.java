@@ -57,7 +57,7 @@ public class RootNodeGenerator extends BDCJob {
 			if(managedInput.getStudyType().equalsIgnoreCase("topmed") || 
 					managedInput.getStudyType().equalsIgnoreCase("parent")) {
 			
-				String rootNode = managedInput.getStudyIdentifier() + " ( " + managedInput.getStudyIdentifier() + " )";
+				String rootNode = managedInput.getStudyIdentifier();
 	
 				if(patientMappings.containsKey(managedInput.getStudyAbvName())) {
 				
@@ -66,7 +66,7 @@ public class RootNodeGenerator extends BDCJob {
 						// 
 	
 						
-						List<String> dbgapSubjIds = BDCJob.getDbgapSubjIdsFromRawData(managedInput);
+						List<String> dbgapSubjIds = BDCJob.getDbgapSubjIdsFromRawData(managedInput,DATA_DIR);
 						
 						for(Entry<String,String> entry: patientMappings.get(managedInput.getStudyAbvName()).entrySet()) {
 							if(dbgapSubjIds.contains(entry.getKey())) {

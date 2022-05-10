@@ -49,6 +49,8 @@ public class GenerateAllConcepts extends Job {
 
 	private static final char OLD_SEPARATOR = 'µ';
 
+	private static final boolean BUILD_VAR_REPORTS = false;
+
 	private static boolean USE_PATIENT_MAPPING = true;
 	
 	private static Set<String> MAPPINGS_WITH_BAD_DATA_TYPES = new HashSet<>();
@@ -226,8 +228,9 @@ public class GenerateAllConcepts extends Job {
 		
 		doGenerateAllConcepts(patientMappings, mappings);
 		writeBadMappings();	
-		
-		VariableAnalysis.writeReports();;
+		if(BUILD_VAR_REPORTS) {
+			VariableAnalysis.writeReports();
+		}
 	}
 
 	private static void writeVariableAnalysis() throws IOException {
@@ -302,12 +305,12 @@ public class GenerateAllConcepts extends Job {
 							.withCSVParser(parser);
 					
 					CSVReader csvreader = builder.build();
-					
+					String[] headers = null;
 					if(SKIP_HEADERS) {
 						
 						try {
 							
-							csvreader.readNext();
+							headers = csvreader.readNext();
 							
 						} catch (IOException e) {
 	
@@ -319,7 +322,6 @@ public class GenerateAllConcepts extends Job {
 					String[] line;
 						// hash set to store  unique concepts
 					Set<AllConcepts> records = new TreeSet<>( new Comparator<AllConcepts>() {
-
 						@Override
 						public int compare(AllConcepts o1, AllConcepts o2) {
 							if(o1 == null || o2 == null) return -1;
@@ -350,8 +352,11 @@ public class GenerateAllConcepts extends Job {
 					} ); 
 					
 					while((line = csvreader.readNext()) != null) {
-						analyzeVariable(mapping, line);
-						
+						if(headers == null) headers = line; // if headers is null set headers to first row of data will be used to check for malformed rows.
+						if(headers.length != line.length) continue;  // skip malformed rows  
+						if(BUILD_VAR_REPORTS) {
+							analyzeVariable(mapping, line);
+						}
 						if(line.length == 0) continue;
 						// hotfix for dbgap
 						if(line[0].toLowerCase().contains("dbgap")) continue;

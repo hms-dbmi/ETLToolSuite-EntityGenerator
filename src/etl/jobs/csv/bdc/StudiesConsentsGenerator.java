@@ -73,7 +73,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 		
 		// gather patient mappings for all studies
 		Map<String,Map<String,String>> patientMappings = getPatientMappings();
-
+		
 		System.out.println(patientMappings.size());
 		System.out.println(patientMappings);
 		Set<Mapping> mappings = new HashSet<Mapping>();
@@ -87,7 +87,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 		Set<String> rootNodePatients = new HashSet<>();
 		
 		for(BDCManagedInput input: managedInputs) {
-			String firstLevelName = "µ_studies_consentsµ" + input.getStudyIdentifier() + " (" + input.getStudyIdentifier() + ")µ";
+			String firstLevelName = "µ_studies_consentsµ" + input.getStudyIdentifier() + "µ";
 
 			mappings.add(new Mapping(input.getStudyAbvName() + "_" + input.getStudyIdentifier() + "_first_level.csv:1",
 						firstLevelName,
@@ -172,6 +172,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 	}
 	
 	private static Map<String,Set<String>> buildConsents(String studyIdentifier, String studyAbvName, Map<String, Map<String, String>> patientMappings) throws IOException, ParseException {
+		
 		File dataDir = new File(DATA_DIR + "decoded/" );
 		
 		Map<String,Set<String>> returnSet = new HashMap<>();
@@ -236,6 +237,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 	}
 
 	private static int getConsentIdx(String fileName) throws IOException {
+		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "raw/" + fileName))) {
 			CSVReader reader = new CSVReader(buffer, '\t', 'π');
 			

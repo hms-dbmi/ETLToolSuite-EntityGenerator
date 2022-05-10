@@ -196,7 +196,22 @@
   	    <zipgroupfileset dir="bin" includes="**/*.jar" />
   		</jar>  
   		-->
-    	
+    	<jar destfile="DataAnalyzer.jar">
+    				<manifest>
+    					<attribute name="Main-Class" value="etl.jobs.csv.DataAnalyzer"/>
+    				</manifest>
+    			    <fileset dir="bin" includes="**/*.class" />
+    				<fileset dir="bin" includes="*.xml"></fileset>
+    			    <zipgroupfileset dir="bin" includes="**/*.jar" />
+    			</jar>
+    	<jar destfile="HarmonizedMappingGenerator.jar">
+    	    	    				<manifest>
+    	    	    				<attribute name="Main-Class" value="etl.jobs.csv.bdc.HarmonizedMappingGenerator"/>
+    	    	    				</manifest>
+    	    	    			    <fileset dir="bin" includes="**/*.class" />
+    	    	    				<fileset dir="bin" includes="*.xml"></fileset>
+    	    	    	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    	    	    	    	</jar>
     	<jar destfile="GenericGlobalConceptsGenerator.jar">
     	    				<manifest>
     	    				<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenericGlobalConceptsGenerator"/>
@@ -381,14 +396,7 @@
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 	  	</jar>   
-    		<jar destfile="DataAnalyzer.jar">
-			<manifest>
-				<attribute name="Main-Class" value="etl.jobs.csv.DataAnalyzer"/>
-			</manifest>
-		    <fileset dir="bin" includes="**/*.class" />
-			<fileset dir="bin" includes="*.xml"></fileset>
-		    <zipgroupfileset dir="bin" includes="**/*.jar" />
-		</jar>
+    		
     		<!--<jar destfile="MergeMappings.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.MergeMappings"/>

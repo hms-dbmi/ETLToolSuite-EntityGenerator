@@ -133,8 +133,7 @@ public class DbgapDecodeFiles extends Job {
 			
 			String[] line;
 			
-			String[] headers = BDCJob.getHeaders(reader);
-			
+			String[] headers = BDCJob.getHeaders(reader);	
 			
 			if(headers != null) {
 				boolean isSampleId = SAMPLE_ID.contains(headers[0].toUpperCase());
@@ -145,6 +144,11 @@ public class DbgapDecodeFiles extends Job {
 				
 				if(hasDbgapSubjId || isSampleId) {
 					while((line = reader.readNext()) != null) {
+						if(headers.length != line.length) {
+							
+							System.err.println("Malformed row detected - skipping row");
+							System.err.println(data.getName() + " - " + toCsv(line));
+						}
 						int colidx = 0;
 						for(String cell: line) {
 							if(headers.length - 1 < colidx) continue;
