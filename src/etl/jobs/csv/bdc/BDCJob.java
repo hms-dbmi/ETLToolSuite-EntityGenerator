@@ -799,6 +799,22 @@ public abstract class BDCJob extends Job {
 		
 		return subjIds;
 	}
+	
+	public static List<String> getDbgapSubjIdsFromRawData(BDCManagedInput managedInput, String dataDir) throws IOException {
+		List<String> subjIds = new ArrayList<String>();
+		
+		String multi = BDCJob.getStudySubjectMultiFile(managedInput, dataDir);
+		
+		CSVReader reader = BDCJob.readRawBDCDataset(new File(DATA_DIR + multi), true);		
+		
+		String[] line;
+		
+		while((line = reader.readNext())!= null) {
+			subjIds.add(line[0]);
+		}
+		
+		return subjIds;
+	}
 
 	public static Map<String, String> getDbgapToSubjectIdMappingFromRawData(BDCManagedInput managedInput,
 			Map<String, String> overrides) throws IOException {

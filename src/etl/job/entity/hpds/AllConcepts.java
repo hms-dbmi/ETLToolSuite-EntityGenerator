@@ -1,5 +1,7 @@
 package etl.job.entity.hpds;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class AllConcepts {
 	private Integer patientNum;
 	private String conceptPath;
@@ -112,6 +114,7 @@ public class AllConcepts {
 		if(nvalNum.equals("null")) return false;
 		if(conceptPath.trim().isEmpty()) return false;
 		
+		if(StringUtils.isBlank(tvalChar) && StringUtils.isBlank(nvalNum)) return false;
 		return true;
 	}
 	

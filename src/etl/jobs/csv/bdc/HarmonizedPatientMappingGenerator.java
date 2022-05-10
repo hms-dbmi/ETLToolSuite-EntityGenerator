@@ -79,10 +79,10 @@ public class HarmonizedPatientMappingGenerator extends BDCJob {
 		Set<String> distinctSubjectIdsInHrmn = getDistinctSubjectIdsInHrmn();
 		
 		for(BDCManagedInput managedInput: managedInputs) {
-			if(managedInput.equals("MAYOVTE")) continue;
+			if(managedInput.getStudyAbvName().equals("MAYOVTE")) continue;
 			if(managedInput.getIsHarmonized().toUpperCase().startsWith("N")) continue;
 			if(managedInput.getReadyToProcess().toUpperCase().startsWith("N")) continue;
-			
+
 			if(patientMappings.containsKey(managedInput.getStudyAbvName())) {
 				
 				String subjMultiFileName = BDCJob.getStudySubjectMultiFile(managedInput);
@@ -90,7 +90,7 @@ public class HarmonizedPatientMappingGenerator extends BDCJob {
 				Map<String,String> patientMapping = patientMappings.get(managedInput.getStudyAbvName());
 				
 				if(subjMultiFileName != null) {
-					
+					System.out.println("here");
 					Map<String,String> dbgapSubjIdToSubjId = BDCJob.getDbgapToSubjectIdMappingFromRawData(managedInput,SUBJECT_ID_COL_OVERRIDE);
 					
 					for(Entry<String, String> entry : dbgapSubjIdToSubjId.entrySet()) {
@@ -98,6 +98,9 @@ public class HarmonizedPatientMappingGenerator extends BDCJob {
 						PatientMapping pm = new PatientMapping();
 						
 						if(patientMapping.containsKey(entry.getKey())) {
+							if(managedInput.getStudyAbvName().equals("BAGS")) {
+								System.err.println();
+							}
 							String trialId = STUDY_ID_SYNONYM.containsKey(managedInput.getStudyAbvName()) ? 
 									STUDY_ID_SYNONYM.get(managedInput.getStudyAbvName()): managedInput.getStudyAbvName();
 							pm.setSourceId(trialId + "_" + entry.getValue());
@@ -106,13 +109,15 @@ public class HarmonizedPatientMappingGenerator extends BDCJob {
 							
 							pm.setPatientNum(new Integer(patientMapping.get(entry.getKey())));
 							
-							if(distinctSubjectIdsInHrmn.contains(pm.getSourceId())) pms.add(pm);
-							
-							else System.out.println(pm.getSourceId() + " is not apart of harmonized data set");
+							if(distinctSubjectIdsInHrmn.contains(pm.getSourceId())) {
+								pms.add(pm);
+							} else {
+								//System.out.println(pm.getSourceId() + " is not apart of harmonized data set");
+							}
 						}
 						
 					}
-					
+					 
 					
 				} else {
 					

@@ -223,6 +223,7 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 				return o1.getRootNode().compareTo(o2.getRootNode());
 			}
 		});
+		
 		return list;
 		
 	}

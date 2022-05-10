@@ -33,7 +33,7 @@ import etl.utils.Utils;
 
 public class DataAnalyzer extends Job {
 
-	public static double NUMERIC_THRESHOLD = .99;
+	public static double NUMERIC_THRESHOLD = .95;
 	
 	public static void main(String[] args) throws Exception {
 		try {
@@ -54,6 +54,8 @@ public class DataAnalyzer extends Job {
 		if(mappings.isEmpty()) System.err.println("NO MAPPINGS FOR " + TRIAL_ID);
 		
 		List<Mapping> newMappings = analyzeData(mappings);
+		
+		newMappings.removeAll(mappingsToRemove);
 		
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "mapping.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 			Utils.writeToCsv(buffer, newMappings, MAPPING_QUOTED_STRING, MAPPING_DELIMITER);
@@ -107,7 +109,9 @@ public class DataAnalyzer extends Job {
 		return newMappings;
 		
 	}
-
+	
+	private static List<Mapping> mappingsToRemove = new ArrayList<Mapping>();
+	
 	private static Mapping analyzeData(Mapping mapping, Path path) throws IOException {
 		
 		int col = new Integer(mapping.getKey().split(":")[1]);
@@ -133,9 +137,8 @@ public class DataAnalyzer extends Job {
 			int alphaVals = 0;
 			
 			while((newLine = csvreader.readNext()) != null){
-				
-				if(col < newLine.length - 1) {
-				
+
+				if(col <= newLine.length - 1) {
 					String val = newLine[col];
 					if(val.isEmpty()) {
 						continue;
@@ -153,7 +156,7 @@ public class DataAnalyzer extends Job {
 			if(!bd.equals(new BigDecimal(0))) {
 				
 				BigDecimal percentNumeric = new BigDecimal(numericVals).divide(bd, MathContext.DECIMAL128 );
-				
+				System.out.println("Numeric Percent: " + percentNumeric);
 				BigDecimal numThres = new BigDecimal(NUMERIC_THRESHOLD, MathContext.DECIMAL128 );
 				
 				//percentNumeric.compareTo(numThres);
@@ -165,6 +168,9 @@ public class DataAnalyzer extends Job {
 				} else {
 					mapping.setDataType("TEXT");
 				}
+			} else {
+				System.err.println("No values found! - removing mapping");
+				mappingsToRemove.add(mapping);
 			}
 		}
 		return mapping;

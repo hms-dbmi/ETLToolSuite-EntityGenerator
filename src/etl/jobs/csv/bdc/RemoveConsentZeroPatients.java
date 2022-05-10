@@ -181,9 +181,9 @@ public class RemoveConsentZeroPatients extends BDCJob {
 		 Map<String,String> phsLookup = new HashMap<>();
 		 
 		 for(BDCManagedInput input: managedInputs) {
-			String fullname = input.getStudyFullName() + " ( " + input.getStudyIdentifier() + " ) ";
+			//String fullname = input.getStudyFullName() + " ( " + input.getStudyIdentifier() + " ) ";
 
-			phsLookup.put(fullname.trim(), input.getStudyIdentifier());
+			phsLookup.put(input.getStudyIdentifier(), input.getStudyIdentifier());
 		 }
 		 
 		try(BufferedWriter bw = Files.newBufferedWriter(Paths.get(PROCESSING_FOLDER + "allConcepts.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)){
@@ -197,13 +197,13 @@ public class RemoveConsentZeroPatients extends BDCJob {
 			while((line = csvreader.readNext())!=null) {
 				
 				if(line[1].split("\\\\").length <=1) continue;
-				
+				// lets get rid of those line breaks in the data
+				line[3] = line[3].replaceAll("\n", "");
 				String rootNode = line[1].split("\\\\")[1].trim();
-
+				
 				if(rootNode.equals("_studies")) {
 					rootNode = line[1].split("\\\\")[2].trim();
 				}
-				
 				String phsIdentifier = phsLookup.containsKey(rootNode) ? phsLookup.get(rootNode) : null;
 				
 				if(rootNode.equals("_Topmed Study Accession with Subject ID") || rootNode.equals("_Parent Study Accession with Subject ID")) {
