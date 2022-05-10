@@ -113,7 +113,6 @@ public class AllConcepts {
 		if(tvalChar.equals("null")) return false;
 		if(nvalNum.equals("null")) return false;
 		if(conceptPath.trim().isEmpty()) return false;
-		
 		if(StringUtils.isBlank(tvalChar) && StringUtils.isBlank(nvalNum)) return false;
 		return true;
 	}
