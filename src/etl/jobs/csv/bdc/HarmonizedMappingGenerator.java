@@ -189,7 +189,7 @@ public class HarmonizedMappingGenerator extends BDCJob {
 
 	private static TreeMap<String, Map<String,String>> decodeLookup(File file) {
 		System.out.println("building decode lookup - " + file.getName());
-		String fileNameNoExt = file.getName().split(".")[0];
+		String fileNameNoExt = file.getName().split("\\.")[0];
 		String fileNameDD = file.getParent() + fileNameNoExt + "_DD.txt";
 		
 		if(Files.exists(Paths.get(fileNameDD))) {
