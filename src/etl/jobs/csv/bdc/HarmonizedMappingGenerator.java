@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -43,6 +44,7 @@ public class HarmonizedMappingGenerator extends BDCJob {
 	private static void execute() throws IOException {
 
 		// process raw data to be 1 variable per file
+		System.out.println("Processing raw data files");
 		processRawData();
 		
 		generateMappingFile();
@@ -113,8 +115,10 @@ public class HarmonizedMappingGenerator extends BDCJob {
 		
 		if(processingDir.isDirectory()) {
 			for(File f: processingDir.listFiles()) {
-				
+				TreeMap<String,Map<String,String>> decodeLookup = decodeLookup(f);
 				try(BufferedReader buffer = Files.newBufferedReader(Paths.get(f.getAbsolutePath()))) {
+					
+					System.out.println("processing " + f.getName());
 					//skip header
 					String[] headers = buffer.readLine().split("\t");
 					
@@ -134,8 +138,16 @@ public class HarmonizedMappingGenerator extends BDCJob {
 					while((linea = buffer.readLine())!=null ) {
 						String[] line = linea.split("\t");
 						String varName = line[6];
-						
-						String[] lineToWrite = { line[1], line[line.length - 1]};
+						String varValueRaw = line[line.length - 1];
+						String valueToWrite = varValueRaw;
+						if(decodeLookup.containsKey(varName)) {
+							// is encoded 
+							valueToWrite = lookupDecodedValue(varValueRaw,decodeLookup.get(varName));
+							if(valueToWrite.equals(varValueRaw)) {
+								System.err.println("no decoding mapping found for " + f.getName() + " " + varValueRaw);
+							}
+						}
+						String[] lineToWrite = { line[1], valueToWrite};
 						
 						if(linesToWrite.containsKey(varName)) {
 							linesToWrite.get(varName).add(lineToWrite);
@@ -147,11 +159,12 @@ public class HarmonizedMappingGenerator extends BDCJob {
 					}
 					for(Entry<String,List<String[]>> outputData: linesToWrite.entrySet()) {
 						try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(DATA_DIR + f.getName() + "." + outputData.getKey()), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+							
 							String[] headersToWrite = { "unique_subject_key", outputData.getKey()};
 							//ewriter.write(toCsv(headersToWrite));
 							
 							for(String[] record: outputData.getValue()) {
-								writer.write(toCsv(record));
+								writer.write(arrToCsv(record));
 							}
 							writer.flush();
 							writer.close();
@@ -163,6 +176,72 @@ public class HarmonizedMappingGenerator extends BDCJob {
 		
 		}
 		
+	}
+
+	private static String lookupDecodedValue(String varValueRaw, Map<String, String> map) {
+		if(map.containsKey(varValueRaw)) {
+			return map.get(varValueRaw);
+		} 
+		return varValueRaw;
+	}
+
+	private static TreeMap<String, Map<String,String>> decodeLookup(File file) {
+		String fileNameNoExt = file.getName().split(".")[0];
+		String fileNameDD = file.getParent() + fileNameNoExt + "_DD.txt";
+		
+		if(Files.exists(Paths.get(fileNameDD))) {
+			// return var
+			TreeMap<String,Map<String,String>> decodeLookup = new TreeMap<String, Map<String,String>>();
+			
+			try(BufferedReader buffer = Files.newBufferedReader(Paths.get(fileNameDD))) {
+				buffer.readLine(); // skip header
+				String line;
+				while((line = buffer.readLine()) != null) {
+					String[] lineArr = line.split("\t"); // we know dictionaries are deliimited by tabs
+					// if type encoded populate decodedLookup
+					// type is in the third column of the data dictionary
+					String varName = lineArr[0];
+					TreeMap<String,String> decodeMapping = new TreeMap<>();
+					
+					if(lineArr[2].toLowerCase().equals("encoded")) {
+						// values list is located in column 9+ need to iterate over the length
+						// of the lineArr by column 9+
+						int index = 8;
+						
+						if(lineArr.length >= 9) {
+							while(index < lineArr.length) {
+								String mappingDenorm = lineArr[index];
+								String[] mappingNorm = mappingDenorm.split("=");
+								if(mappingNorm.length == 2) {
+									decodeMapping.put(mappingNorm[0], mappingNorm[1]);
+								} else {
+									System.err.println("bad encoding found for " + fileNameDD + " - "+ Arrays.toString(lineArr));
+
+								}
+							}
+						} else {
+							System.err.println("no encoded variable found for " + fileNameDD + " - "+ Arrays.toString(lineArr));
+						}
+						if(!decodeLookup.containsKey(varName)) {
+							decodeLookup.put(varName, decodeMapping);
+						} else {
+							// duplicate decoding lines dectected in data dictionary doesn't make sense report as error and remove
+							// will need further curation to make it viable
+							System.err.println("Duplicate encodings found for " + fileNameDD + " - "+ Arrays.toString(lineArr));
+							decodeLookup.remove(varName);
+						}
+					}
+					
+				}
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			System.err.println(fileNameDD + " Does not exist in the " + DATA_DIR);
+		}
+		return null;
 	}
 
 }

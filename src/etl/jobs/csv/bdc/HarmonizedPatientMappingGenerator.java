@@ -78,6 +78,12 @@ public class HarmonizedPatientMappingGenerator extends BDCJob {
 		
 		Set<String> distinctSubjectIdsInHrmn = getDistinctSubjectIdsInHrmn();
 		
+		for(String string : distinctSubjectIdsInHrmn) {
+			if(string.contains("BAGS")) {
+				System.out.println();
+			}
+		}
+		
 		for(BDCManagedInput managedInput: managedInputs) {
 			if(managedInput.getStudyAbvName().equals("MAYOVTE")) continue;
 			if(managedInput.getIsHarmonized().toUpperCase().startsWith("N")) continue;
@@ -90,7 +96,6 @@ public class HarmonizedPatientMappingGenerator extends BDCJob {
 				Map<String,String> patientMapping = patientMappings.get(managedInput.getStudyAbvName());
 				
 				if(subjMultiFileName != null) {
-					System.out.println("here");
 					Map<String,String> dbgapSubjIdToSubjId = BDCJob.getDbgapToSubjectIdMappingFromRawData(managedInput,SUBJECT_ID_COL_OVERRIDE);
 					
 					for(Entry<String, String> entry : dbgapSubjIdToSubjId.entrySet()) {
