@@ -115,10 +115,12 @@ public class HarmonizedMappingGenerator extends BDCJob {
 		
 		if(processingDir.isDirectory()) {
 			for(File f: processingDir.listFiles()) {
-				TreeMap<String,Map<String,String>> decodeLookup = decodeLookup(f);
+				if(!f.getName().endsWith("eav.txt")) continue;
 				try(BufferedReader buffer = Files.newBufferedReader(Paths.get(f.getAbsolutePath()))) {
 					
 					System.out.println("processing " + f.getName());
+					TreeMap<String,Map<String,String>> decodeLookup = decodeLookup(f);
+
 					//skip header
 					String[] headers = buffer.readLine().split("\t");
 					
@@ -186,6 +188,7 @@ public class HarmonizedMappingGenerator extends BDCJob {
 	}
 
 	private static TreeMap<String, Map<String,String>> decodeLookup(File file) {
+		System.out.println("building decode lookup - " + file.getName());
 		String fileNameNoExt = file.getName().split(".")[0];
 		String fileNameDD = file.getParent() + fileNameNoExt + "_DD.txt";
 		
