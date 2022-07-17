@@ -139,7 +139,7 @@ public class HarmonizedMappingGenerator extends BDCJob {
 					
 					while((linea = buffer.readLine())!=null ) {
 						String[] line = linea.split("\t");
-						String varName = line[6];
+						String varName = line[line.length - 2];
 						String varValueRaw = line[line.length - 1];
 						String valueToWrite = varValueRaw;
 						if(decodeLookup.containsKey(varName)) {
@@ -149,7 +149,7 @@ public class HarmonizedMappingGenerator extends BDCJob {
 								System.err.println("no decoding mapping found for " + f.getName() + " " + varValueRaw);
 							}
 						}
-						String[] lineToWrite = { line[1], valueToWrite};
+						String[] lineToWrite = { line[1], valueToWrite + '\n'};
 						
 						if(linesToWrite.containsKey(varName)) {
 							linesToWrite.get(varName).add(lineToWrite);
@@ -191,16 +191,18 @@ public class HarmonizedMappingGenerator extends BDCJob {
 		System.out.println("building decode lookup - " + file.getName());
 		String fileNameNoExt = file.getName().split("\\.")[0];
 		
-		String fileNameDD = file.getParent() + "/" + fileNameNoExt + "_DD.txt";
-		
-		if(Files.exists(Paths.get(fileNameDD))) {
+		String fileNameDD = PROCESSING_FOLDER + fileNameNoExt.replace("_eav", "") + "_variable_DD.txt";
+		TreeMap<String,Map<String,String>> decodeLookup = new TreeMap<String, Map<String,String>>();
+
+		System.out.println("looking for data dictionary " + fileNameDD);
+		if(Files.exists(Paths.get(fileNameDD).toAbsolutePath())) {
 			// return var
-			TreeMap<String,Map<String,String>> decodeLookup = new TreeMap<String, Map<String,String>>();
 			
 			try(BufferedReader buffer = Files.newBufferedReader(Paths.get(fileNameDD))) {
 				buffer.readLine(); // skip header
 				String line;
 				while((line = buffer.readLine()) != null) {
+					if(line.trim().isEmpty()) continue;
 					String[] lineArr = line.split("\t"); // we know dictionaries are deliimited by tabs
 					// if type encoded populate decodedLookup
 					// type is in the third column of the data dictionary
@@ -222,6 +224,7 @@ public class HarmonizedMappingGenerator extends BDCJob {
 									System.err.println("bad encoding found for " + fileNameDD + " - "+ Arrays.toString(lineArr));
 
 								}
+								index++;
 							}
 						} else {
 							System.err.println("no encoded variable found for " + fileNameDD + " - "+ Arrays.toString(lineArr));
@@ -238,14 +241,14 @@ public class HarmonizedMappingGenerator extends BDCJob {
 					
 				}
 				
-			} catch (IOException e) {
+			} catch ( Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} else {
-			System.err.println(fileNameDD + " Does not exist in the " + DATA_DIR);
+			System.err.println(fileNameDD + " Does not exist in the " + PROCESSING_FOLDER);
 		}
-		return null;
+		return decodeLookup;
 	}
 
 }

@@ -497,6 +497,10 @@ public abstract class Job implements Serializable {
 		
 		return sb.toString().toCharArray();
 	}
+	protected static String arrToCsv(String[] line) {
+		
+		return String.join(",", line);
+	}
 
 	/**
 	 * Will look up the hpds id using the and study abv name

@@ -35,6 +35,8 @@ public class DataAnalyzer extends Job {
 
 	public static double NUMERIC_THRESHOLD = .95;
 	
+	private static Map<Mapping,MappingCounts> MAPPING_COUNTS = new HashMap<Mapping,MappingCounts>();
+
 	public static void main(String[] args) throws Exception {
 		try {
 			setVariables(args, buildProperties(args));
@@ -57,13 +59,13 @@ public class DataAnalyzer extends Job {
 		
 		newMappings.removeAll(mappingsToRemove);
 		
+		List<Mapping> validatedMappings = validateDataType(newMappings);
+		
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "mapping.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
-			Utils.writeToCsv(buffer, newMappings, MAPPING_QUOTED_STRING, MAPPING_DELIMITER);
+			Utils.writeToCsv(buffer, validatedMappings, MAPPING_QUOTED_STRING, MAPPING_DELIMITER);
 		}
 		
 	}
-	
-	
 
 	private static List<Mapping> analyzeData(List<Mapping> mappings) throws IOException {
 		List<Mapping> newMappings = new ArrayList<Mapping>();
@@ -110,12 +112,88 @@ public class DataAnalyzer extends Job {
 		
 	}
 	
+	private static List<Mapping> validateDataType(List<Mapping> newMappings) {
+		List<Mapping> validatedMapping = new ArrayList<Mapping>();
+		for(Mapping mapping: newMappings) {
+			validatedMapping.add(findDataType(mapping,newMappings));
+		}
+		String currentDataType = "";
+		String currentConcept = "";
+		for(Mapping m: validatedMapping) {
+			if(m.getRootNode().equals(currentConcept)) {
+				if(!m.getDataType().equals(currentDataType)) {
+					System.err.println(m + " - data type mismatch detected!");
+				}
+			} else {
+				currentConcept = m.getRootNode();
+				currentDataType = m.getDataType();
+			}
+		}
+		return validatedMapping;
+	}
+
+	private static Mapping findDataType(Mapping mapping, List<Mapping> newMappings) {
+		String conceptPath = mapping.getRootNode();
+		
+		int totalNumeric = 0;
+		int totalAlpha = 0;
+
+		for(Mapping _mapping: newMappings) {
+			if(_mapping.getRootNode().equals(conceptPath)) {
+				if(MAPPING_COUNTS.containsKey(_mapping)) {
+					totalNumeric += MAPPING_COUNTS.get(_mapping).numericVals;
+					totalAlpha += MAPPING_COUNTS.get(_mapping).alphaVals;
+				} else {
+					System.err.println("No numeric counts given for - " + mapping.toString());
+				}
+			}
+		};
+		
+		
+		MappingCounts counts = MAPPING_COUNTS.containsKey(mapping) ? MAPPING_COUNTS.get(mapping) : null;
+		
+		BigDecimal bd = new BigDecimal(totalNumeric + totalAlpha);
+		
+		if(counts != null) {
+			if(!bd.equals(new BigDecimal(0))) {
+				
+				BigDecimal percentNumeric = new BigDecimal(totalNumeric).divide(bd, MathContext.DECIMAL128 );
+				System.out.println("Numeric Percent: " + percentNumeric);
+				BigDecimal numThres = new BigDecimal(NUMERIC_THRESHOLD, MathContext.DECIMAL128 );
+				
+				//percentNumeric.compareTo(numThres);
+				
+				if(percentNumeric.compareTo(numThres) >= 0) {
+										
+					mapping.setDataType("NUMERIC");
+					
+				} else {
+					mapping.setDataType("TEXT");
+				}
+			}
+			
+		} else {
+			mapping.setDataType("TEXT");
+		}
+		
+		if(mapping.getDataType().equals("NOT_CALCULATED")) {
+			System.err.println("ERROR CALCULATING DATA TYPE FOR - " + mapping.toString());
+		}
+		return mapping;
+	}
+
 	private static List<Mapping> mappingsToRemove = new ArrayList<Mapping>();
+	
+	private class MappingCounts {
+		public int numericVals = 0;
+		public int alphaVals = 0;
+	}
 	
 	private static Mapping analyzeData(Mapping mapping, Path path) throws IOException {
 		
 		int col = new Integer(mapping.getKey().split(":")[1]);
 		System.out.println(mapping);
+		
 		try(BufferedReader buffer = Files.newBufferedReader(path)){
 			
 			RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
@@ -135,7 +213,7 @@ public class DataAnalyzer extends Job {
 			
 			int numericVals = 0;
 			int alphaVals = 0;
-			
+			MappingCounts counts = new DataAnalyzer().new MappingCounts();
 			while((newLine = csvreader.readNext()) != null){
 
 				if(col <= newLine.length - 1) {
@@ -154,7 +232,7 @@ public class DataAnalyzer extends Job {
 			BigDecimal bd = new BigDecimal(numericVals + alphaVals);
 			
 			if(!bd.equals(new BigDecimal(0))) {
-				
+				/*
 				BigDecimal percentNumeric = new BigDecimal(numericVals).divide(bd, MathContext.DECIMAL128 );
 				System.out.println("Numeric Percent: " + percentNumeric);
 				BigDecimal numThres = new BigDecimal(NUMERIC_THRESHOLD, MathContext.DECIMAL128 );
@@ -167,10 +245,19 @@ public class DataAnalyzer extends Job {
 					
 				} else {
 					mapping.setDataType("TEXT");
-				}
+				}*/
+				mapping.setDataType("NOT_CALCULATED");
 			} else {
 				System.err.println("No values found! - removing mapping");
 				mappingsToRemove.add(mapping);
+			}
+			counts.numericVals = numericVals;
+			counts.alphaVals = alphaVals;
+			if(MAPPING_COUNTS.containsKey(mapping)) {
+				MAPPING_COUNTS.get(mapping).alphaVals += counts.alphaVals;
+				MAPPING_COUNTS.get(mapping).numericVals += counts.numericVals;
+			} else {
+				MAPPING_COUNTS.put(mapping, counts);
 			}
 		}
 		return mapping;

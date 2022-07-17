@@ -37,6 +37,8 @@ public class HarmonizedPatientMappingGenerator extends BDCJob {
 
 		
 		SUBJECT_ID_COL_OVERRIDE.put("JHS", "SOURCE_SUBJECT_ID2");
+		SUBJECT_ID_COL_OVERRIDE.put("CARDIA", "SUBJID");
+		SUBJECT_ID_COL_OVERRIDE.put("GOLDN", "SUBJECT_ID");
 	};
 	
 	
@@ -78,12 +80,6 @@ public class HarmonizedPatientMappingGenerator extends BDCJob {
 		
 		Set<String> distinctSubjectIdsInHrmn = getDistinctSubjectIdsInHrmn();
 		
-		for(String string : distinctSubjectIdsInHrmn) {
-			if(string.contains("BAGS")) {
-				System.out.println();
-			}
-		}
-		
 		for(BDCManagedInput managedInput: managedInputs) {
 			if(managedInput.getStudyAbvName().equals("MAYOVTE")) continue;
 			if(managedInput.getIsHarmonized().toUpperCase().startsWith("N")) continue;
@@ -103,9 +99,7 @@ public class HarmonizedPatientMappingGenerator extends BDCJob {
 						PatientMapping pm = new PatientMapping();
 						
 						if(patientMapping.containsKey(entry.getKey())) {
-							if(managedInput.getStudyAbvName().equals("BAGS")) {
-								System.err.println();
-							}
+							
 							String trialId = STUDY_ID_SYNONYM.containsKey(managedInput.getStudyAbvName()) ? 
 									STUDY_ID_SYNONYM.get(managedInput.getStudyAbvName()): managedInput.getStudyAbvName();
 							pm.setSourceId(trialId + "_" + entry.getValue());

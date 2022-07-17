@@ -412,7 +412,6 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((dataType == null) ? 0 : dataType.hashCode());
 		result = prime * result + ((key == null) ? 0 : key.hashCode());
 		result = prime * result + ((options == null) ? 0 : options.hashCode());
 		result = prime * result + ((rootNode == null) ? 0 : rootNode.hashCode());
@@ -428,11 +427,6 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 		if (getClass() != obj.getClass())
 			return false;
 		Mapping other = (Mapping) obj;
-		if (dataType == null) {
-			if (other.dataType != null)
-				return false;
-		} else if (!dataType.equals(other.dataType))
-			return false;
 		if (key == null) {
 			if (other.key != null)
 				return false;
