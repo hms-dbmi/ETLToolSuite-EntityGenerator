@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
 
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 
@@ -50,8 +51,14 @@ public class SampleIdGenerator extends BDCJob {
 	}
 
 	private static void buildSampleIds() throws IOException {
+		
 		File dataDir = new File(DATA_DIR);
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "SampleIds.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+		
+		List<String> patientNums = new ArrayList<>();
+		List<String> sampleIds = new ArrayList<>();
+		
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_SampleIds.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+		
 			if(dataDir.isDirectory()) {
 				
 				for(String f: dataDir.list()) {
@@ -75,8 +82,6 @@ public class SampleIdGenerator extends BDCJob {
 							
 							CSVReader reader = new CSVReader(buffer, '\t');
 	
-							
-							//////////
 							String[] line;
 	
 							int x = 0;
@@ -111,6 +116,8 @@ public class SampleIdGenerator extends BDCJob {
 									if(line[sampidIdx].trim().isEmpty()) continue;
 									if(!line[sampidIdx].startsWith("NWD")) continue;
 									String[] arr = new String[] { patientNumLookup.get(line[0]), studyId, line[sampidIdx]};
+									patientNums.add(patientNumLookup.get(line[0]));
+									sampleIds.add(line[sampidIdx]);
 									
 									writer.write(toCsv(arr));
 									
@@ -123,6 +130,19 @@ public class SampleIdGenerator extends BDCJob {
 				}
 			}
 		}
+		
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_vcfIndex.tsv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+			
+			CSVWriter csv = new CSVWriter(writer, '\t');
+			
+			String[] headers = new String[] {"vcf_path","contig","isAnnotated","isGzipped","sample_ids","patient_ids","sample_relationship","related_sample_ids"};
+			String[] line = new String[] {"","","","",String.join(",", sampleIds),String.join(",", patientNums),"",""};
+			
+			csv.writeNext(headers);
+			csv.writeNext(line);
+			
+		}
+
 	}
 
 	private static Map<String, String> getPatientMapping(String studyId) throws IOException {
@@ -130,7 +150,7 @@ public class SampleIdGenerator extends BDCJob {
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + studyId.toUpperCase() + "_PatientMapping.v2.csv"))){
 			
-			System.out.println(studyId.toUpperCase() + "_PatientMapping.v2.csv");
+			//System.out.println(studyId.toUpperCase() + "_PatientMapping.v2.csv");
 			CSVReader reader = new CSVReader(buffer);
 			
 			String[] arr;
