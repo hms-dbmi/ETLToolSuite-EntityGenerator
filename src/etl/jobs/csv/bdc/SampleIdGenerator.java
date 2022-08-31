@@ -138,8 +138,10 @@ public class SampleIdGenerator extends BDCJob {
 			String[] headers = new String[] {"vcf_path","contig","isAnnotated","isGzipped","sample_ids","patient_ids","sample_relationship","related_sample_ids"};
 			String[] line = new String[] {"","","","",String.join(",", sampleIds),String.join(",", patientNums),"",""};
 			
-			csv.writeNext(headers);
-			csv.writeNext(line);
+			if(!sampleIds.isEmpty()) {
+				csv.writeNext(headers);
+				csv.writeNext(line);
+			}
 			
 		}
 
