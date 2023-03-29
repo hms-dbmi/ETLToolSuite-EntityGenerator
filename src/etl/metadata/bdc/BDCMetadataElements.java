@@ -40,6 +40,11 @@ public class BDCMetadataElements {
 
 	public String is_harmonized = "";
 
+	public String study_focus = "";
+
+    public String study_design = "";
+    public String additional_information = "";
+    
 	@Override
 	public int hashCode() {
 		final int prime = 31;

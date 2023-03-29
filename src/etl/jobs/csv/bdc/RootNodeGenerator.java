@@ -53,7 +53,9 @@ public class RootNodeGenerator extends BDCJob {
 		Map<String, List<String>> map = new HashMap<>();
 		
 		for(BDCManagedInput managedInput: managedInputs) {
-			if(!managedInput.getReadyToProcess().toLowerCase().startsWith("y")) continue;
+			if(managedInput.getReadyToProcess().toLowerCase().startsWith("n")) continue;
+			//if(managedInput.getDataProcessed().toLowerCase().startsWith("y")) continue;
+
 			if(managedInput.getStudyType().equalsIgnoreCase("topmed") || 
 					managedInput.getStudyType().equalsIgnoreCase("parent")) {
 			
@@ -66,15 +68,18 @@ public class RootNodeGenerator extends BDCJob {
 						// 
 	
 						
-						List<String> dbgapSubjIds = BDCJob.getDbgapSubjIdsFromRawData(managedInput,DATA_DIR);
-						
-						for(Entry<String,String> entry: patientMappings.get(managedInput.getStudyAbvName()).entrySet()) {
-							if(dbgapSubjIds.contains(entry.getKey())) {
+						//List<String> dbgapSubjIds = BDCJob.getDbgapSubjIdsFromRawData(managedInput,DATA_DIR);
+						if(patientMappings.containsKey(managedInput.getStudyAbvName())) {
+							for(Entry<String,String> entry: patientMappings.get(managedInput.getStudyAbvName()).entrySet()) {
+							/*	if(dbgapSubjIds.contains(entry.getKey())) {
+									String[] line = new String[] { entry.getValue(), "TRUE" };
+									writer.write(toCsv(line));
+							*/
 								String[] line = new String[] { entry.getValue(), "TRUE" };
 								writer.write(toCsv(line));
 							}
 						}
-						
+							
 					}
 					try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "rootnode_mapping.csv"), StandardOpenOption.CREATE, StandardOpenOption.APPEND )) {
 						Mapping mapping = new Mapping( managedInput.getStudyIdentifier() + "rootnode.csv:1", "µ_studiesµ" + rootNode + "µ", "", "TEXT", "");

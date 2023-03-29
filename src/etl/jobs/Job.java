@@ -28,6 +28,8 @@ public abstract class Job implements Serializable {
 	 */
 	protected static String METADATA_TYPE = "BDC";
 	
+	protected static String JOB_TYPE = "BDC";
+	
 	private static final long serialVersionUID = -4280736713043802649L;
 
 	protected static String MANAGED_INPUT = "data/Managed_Inputs.csv";

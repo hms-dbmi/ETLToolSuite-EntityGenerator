@@ -18,7 +18,13 @@ public class BDCManagedInput extends ManagedInput {
 	private String isHarmonized = "";
 	
 	private String phsSubjectIdColumn = "";
-
+	
+	private String studyFocus = "";
+	
+	private String studyDesign = "";
+	
+	private String additionalInformation = "";
+			
 	public BDCManagedInput(String[] inputCsv) {
 		super(inputCsv);
 		this.studyAbvName = inputCsv[0];
@@ -30,6 +36,9 @@ public class BDCManagedInput extends ManagedInput {
 		this.phsSubjectIdColumn = inputCsv[6];
 		this.readyToProcess = inputCsv[7];
 		this.dataProcessed = inputCsv[8];
+		this.studyFocus = inputCsv[9];
+		this.studyDesign = inputCsv[10];
+		this.additionalInformation = inputCsv[11];
 	}
 	
 	public static List<ManagedInput> buildAll(List<String[]> managedInputs){
@@ -87,6 +96,54 @@ public class BDCManagedInput extends ManagedInput {
 		return phsSubjectIdColumn;
 	}
 
+	public String getStudyFocus() {
+		return studyFocus;
+	}
+
+	public void setStudyFocus(String studyFocus) {
+		this.studyFocus = studyFocus;
+	}
+
+	public String getStudyDesign() {
+		return studyDesign;
+	}
+
+	public void setStudyDesign(String studyDesign) {
+		this.studyDesign = studyDesign;
+	}
+
+	public String getAdditionalInformation() {
+		return additionalInformation;
+	}
+
+	public void setAdditionalInformation(String additionalInformation) {
+		this.additionalInformation = additionalInformation;
+	}
+
+	public void setStudyIdentifier(String studyIdentifier) {
+		this.studyIdentifier = studyIdentifier;
+	}
+
+	public void setStudyType(String studyType) {
+		this.studyType = studyType;
+	}
+
+	public void setStudyFullName(String studyFullName) {
+		this.studyFullName = studyFullName;
+	}
+
+	public void setDataType(String dataType) {
+		this.dataType = dataType;
+	}
+
+	public void setIsHarmonized(String isHarmonized) {
+		this.isHarmonized = isHarmonized;
+	}
+
+	public void setPhsSubjectIdColumn(String phsSubjectIdColumn) {
+		this.phsSubjectIdColumn = phsSubjectIdColumn;
+	}
+
 	@Override
 	public String toString() {
 		return "BDCManagedInput [studyIdentifier=" + studyIdentifier + ", studyType=" + studyType + ", studyFullName="
@@ -108,6 +165,10 @@ public class BDCManagedInput extends ManagedInput {
 		
 	}
 
-
+	public boolean isDBGapCompliant() {
+		if(this.studyType.equalsIgnoreCase("topmed")) return true;
+		if(this.studyType.equalsIgnoreCase("parent")) return true;
+		return false;
+	}
 	
 }

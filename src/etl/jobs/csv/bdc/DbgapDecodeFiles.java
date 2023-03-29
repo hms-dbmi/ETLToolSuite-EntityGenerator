@@ -33,6 +33,7 @@ public class DbgapDecodeFiles extends Job {
 		add("DBGAP_SAMPLE_ID");
 		add("DBGAP SAMPID");
 	}};
+	@SuppressWarnings("unchecked")
 	public static List<String> SUBJECT_ID = new ArrayList() {{
 		add("dbGaP_Subject_ID".toUpperCase());
 		add("dbGaP SubjID".toUpperCase());
@@ -269,7 +270,7 @@ public class DbgapDecodeFiles extends Job {
 			File[] dataFiles = new File(DATA_DIR).listFiles();
 			
 			for(File data: dataFiles) {
-				if(!data.getName().contains("data_dict.xml")) continue;
+				if(!data.getName().contains("data_dict")) continue;
 				String[] fileNameArr = data.getName().split("\\.");
 				// look for xml
 				if(!fileNameArr[fileNameArr.length - 1].equalsIgnoreCase("xml")) continue;
@@ -459,14 +460,14 @@ public class DbgapDecodeFiles extends Job {
 	    		//if(!type.equalsIgnoreCase("encoded")) continue;
 	    		
 	    		for(Node vnode: valueNodes) {
-	    			
+	    			String valueCodeName = findValueCodeName(vnode);
 	    			Map<String,String> vmap = new HashMap<String,String>(); 
 	    			
 	    			String valueDecoded = vnode.getFirstChild().getNodeValue();
 	    			
 	    			String valueCoded;
 	    			
-	    			if(vnode.getAttributes().getNamedItem("code") == null) {
+	    			if(vnode.getAttributes().getNamedItem(valueCodeName) == null) {
 	    				// ignore variable as it is missing its decoded value
 	    				// dictionary needs to be updated.
 	    				//ignorecols.add(idx);
@@ -475,7 +476,7 @@ public class DbgapDecodeFiles extends Job {
 	    				
 	    			} else {
 	    				
-	    				valueCoded = vnode.getAttributes().getNamedItem("code").getNodeValue();
+	    				valueCoded = vnode.getAttributes().getNamedItem(valueCodeName).getNodeValue();
 	    				
 	    			}
 	    			
@@ -486,6 +487,14 @@ public class DbgapDecodeFiles extends Job {
 	    
 	    return valueLookup;
 	    
+	}
+
+	private static String findValueCodeName(Node vnode) {
+		System.out.println(vnode.getAttributes().toString());
+		if(vnode.getAttributes().getNamedItem("code") != null) return "code";
+		if(vnode.getAttributes().getNamedItem("value code") != null) return "value code";
+		else System.err.println("MISSING Value Codes for " + vnode.getTextContent());
+		return null;
 	}
 	
 }

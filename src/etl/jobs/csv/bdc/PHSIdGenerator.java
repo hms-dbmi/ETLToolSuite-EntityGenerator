@@ -76,7 +76,7 @@ public class PHSIdGenerator extends BDCJob {
 			
 			if(!patientMappings.containsKey(managedInput.getStudyAbvName())) continue;
 			
-			String subjectMultiFile = getStudySubjectMultiFile(managedInput);
+			String subjectMultiFile = getStudySubjectMultiFile(managedInput,DATA_DIR);
 			
 			if(subjectMultiFile == null) continue;
 			// used phs subject id column to find index

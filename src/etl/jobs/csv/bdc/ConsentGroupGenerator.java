@@ -219,7 +219,7 @@ public class ConsentGroupGenerator extends BDCJob {
 		
 		for(BDCManagedInput managedInput: managedInputs) {
 			
-			String studyType =  managedInput.getStudyType().toUpperCase();
+			String studyType = managedInput.getStudyType().toUpperCase();
 			
 			String studyAbvName = managedInput.getStudyAbvName();
 			
@@ -375,7 +375,21 @@ public class ConsentGroupGenerator extends BDCJob {
 						x++;
 						
 					}
-					
+					x = 0;
+					if(consentidx == -1) {
+						System.out.println("looking for consent header");
+						
+						for(String header: headers) {
+							
+							if(header.toLowerCase().contains("consent")) {
+								consentidx = x;
+								System.out.println("Found consent header " + header);
+								break;
+							}
+							x++;
+							
+						}
+					}
 					if(consentidx != -1) {
 					
 						String[] line;
@@ -467,7 +481,21 @@ public class ConsentGroupGenerator extends BDCJob {
 					x++;
 					
 				}
-				
+				x = 0;
+				if(consentidx == -1) {
+					System.out.println("looking for consent header");
+					
+					for(String header: headers) {
+						
+						if(header.toLowerCase().contains("consent")) {
+							consentidx = x;
+							System.out.println("Found consent header " + header);
+							break;
+						}
+						x++;
+						
+					}
+				}
 				if(consentidx != -1) {
 				
 					String[] line;

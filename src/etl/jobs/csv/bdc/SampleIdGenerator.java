@@ -88,7 +88,7 @@ public class SampleIdGenerator extends BDCJob {
 							int sampidIdx = -1;
 							while((line = reader.readNext()) != null) { 
 	
-								if(!line[0].toUpperCase().equals("DBGAP_SUBJECT_ID")) continue;
+								if(!line[0].toUpperCase().contains("DBGAP")) continue;
 								
 								for(String col: line) {
 									if(SAMPLE_HEADERS.contains(col.toUpperCase())) {
@@ -98,7 +98,7 @@ public class SampleIdGenerator extends BDCJob {
 										x++;
 									}
 								}
-								if(line[0].toUpperCase().equals("DBGAP_SUBJECT_ID")) break;
+								if(line[0].toUpperCase().contains("DBGAP")) break;
 								
 							}
 							

@@ -25,7 +25,7 @@ public class BDCMetadata implements Metadata {
 	public List<BDCMetadataElements> bio_data_catalyst = new ArrayList<>();
 	
 	public static String REQEUST_ACCESS_LINK = "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=";
-
+	
 	public static List<String> STATIC_META = new ArrayList<String>() {{
 		add("ORCHID");
 		add("HCT_for_SCD");
@@ -145,21 +145,24 @@ public class BDCMetadata implements Metadata {
 		}
 		BDCManagedInput managedInput = (BDCManagedInput) _managedInput;
 		
-		
+		/*
 		if(!managedInput.getStudyType().equalsIgnoreCase("TOPMED") && !managedInput.getStudyType().equalsIgnoreCase("PARENT")) {
 			buildGenericMetadata(managedInput,metadata);
 			continue;
-		}
+		}*/
 		if(managedInput.getStudyAbvName().toUpperCase().equalsIgnoreCase("STUDY ABBREVIATED NAME")) {
 			continue;
 		}
 		if(managedInput.getReadyToProcess().toUpperCase().startsWith("N")) {
 			continue;
 		}
+		if(managedInput.getDataProcessed().toUpperCase().startsWith("Y")) {
+			continue;
+		}
 		if(consentGroups.containsKey(managedInput.getStudyIdentifier())) {
 			
 			int clinicalCount = getClinicalVariableCount(managedInput);
-		
+			System.out.println("Building metadata for " + managedInput.toString());
 			for(Entry<String, String> entry: consentGroups.get(managedInput.getStudyIdentifier()).entrySet()) {
 					
 					BDCMetadataElements bdcm = new BDCMetadataElements();
@@ -183,6 +186,12 @@ public class BDCMetadata implements Metadata {
 					bdcm.raw_clinical_variable_count = clinicalCount;
 					
 					bdcm.clinical_variable_count = clinicalCount;
+					
+					bdcm.study_focus = managedInput.getStudyFocus();
+					
+					bdcm.study_design = managedInput.getStudyDesign();
+					
+					bdcm.additional_information = managedInput.getAdditionalInformation();
 					
 					getCounts(bdcm, managedInput, entry.getKey());
 					
@@ -268,15 +277,19 @@ public class BDCMetadata implements Metadata {
 		bdcm.study_phase = "p1";
 	
 		bdcm.top_level_path = "\\" + bdcm.study_identifier + "\\";
+		
+		bdcm.study_focus = managedInput.getStudyFocus();
+		
+		bdcm.study_design = managedInput.getStudyDesign();
 	
 		bdcm.is_harmonized = managedInput.getIsHarmonized();
 		
-		if(this.bio_data_catalyst.contains(bdcm)) {
-			System.out.println("replacing " + bdcm);
-			this.bio_data_catalyst.remove(bdcm);
+		if(!this.bio_data_catalyst.contains(bdcm)) {
+			//System.out.println("replacing " + bdcm);
+			//this.bio_data_catalyst.remove(bdcm);
 		}
 		
-		this.bio_data_catalyst.add(bdcm);	
+			
 		
 	}
 
@@ -331,8 +344,12 @@ public class BDCMetadata implements Metadata {
 		Map<String, Map<String, String>> consentGroups = new HashMap<>();
 		
 		for(ManagedInput _managedInput: managedInputs) {
-		
+			
 			BDCManagedInput managedInput = (BDCManagedInput) _managedInput;
+			
+			if(!managedInput.isDBGapCompliant()) {
+				continue;
+			}
 			
 			String subjectMultiFile = BDCJob.getStudySubjectMultiFile(managedInput);
 			
@@ -357,7 +374,20 @@ public class BDCMetadata implements Metadata {
 				}
 				
 			}
-		
+			// if no consent header found look dynamically
+			if(!consentGroups.containsKey(managedInput.getStudyIdentifier())) {
+				System.out.println("searching dynamically for consent header...");
+				for(String key: valueLookup.keySet()) {
+					if(key.toUpperCase().contains("CONSENT")) {
+						consentGroups.put(managedInput.getStudyIdentifier(), valueLookup.get(key));
+						
+						System.out.println("consent header detected = " + key);
+						
+						CONSENT_HEADERS.add(key);
+						break;
+					}
+				}
+			}
 		}
 		
 		return consentGroups;
