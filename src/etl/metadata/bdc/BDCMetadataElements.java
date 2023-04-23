@@ -76,6 +76,21 @@ public class BDCMetadataElements {
 		return true;
 	}
 
+	@Override
+	public String toString() {
+		return "BDCMetadataElements [study_identifier=" + study_identifier + ", study_type=" + study_type
+				+ ", abbreviated_name=" + abbreviated_name + ", full_study_name=" + full_study_name
+				+ ", consent_group_code=" + consent_group_code + ", consent_group_name_abv=" + consent_group_name_abv
+				+ ", consent_group_name=" + consent_group_name + ", request_access=" + request_access + ", data_type="
+				+ data_type + ", clinical_variable_count=" + clinical_variable_count + ", genetic_sample_size="
+				+ genetic_sample_size + ", clinical_sample_size=" + clinical_sample_size
+				+ ", raw_clinical_variable_count=" + raw_clinical_variable_count + ", raw_genetic_sample_size="
+				+ raw_genetic_sample_size + ", raw_clinical_sample_size=" + raw_clinical_sample_size
+				+ ", study_version=" + study_version + ", study_phase=" + study_phase + ", top_level_path="
+				+ top_level_path + ", is_harmonized=" + is_harmonized + ", study_focus=" + study_focus
+				+ ", study_design=" + study_design + ", additional_information=" + additional_information + "]";
+	}
+
 	
 	
 	
