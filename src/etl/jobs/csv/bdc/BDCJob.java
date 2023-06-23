@@ -30,6 +30,7 @@ import com.opencsv.CSVReader;
 
 import etl.etlinputs.managedinputs.ManagedInputFactory;
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
+import etl.etlinputs.managedinputs.bdc.BDCGenomicManagedInput;
 import etl.jobs.Job;
 
 public abstract class BDCJob extends Job {
@@ -667,7 +668,7 @@ public abstract class BDCJob extends Job {
 		return (List<BDCManagedInput>)(List<?>) ManagedInputFactory.readManagedInput(METADATA_TYPE,MANAGED_INPUT);
 		
 	}
-	
+
 	protected static Map<String, Map<String, String>> getPatientMappings() throws IOException {
 		
 		return Job.getPatientMappings(ManagedInputFactory.readManagedInput(METADATA_TYPE,MANAGED_INPUT));
@@ -840,6 +841,22 @@ public abstract class BDCJob extends Job {
 		}
 		
 		return subjIds;
+	}
+
+
+	/**
+	 * Separate job and helpers for specifically getting the genomic inputs file in
+	 * BDC and generating the index file needs
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
+	@SuppressWarnings("unchecked")
+	protected static List<BDCGenomicManagedInput> getGenomicManagedInputs() throws IOException {
+
+		return (List<BDCGenomicManagedInput>) (List<?>) ManagedInputFactory.readGenomicManagedInput("BDCGenomic",
+				GENOMIC_MANAGED_INPUT);
+
 	}
 	
 	

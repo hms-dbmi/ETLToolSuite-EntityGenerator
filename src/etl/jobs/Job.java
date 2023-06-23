@@ -33,6 +33,8 @@ public abstract class Job implements Serializable {
 	private static final long serialVersionUID = -4280736713043802649L;
 
 	protected static String MANAGED_INPUT = "data/Managed_Inputs.csv";
+
+	protected static String GENOMIC_MANAGED_INPUT = "data/Genomic_Managed_Inputs.csv";
 	
 	protected static boolean SKIP_HEADERS = false;
 
@@ -110,6 +112,10 @@ public abstract class Job implements Serializable {
 			// File and Directory Variables //
 			MANAGED_INPUT = properties.contains("managedinputsfile") ? properties.getProperty("managedinputsfile").toString() : MANAGED_INPUT;
 			
+			GENOMIC_MANAGED_INPUT = properties.contains("genomicmanagedinputsfile")
+					? properties.getProperty("genomicmanagedinputsfile").toString()
+					: GENOMIC_MANAGED_INPUT;
+
 			DATA_DIR = properties.contains("datadir") ? properties.getProperty("datadir").toString() : DATA_DIR;
 
 			DICT_DIR = properties.contains("dictdir") ? properties.getProperty("dictdir").toString() : DICT_DIR;

@@ -15,7 +15,7 @@ import java.util.Map;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
-import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
+import etl.etlinputs.managedinputs.bdc.BDCGenomicManagedInput;
 
 public class SampleIdGenerator extends BDCJob {
 
@@ -46,37 +46,38 @@ public class SampleIdGenerator extends BDCJob {
 
 	private static void execute() throws IOException {
 		//cleanSampleIdFile();
-
-		buildSampleIds();
+		List<BDCGenomicManagedInput> managedInputs = BDCJob.getGenomicManagedInputs();
+		for (BDCGenomicManagedInput managedInput : managedInputs) {
+				buildSampleIds(managedInput.getStudyIdAndConsent(), managedInput.getStudyIdentifier());
+		}
 	}
 
-	private static void buildSampleIds() throws IOException {
+	private static void buildSampleIds(String fullId, String phsNum) throws IOException {
 		
 		File dataDir = new File(DATA_DIR);
 		
 		List<String> patientNums = new ArrayList<>();
 		List<String> sampleIds = new ArrayList<>();
 		
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_SampleIds.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + fullId + "_SampleIds.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
 		
 			if(dataDir.isDirectory()) {
 				
 				for(String f: dataDir.list()) {
 										
-					if(f.toLowerCase().contains("sample.multi")) {
+					if(f.toLowerCase().contains(phsNum+".sample.multi")) {
 						
-						String phsOnly = f.substring(0, 9);
 						
-						String studyId = getStudyAccessions(phsOnly);
+						String studyAbv = getStudyAccessions(fullId);
 						
-						if(studyId == null || studyId.isEmpty()) {
-							System.err.println("No study associated with " + phsOnly + " in managed input file");
+						if(studyAbv == null || studyAbv.isEmpty()) {
+							System.err.println("No study associated with " + fullId + " in genomic managed input file");
 							continue;
 						};
 						
 						try(BufferedReader buffer = Files.newBufferedReader(Paths.get(new File(DATA_DIR + f).getAbsolutePath()))) {
 							
-							Map<String,String> patientNumLookup = getPatientMapping(studyId);
+							Map<String,String> patientNumLookup = getPatientMapping(studyAbv);
 							
 							List<String> headers2 = new ArrayList<String>();
 							
@@ -103,7 +104,7 @@ public class SampleIdGenerator extends BDCJob {
 							}
 							
 							if(sampidIdx == -1) {
-								System.err.println("No sample column for " + phsOnly);
+								System.err.println("No sample column for " + fullId);
 								continue;
 							}
 							
@@ -115,7 +116,7 @@ public class SampleIdGenerator extends BDCJob {
 									
 									if(line[sampidIdx].trim().isEmpty()) continue;
 									if(!line[sampidIdx].startsWith("NWD")) continue;
-									String[] arr = new String[] { patientNumLookup.get(line[0]), studyId, line[sampidIdx]};
+									String[] arr = new String[] { patientNumLookup.get(line[0]), studyAbv, line[sampidIdx]};
 									patientNums.add(patientNumLookup.get(line[0]));
 									sampleIds.add(line[sampidIdx]);
 									
@@ -131,26 +132,37 @@ public class SampleIdGenerator extends BDCJob {
 			}
 		}
 		
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_vcfIndex.tsv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + fullId + "_vcfIndex.tsv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
 			
 			CSVWriter csv = new CSVWriter(writer, '\t');
 			
-			String[] headers = new String[] {"vcf_path","contig","isAnnotated","isGzipped","sample_ids","patient_ids","sample_relationship","related_sample_ids"};
-			String[] line = new String[] {"","","","",String.join(",", sampleIds),String.join(",", patientNums),"",""};
-			
-			if(!sampleIds.isEmpty()) {
-				csv.writeNext(headers);
-				csv.writeNext(line);
+			String[] headers = new String[] {"vcf_path","chromosome","isAnnotated","isGzipped","sample_ids","patient_ids","sample_relationship","related_sample_ids"};
+			csv.writeNext(headers);
+			String isAnnotated = "1";
+			String isGzipped = "1";
+			for(int chrom = 1; chrom<24; chrom++){
+				String chromosome = Integer.toString(chrom);
+				if (chrom == 23){
+					chromosome = "X";
+				}
+				String vcfPath = "data/vcfInput/" + fullId + ".chr" + chrom + ".annotated.hpds.vcf.gz";
+	
+				String[] line = new String[] { vcfPath, chromosome, isAnnotated, isGzipped, String.join(",", sampleIds),
+						String.join(",", patientNums), "", "" };
+				if (!sampleIds.isEmpty()) {
+					csv.writeNext(line);
+				}
 			}
+
 			
 		}
 
 	}
 
-	private static Map<String, String> getPatientMapping(String studyId) throws IOException {
+	private static Map<String, String> getPatientMapping(String studyAbv) throws IOException {
 		Map<String,String> map = new HashMap<>();
 		
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + studyId.toUpperCase() + "_PatientMapping.v2.csv"))){
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + studyAbv.toUpperCase() + "_PatientMapping.v2.csv"))){
 			
 			//System.out.println(studyId.toUpperCase() + "_PatientMapping.v2.csv");
 			CSVReader reader = new CSVReader(buffer);
@@ -166,12 +178,13 @@ public class SampleIdGenerator extends BDCJob {
 		return map;
 	}
 
-	private static String getStudyAccessions(String phsOnly) throws IOException {
+	private static String getStudyAccessions(String fullId) throws IOException {
 		
-		List<BDCManagedInput> managedInputs = BDCJob.getManagedInputs();
+		List<BDCGenomicManagedInput> managedInputs = BDCJob.getGenomicManagedInputs();
+
 		
-		for(BDCManagedInput managedInput:managedInputs) {
-			if(managedInput.getStudyIdentifier().equals(phsOnly)) {
+		for(BDCGenomicManagedInput managedInput:managedInputs) {
+			if(managedInput.getStudyIdAndConsent().equals(fullId)) {
 				return managedInput.getStudyAbvName();
 			}
 		}

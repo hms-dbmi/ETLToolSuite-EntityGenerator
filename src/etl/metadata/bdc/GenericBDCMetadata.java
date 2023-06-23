@@ -33,8 +33,7 @@ public class GenericBDCMetadata extends BDCMetadata {
 		if(managedInput == null) {
 			throw new IOException("Unable to find accession in Managed Input for " + STUDY_ACCESSION);
 		}
-		/*
-		if(StringUtils.isBlank(GENERIC_CONSENT_CODE)) {
+/* 		if(StringUtils.isBlank(GENERIC_CONSENT_CODE)) {
 			throw new IOException("GENERIC_CONSENT_CODE is not set");
 		}
 		if(StringUtils.isBlank(GENERIC_CONSENT_GROUP_ABV_NAME)) {
@@ -42,8 +41,8 @@ public class GenericBDCMetadata extends BDCMetadata {
 		}
 		if(StringUtils.isBlank(GENERIC_CONSENT_GROUP_FULL_NAME)) {
 			throw new IOException("GENERIC_CONSENT_GROUP_FULL_NAME is not set");
-		}
-		*/
+		} */
+		
 		BDCMetadataElements bdcm = new BDCMetadataElements();
 		
 		bdcm.study_identifier = managedInput.getStudyIdentifier();
