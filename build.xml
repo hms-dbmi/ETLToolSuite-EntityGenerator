@@ -195,7 +195,8 @@
   		<fileset dir="bin" includes="*.xml"></fileset>
   	    <zipgroupfileset dir="bin" includes="**/*.jar" />
   		</jar>  
-     <jar destfile="GenericGlobalConceptsGenerator.jar">
+		 -->
+ <jar destfile="jars/GenericGlobalConceptsGenerator.jar">
     	    				<manifest>
     	    				<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenericGlobalConceptsGenerator"/>
     	    				</manifest>
@@ -203,6 +204,7 @@
     	    				<fileset dir="bin" includes="*.xml"></fileset>
     	    	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
     	    	    	</jar>
+		    <!-- 
     	<jar destfile="GenericMappingGenerator.jar">
     				<manifest>
     				<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenericMappingGenerator"/>

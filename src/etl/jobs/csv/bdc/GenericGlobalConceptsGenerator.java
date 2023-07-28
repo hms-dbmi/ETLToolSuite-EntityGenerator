@@ -136,35 +136,63 @@ public class GenericGlobalConceptsGenerator extends BDCJob {
 	private static Collection<? extends AllConcepts> generateStudyConsents(List<PatientMapping> patientMappings) {
 		List<AllConcepts> studyConsents = new ArrayList<>();
 		for(PatientMapping pm: patientMappings) {
-			AllConcepts ac = new AllConcepts();
-			ac.setPatientNum(pm.getPatientNum());
-			ac.setConceptPath(PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR + STUDY_ACCESSION + PATH_SEPARATOR + CONSENT_ID 
-					+ PATH_SEPARATOR);
-		    ac.setTvalChar("TRUE");
-		    ac.setNvalNum("");
-		    ac.setStartDate("0");
-		    
-		    studyConsents.add(ac);
-		    
-			AllConcepts ac2 = new AllConcepts();
-			ac2.setPatientNum(pm.getPatientNum());
-		    ac2.setTvalChar("TRUE");
-		    ac2.setNvalNum("");
-		    ac2.setStartDate("0");
-		    
-		    ac2.setConceptPath(PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR + STUDY_ACCESSION + PATH_SEPARATOR);
-		    
-		    studyConsents.add(ac2);
-		    
-			AllConcepts ac3 = new AllConcepts();
-			ac3.setPatientNum(pm.getPatientNum());
-		    ac3.setTvalChar("TRUE");
-		    ac3.setNvalNum("");
-		    ac3.setStartDate("0");
-		    
-			ac3.setConceptPath(PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR);
-		    
-		    studyConsents.add(ac3);
+			if(CONSENT_ID.equals("none")){
+
+				AllConcepts ac2 = new AllConcepts();
+				ac2.setPatientNum(pm.getPatientNum());
+				ac2.setTvalChar("TRUE");
+				ac2.setNvalNum("");
+				ac2.setStartDate("0");
+
+				ac2.setConceptPath(
+						PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR + STUDY_ACCESSION + PATH_SEPARATOR);
+
+				studyConsents.add(ac2);
+
+				AllConcepts ac3 = new AllConcepts();
+				ac3.setPatientNum(pm.getPatientNum());
+				ac3.setTvalChar("TRUE");
+				ac3.setNvalNum("");
+				ac3.setStartDate("0");
+
+				ac3.setConceptPath(PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR);
+
+				studyConsents.add(ac3);
+			}
+			else{
+				AllConcepts ac = new AllConcepts();
+				ac.setPatientNum(pm.getPatientNum());
+				ac.setConceptPath(PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR + STUDY_ACCESSION
+						+ PATH_SEPARATOR + CONSENT_ID
+						+ PATH_SEPARATOR);
+				ac.setTvalChar("TRUE");
+				ac.setNvalNum("");
+				ac.setStartDate("0");
+
+				studyConsents.add(ac);
+
+				AllConcepts ac2 = new AllConcepts();
+				ac2.setPatientNum(pm.getPatientNum());
+				ac2.setTvalChar("TRUE");
+				ac2.setNvalNum("");
+				ac2.setStartDate("0");
+
+				ac2.setConceptPath(
+						PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR + STUDY_ACCESSION + PATH_SEPARATOR);
+
+				studyConsents.add(ac2);
+
+				AllConcepts ac3 = new AllConcepts();
+				ac3.setPatientNum(pm.getPatientNum());
+				ac3.setTvalChar("TRUE");
+				ac3.setNvalNum("");
+				ac3.setStartDate("0");
+
+				ac3.setConceptPath(PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR);
+
+				studyConsents.add(ac3);
+			}
+			
 		}
 	
 		return studyConsents;
@@ -173,13 +201,25 @@ public class GenericGlobalConceptsGenerator extends BDCJob {
 	private static List<AllConcepts> generateConsents(List<PatientMapping> patientMappings) {
 		List<AllConcepts> consents = new ArrayList<>();
 		for(PatientMapping pm: patientMappings) {
-			AllConcepts ac = new AllConcepts();
-			ac.setPatientNum(pm.getPatientNum());
-			ac.setConceptPath(PATH_SEPARATOR + "_consents" + PATH_SEPARATOR );
-		    ac.setTvalChar(STUDY_ACCESSION + ".c1");
-		    ac.setNvalNum("");
-		    ac.setStartDate("0");
-		    consents.add(ac);
+			if(CONSENT_ID.equals("none")){
+				AllConcepts ac = new AllConcepts();
+				ac.setPatientNum(pm.getPatientNum());
+				ac.setConceptPath(PATH_SEPARATOR + "_consents" + PATH_SEPARATOR);
+				ac.setTvalChar(STUDY_ACCESSION);
+				ac.setNvalNum("");
+				ac.setStartDate("0");
+				consents.add(ac);
+			}
+			else{
+				AllConcepts ac = new AllConcepts();
+				ac.setPatientNum(pm.getPatientNum());
+				ac.setConceptPath(PATH_SEPARATOR + "_consents" + PATH_SEPARATOR);
+				ac.setTvalChar(STUDY_ACCESSION + ".c1");
+				ac.setNvalNum("");
+				ac.setStartDate("0");
+				consents.add(ac);
+			}
+
 		}
 		
 		return consents;
