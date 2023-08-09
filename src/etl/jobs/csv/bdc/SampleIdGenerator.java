@@ -16,6 +16,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
+import etl.jobs.mappings.Mapping;
 
 public class SampleIdGenerator extends BDCJob {
 
@@ -25,6 +26,7 @@ public class SampleIdGenerator extends BDCJob {
 		SAMPLE_HEADERS.add("SAMPLE_ID");
 		SAMPLE_HEADERS.add("SAMPLEID");
 		SAMPLE_HEADERS.add("SAMPID");
+		SAMPLE_HEADERS.add("SAMP_ID");
 
 	}
 	public static void main(String[] args) {
@@ -48,6 +50,8 @@ public class SampleIdGenerator extends BDCJob {
 		//cleanSampleIdFile();
 
 		buildSampleIds();
+		
+		
 	}
 
 	private static void buildSampleIds() throws IOException {
@@ -56,59 +60,60 @@ public class SampleIdGenerator extends BDCJob {
 		
 		List<String> patientNums = new ArrayList<>();
 		List<String> sampleIds = new ArrayList<>();
+		List<Mapping> sampleIdMappings = new ArrayList<>();
 		
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_SampleIds.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
-		
-			if(dataDir.isDirectory()) {
-				
-				for(String f: dataDir.list()) {
-										
-					if(f.toLowerCase().contains("sample.multi")) {
+		if(dataDir.isDirectory()) {
+			
+			for(String f: dataDir.list()) {
+									
+				if(f.toLowerCase().contains("sample.multi")) {
+					
+					String phsOnly = f.substring(0, 9);
+					
+					String studyId = getStudyAccessions(phsOnly);
+					
+					if(studyId == null || studyId.isEmpty()) {
+						System.err.println("No study associated with " + phsOnly + " in managed input file");
+						continue;
+					};
+					
+					try(BufferedReader buffer = Files.newBufferedReader(Paths.get(new File(DATA_DIR + f).getAbsolutePath()))) {
 						
-						String phsOnly = f.substring(0, 9);
+						Map<String,String> patientNumLookup = getPatientMapping(studyId);
 						
-						String studyId = getStudyAccessions(phsOnly);
+						List<String> headers2 = new ArrayList<String>();
 						
-						if(studyId == null || studyId.isEmpty()) {
-							System.err.println("No study associated with " + phsOnly + " in managed input file");
-							continue;
-						};
-						
-						try(BufferedReader buffer = Files.newBufferedReader(Paths.get(new File(DATA_DIR + f).getAbsolutePath()))) {
+						CSVReader reader = new CSVReader(buffer, '\t');
+
+						String[] line;
+
+						int x = 0;
+						int sampidIdx = -1;
+						while((line = reader.readNext()) != null) { 
+
+							if(!line[0].toUpperCase().contains("DBGAP")) continue;
 							
-							Map<String,String> patientNumLookup = getPatientMapping(studyId);
-							
-							List<String> headers2 = new ArrayList<String>();
-							
-							CSVReader reader = new CSVReader(buffer, '\t');
-	
-							String[] line;
-	
-							int x = 0;
-							int sampidIdx = -1;
-							while((line = reader.readNext()) != null) { 
-	
-								if(!line[0].toUpperCase().contains("DBGAP")) continue;
-								
-								for(String col: line) {
-									if(SAMPLE_HEADERS.contains(col.toUpperCase())) {
-										sampidIdx = x;
-										break;
-									} else {
-										x++;
-									}
+							for(String col: line) {
+								if(SAMPLE_HEADERS.contains(col.toUpperCase())) {
+									sampidIdx = x;
+									break;
+								} else {
+									x++;
 								}
-								if(line[0].toUpperCase().contains("DBGAP")) break;
-								
 							}
+							if(line[0].toUpperCase().contains("DBGAP")) break;
 							
-							if(sampidIdx == -1) {
-								System.err.println("No sample column for " + phsOnly);
-								continue;
-							}
-							
-							line = null;
-							
+						}
+						
+						if(sampidIdx == -1) {
+							System.err.println("No sample column for " + phsOnly);
+							continue;
+						}
+						
+						line = null;
+						
+						try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + phsOnly + "_SampleIds.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+
 							while((line = reader.readNext()) != null) { 
 								
 								if(patientNumLookup.containsKey(line[0])) {
@@ -124,12 +129,26 @@ public class SampleIdGenerator extends BDCJob {
 								}
 								
 							}
-							writer.flush();
+						
+						writer.flush();
 						}
+						// create a mapping entry to load the variable
+						///genomic_sample_id/phs000007/NWDXXXXXX
+
+						Mapping mapping = new Mapping(phsOnly + "_SampleIds.csv:2","/_genomic_sample_id/" + phsOnly + "/", "", "TEXT", "");
+						sampleIdMappings.add(mapping);
 					}
 				}
 			}
 		}
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "SampleId_mapping.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+			
+ 			for(Mapping mout: sampleIdMappings) {
+ 				writer.write(mout.toCSV());
+ 			}
+ 			writer.flush();
+		}
+
 		
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_vcfIndex.tsv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
 			
