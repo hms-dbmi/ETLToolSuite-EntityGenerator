@@ -159,7 +159,7 @@ public class SampleIdGenerator extends BDCJob {
 		}
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "Sample_ID_Counts.csv"), StandardOpenOption.APPEND, StandardOpenOption.CREATE)) {
 			for(Entry<String,Integer> entry: sampleIdCountPerStudy.entrySet()) {
-				writer.write(entry.getKey() + "=" + entry.getValue());
+				writer.write(entry.getKey() + "=" + entry.getValue() + '\n');
 			}
 			writer.flush();
 			writer.close();
