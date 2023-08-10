@@ -9,8 +9,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
@@ -61,6 +64,7 @@ public class SampleIdGenerator extends BDCJob {
 		List<String> patientNums = new ArrayList<>();
 		List<String> sampleIds = new ArrayList<>();
 		List<Mapping> sampleIdMappings = new ArrayList<>();
+		Map<String,Integer> sampleIdCountPerStudy = new HashMap<>();
 		
 		if(dataDir.isDirectory()) {
 			
@@ -112,41 +116,61 @@ public class SampleIdGenerator extends BDCJob {
 						
 						line = null;
 						
-						try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + phsOnly + "_SampleIds.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+						Set<String[]> sampleIdsList = new HashSet<>();
+					
 
-							while((line = reader.readNext()) != null) { 
+						while((line = reader.readNext()) != null) { 
+							
+							if(patientNumLookup.containsKey(line[0])) {
 								
-								if(patientNumLookup.containsKey(line[0])) {
-									
-									if(line[sampidIdx].trim().isEmpty()) continue;
-									if(!line[sampidIdx].startsWith("NWD")) continue;
-									String[] arr = new String[] { patientNumLookup.get(line[0]), studyId, line[sampidIdx]};
-									patientNums.add(patientNumLookup.get(line[0]));
-									sampleIds.add(line[sampidIdx]);
-									
-									writer.write(toCsv(arr));
-									
-								}
+								if(line[sampidIdx].trim().isEmpty()) continue;
+								// Only loading topmed freezes which are prefixed with NWD values
+								// remove the continue clause below if other genomic data associated with dbgap data is ever consumed.
+								if(!line[sampidIdx].startsWith("NWD")) continue;
+								String[] arr = new String[] { patientNumLookup.get(line[0]), studyId, line[sampidIdx]};
+								patientNums.add(patientNumLookup.get(line[0]));
+								
+								sampleIds.add(line[sampidIdx]);
+								
+								sampleIdsList.add(arr);
 								
 							}
-						
-						writer.flush();
+							
 						}
-						// create a mapping entry to load the variable
-						///genomic_sample_id/phs000007/NWDXXXXXX
+						if(!sampleIdsList.isEmpty()) {
+							// add counts to collection to report number of sample ids found for the study
+							sampleIdCountPerStudy.put(phsOnly, sampleIdsList.size());
+							
+							try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + phsOnly + "_SampleIds.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+							   for(String[] arr: sampleIdsList) {
+								   writer.flush();
+								   writer.write(toCsv(arr));
+							   }
+							}
+							
+						}
 
 						Mapping mapping = new Mapping(phsOnly + "_SampleIds.csv:2","/_genomic_sample_id/" + phsOnly + "/", "", "TEXT", "");
+						
 						sampleIdMappings.add(mapping);
 					}
 				}
 			}
 		}
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "Sample_ID_Counts.csv"), StandardOpenOption.APPEND, StandardOpenOption.CREATE)) {
+			for(Entry<String,Integer> entry: sampleIdCountPerStudy.entrySet()) {
+				writer.write(entry.getKey() + "=" + entry.getValue());
+			}
+			writer.flush();
+			writer.close();
+		}
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "SampleId_mapping.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
 			
  			for(Mapping mout: sampleIdMappings) {
- 				writer.write(mout.toCSV());
+ 				writer.write(mout.toCSV() + '\n');
  			}
  			writer.flush();
+ 			writer.close();
 		}
 
 		
