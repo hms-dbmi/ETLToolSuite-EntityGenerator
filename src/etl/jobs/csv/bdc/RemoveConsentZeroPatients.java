@@ -222,7 +222,13 @@ public class RemoveConsentZeroPatients extends BDCJob {
 							
 							bw.write(toCsv(line));
 						}					
-					} else if(rootNode.equals("_topmed_consents")) { 
+					} if(rootNode.equals("_genomic_sample_id")) {
+						if(topmedNonCzeroPatNums.contains(line[0])) {
+							
+							bw.write(toCsv(line));
+						}					
+					}
+					else if(rootNode.equals("_topmed_consents")) { 
 						if(line[3].contains("c0")) continue;
 						bw.write(toCsv(line));
 					} else if(rootNode.equals("_parent_consents")) { 
