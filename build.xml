@@ -300,8 +300,8 @@
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
-		</jar>
-    	<jar destfile="HPDSPatientNumTracker.jar">
+		</jar> -->
+ 	<jar destfile="jars/HPDSPatientNumTracker.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.bdc.HPDSPatientNumTracker"/>
 			</manifest>
@@ -309,6 +309,7 @@
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar>
+		    <!--
     	<jar destfile="CollectIdentifiers.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.bdc.CollectIdentifiers"/>
@@ -525,14 +526,14 @@
 			<fileset dir="bin" includes="*.xml"></fileset>
 	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar>  -->
-<!-- 		<jar destfile="JsonMetadataGenerator.jar">
+ 		<jar destfile="jars/JsonMetadataGenerator.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.JsonMetadataGenerator"/>
 			</manifest>
 		    <fileset dir="bin" includes="**/*.class" />
 			<fileset dir="bin" includes="*.xml"></fileset>
 	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
-		</jar>  -->
+		</jar>
    <!--      	 
     	<jar destfile="JsonMetadataGenerator2.jar">
 			<manifest>

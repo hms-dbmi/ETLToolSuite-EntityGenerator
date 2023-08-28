@@ -159,6 +159,10 @@ public class BDCMetadata implements Metadata {
 		if(managedInput.getDataProcessed().toUpperCase().startsWith("Y")) {
 			continue;
 		}
+		if (!managedInput.getStudyType().toUpperCase().equals("TOPMED") && !managedInput.getStudyType().toUpperCase()
+				.equals("PARENT")) {
+			continue;
+		}
 		if(consentGroups.containsKey(managedInput.getStudyIdentifier())) {
 			
 			int clinicalCount = getClinicalVariableCount(managedInput);

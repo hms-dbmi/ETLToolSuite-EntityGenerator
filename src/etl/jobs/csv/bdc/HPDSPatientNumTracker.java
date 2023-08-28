@@ -165,7 +165,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 		
 		Set<String> patientSet = new HashSet<>();
 		
-		try(CSVReader reader = readRawBDCDataset(Paths.get(DATA_DIR + BDCJob.getStudySubjectMultiFile(managedInput)),true)){
+		try(CSVReader reader = readRawBDCDataset(Paths.get(DATA_DIR + "decoded/" + BDCJob.getStudySubjectMultiFile(managedInput)),true)){
 			
 			String[] line;
 			
