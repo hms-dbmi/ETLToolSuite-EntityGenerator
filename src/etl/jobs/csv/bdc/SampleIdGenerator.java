@@ -48,11 +48,11 @@ public class SampleIdGenerator extends BDCJob {
 		//cleanSampleIdFile();
 		List<BDCGenomicManagedInput> managedInputs = BDCJob.getGenomicManagedInputs();
 		for (BDCGenomicManagedInput managedInput : managedInputs) {
-				buildSampleIds(managedInput.getStudyIdAndConsent(), managedInput.getStudyIdentifier());
+				buildSampleIds(managedInput.getStudyIdAndConsent(), managedInput.getGlobalConsentCode(), managedInput.getStudyIdentifier());
 		}
 	}
 
-	private static void buildSampleIds(String fullId, String phsNum) throws IOException {
+	private static void buildSampleIds(String fullId, String globalConsentCode, String phsNum) throws IOException {
 		
 		File dataDir = new File(DATA_DIR);
 		
@@ -78,6 +78,8 @@ public class SampleIdGenerator extends BDCJob {
 						try(BufferedReader buffer = Files.newBufferedReader(Paths.get(new File(DATA_DIR + f).getAbsolutePath()))) {
 							
 							Map<String,String> patientNumLookup = getPatientMapping(studyAbv);
+
+							Map<String,String> consentMap = getConsentMappings();
 							
 							List<String> headers2 = new ArrayList<String>();
 							
@@ -113,9 +115,12 @@ public class SampleIdGenerator extends BDCJob {
 							while((line = reader.readNext()) != null) { 
 								
 								if(patientNumLookup.containsKey(line[0])) {
-									
+									//checks if sampleid is empty
 									if(line[sampidIdx].trim().isEmpty()) continue;
+									//checks if sampleid fits the expected format
 									if(!line[sampidIdx].startsWith("NWD")) continue;
+									// checks if the patient belongs to the correct consent code for the index being generated
+									if(!consentMap.get(patientNumLookup.get(line[0])).equals(globalConsentCode)) continue; 
 									String[] arr = new String[] { patientNumLookup.get(line[0]), studyAbv, line[sampidIdx]};
 									patientNums.add(patientNumLookup.get(line[0]));
 									sampleIds.add(line[sampidIdx]);
@@ -145,7 +150,7 @@ public class SampleIdGenerator extends BDCJob {
 				if (chrom == 23){
 					chromosome = "X";
 				}
-				String vcfPath = "data/vcfInput/" + fullId + ".chr" + chrom + ".annotated.hpds.vcf.gz";
+				String vcfPath = "data/vcfInput/" + fullId + ".chr" + chromosome + ".annotated.hpds.vcf.gz";
 	
 				String[] line = new String[] { vcfPath, chromosome, isAnnotated, isGzipped, String.join(",", sampleIds),
 						String.join(",", patientNums), "", "" };
@@ -190,6 +195,34 @@ public class SampleIdGenerator extends BDCJob {
 		}
 		
 		return null;
+	}
+
+	private static Map<String, String> getConsentMappings() throws IOException {
+		Map<String,String> consentMap = new HashMap<>();
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "GLOBAL_allConcepts.csv"))){
+			
+			CSVReader reader = new CSVReader(buffer, ',', '\"', 'µ');
+			String[] line;
+			
+			while((line = reader.readNext())!=null) {
+				// validate distinct patient counts in each study
+				if(line[0].equalsIgnoreCase("PATIENT_NUM")) continue;  //skip header
+				if(line[1].split("\\\\").length < 2) {
+					System.out.println(line[1]);
+					continue;
+				}
+				
+				String rootConcept = line[1].split("\\\\")[1];
+
+				if(rootConcept.equalsIgnoreCase("_consents")) {
+					
+						consentMap.put(line[0], line[3]);
+					
+				}
+			}
+		}
+
+		return consentMap;
 	}
 
 }

@@ -104,7 +104,16 @@ public class BDCGenomicManagedInput extends GenomicManagedInput {
 		return this.studyIdentifier + "." + this.studyConsent;
 	}
 
-
+	public String getGlobalConsentCode() {
+		if (this.getStudyConsent().isEmpty()) {
+			return this.studyIdentifier + ".c1";
+		}
+		//Special case for if a study is not compliant i.e. CAMP or 1000genomes. Will use value in consent column as consent
+		else if (!this.getStudyIdentifier().startsWith("phs")) {
+			return this.studyConsent;
+		}
+		return this.studyIdentifier + "." + this.studyConsent;
+	}
 
 	@Override
 	public String toString() {
