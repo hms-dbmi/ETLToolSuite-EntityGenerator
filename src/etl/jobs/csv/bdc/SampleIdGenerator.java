@@ -79,7 +79,7 @@ public class SampleIdGenerator extends BDCJob {
 							
 							Map<String,String> patientNumLookup = getPatientMapping(studyAbv);
 
-							Map<String,String> consentMap = getConsentMappings();
+							Map<String,String> consentMap = getConsentMappings(phsNum);
 							
 							List<String> headers2 = new ArrayList<String>();
 							
@@ -120,7 +120,9 @@ public class SampleIdGenerator extends BDCJob {
 									//checks if sampleid fits the expected format
 									if(!line[sampidIdx].startsWith("NWD")) continue;
 									// checks if the patient belongs to the correct consent code for the index being generated
-									if(!consentMap.get(patientNumLookup.get(line[0])).equals(globalConsentCode)) continue; 
+									System.out.println("Patient num lookup result is " + patientNumLookup.get(line[0]) + " and global consent code is " + globalConsentCode);
+									if(!(consentMap.get(patientNumLookup.get(line[0])) == globalConsentCode)) continue;
+									System.out.println("Patient lookup and consent code match");
 									String[] arr = new String[] { patientNumLookup.get(line[0]), studyAbv, line[sampidIdx]};
 									patientNums.add(patientNumLookup.get(line[0]));
 									sampleIds.add(line[sampidIdx]);
@@ -197,9 +199,9 @@ public class SampleIdGenerator extends BDCJob {
 		return null;
 	}
 
-	private static Map<String, String> getConsentMappings() throws IOException {
+	private static Map<String, String> getConsentMappings(String phsNum) throws IOException {
 		Map<String,String> consentMap = new HashMap<>();
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "GLOBAL_allConcepts.csv"))){
+		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + phsNum + "GLOBAL_allConcepts_merged.csv"))){
 			
 			CSVReader reader = new CSVReader(buffer, ',', '\"', 'µ');
 			String[] line;
@@ -215,7 +217,7 @@ public class SampleIdGenerator extends BDCJob {
 				String rootConcept = line[1].split("\\\\")[1];
 
 				if(rootConcept.equalsIgnoreCase("_consents")) {
-					
+						System.out.println("adding consent relationship");
 						consentMap.put(line[0], line[3]);
 					
 				}

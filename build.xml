@@ -374,6 +374,14 @@
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 	  	</jar>
+		<jar destfile="jars/GenerateConsentMapping.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenerateConsentMapping"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>
     	<!-- 	<jar destfile="Partitioner.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.Partitioner"/>
