@@ -123,7 +123,7 @@ public class GenericGlobalConceptsGenerator extends BDCJob {
 		for(PatientMapping pm: patientMappings) {
 			AllConcepts ac = new AllConcepts();
 			ac.setPatientNum(pm.getPatientNum());
-			ac.setConceptPath(PATH_SEPARATOR + "_Topmed Study Accession with Subject ID" + PATH_SEPARATOR + STUDY_ACCESSION + "_" + pm.getSourceId() + PATH_SEPARATOR );
+			ac.setConceptPath(PATH_SEPARATOR + "_Topmed Study Accession with Subject ID" + PATH_SEPARATOR + STUDY_ACCESSION + "_" + pm.getSourceId().replaceAll("\"", "") + PATH_SEPARATOR );
 		    ac.setTvalChar("TRUE");
 		    ac.setNvalNum("");
 		    ac.setStartDate("0");
