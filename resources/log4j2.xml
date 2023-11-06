@@ -4,22 +4,22 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
         </Console>
-        <RollingFile name="all" fileName="/var/logs/all.log"
-        			filePattern="${log-path}/dating-trace-%d{yyyy-MM-dd}.log" immediateFlush="false">
+        <RollingFile name="all" fileName="./logs/all.log"
+        			filePattern="dating-trace-%d{yyyy-MM-dd}.log" immediateFlush="false">
             <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
 	            <Policies>
 					<OnStartupTriggeringPolicy minSize="0"/>
 	            </Policies>
         </RollingFile>
-        <RollingFile name="Errors" fileName="/var/logs/error.log"
-        			filePattern="${log-path}/error-%d{yyyy-MM-dd}.log" immediateFlush="false">
+        <RollingFile name="Errors" fileName="./logs/error.log"
+        			filePattern="error-%d{yyyy-MM-dd}.log" immediateFlush="false">
             <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
-				<Policies>
+				<Policies>cd 
 					<OnStartupTriggeringPolicy minSize="0"/>
 				</Policies>
         </RollingFile>
-        <RollingFile name="Debug" fileName="/var/logs/debug.log"
-        			filePattern="${log-path}/debug-%d{yyyy-MM-dd}.log" immediateFlush="false">
+        <RollingFile name="Debug" fileName="./logs/debug.log"
+        			filePattern="lsdebug-%d{yyyy-MM-dd}.log" immediateFlush="false">
             <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
 				<Policies>
 					<OnStartupTriggeringPolicy minSize="0"/>

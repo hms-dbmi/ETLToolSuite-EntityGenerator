@@ -5,9 +5,10 @@ import java.util.Map;
 import java.util.Set;
 
 import etl.data.datatype.DataType;
-import etl.data.export.entities.Entity;
-import etl.job.jsontoi2b2tm.entity.Mapping;
-import etl.mapping.CsvToI2b2TMMapping;
+import etl.job.entity.hpds.AllConcepts;
+import etl.jobs.mappings.Mapping;
+
+
 
 public class Omit extends DataType {
 
@@ -17,7 +18,7 @@ public class Omit extends DataType {
 	}
 
 	@Override
-	public Set<Entity> generateTables(Map map, Mapping mapping, List<Entity> entities,
+	public Set<AllConcepts> generateTables(Map map, Mapping mapping, List<AllConcepts> entities,
 			String relationalKey, String omissionKey) {
 				return null;
 		
@@ -25,13 +26,7 @@ public class Omit extends DataType {
 	}
 
 	@Override
-	public Set<Entity> generateTables(String[] data,
-			CsvToI2b2TMMapping mapping, List<Entity> entities) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	@Override
-	public Set<Entity> generateTables(Mapping mapping, List<Entity> entities, List<Object> values,
+	public Set<AllConcepts> generateTables(Mapping mapping, List<AllConcepts> entities, List<Object> values,
 			List<Object> relationalValue) throws Exception {
 		// TODO Auto-generated method stub
 		return null;

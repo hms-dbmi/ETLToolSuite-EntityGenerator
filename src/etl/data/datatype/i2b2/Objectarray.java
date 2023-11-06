@@ -11,9 +11,10 @@ import javax.xml.crypto.Data;
 
 import etl.data.datasource.JSONDataSource;
 import etl.data.datatype.DataType;
-import etl.data.export.entities.Entity;
-import etl.job.jsontoi2b2tm.entity.Mapping;
-import etl.mapping.CsvToI2b2TMMapping;
+import etl.job.entity.hpds.AllConcepts;
+import etl.jobs.mappings.Mapping;
+
+
 
 public class Objectarray extends DataType {
 	
@@ -26,7 +27,7 @@ public class Objectarray extends DataType {
 		// TODO Auto-generated constructor stub
 	}
 	@Override
-	public  Set<Entity> generateTables(Mapping mapping, List<Entity> entities, List<Object> values,
+	public  Set<AllConcepts> generateTables(Mapping mapping, List<AllConcepts> entities, List<Object> values,
 			List<Object> relationalValues) throws Exception{
 		
 		Map<String, String> options = Mapping.class.newInstance().buildOptions(mapping.getOptions());
@@ -43,8 +44,8 @@ public class Objectarray extends DataType {
 	}
 	
 	@Deprecated
-	public Set<Entity> generateTables(Map map, Mapping mapping,
-			List<Entity> entities, String relationalKey, String omissionKey) throws InstantiationException, IllegalAccessException, Exception {
+	public Set<AllConcepts> generateTables(Map map, Mapping mapping,
+			List<AllConcepts> entities, String relationalKey, String omissionKey) throws InstantiationException, IllegalAccessException, Exception {
 
 		Map<String, String> options = Mapping.class.newInstance().buildOptions(mapping.getOptions());
 		if(!isValidArrayType(options.get("TYPE"))) {
@@ -138,38 +139,6 @@ public class Objectarray extends DataType {
 		
 	}
 	
-	public List<Map<String, List<String>>> generateArray(Object object){
-
-		if(object == null || object.toString().equals("")){
-		
-			return new ArrayList<Map<String, List<String>>>();
-		
-		}
-		
-		if(ARRAY_FORMAT.equalsIgnoreCase("JSONFILE")){
-
-			return buildJsonArray(object);
-			
-		}
-		return null;
-	}
-
-	private List<Map<String, List<String>>> buildJsonArray(Object string) {
-
-		try {
-			
-			JSONDataSource jds = new JSONDataSource("JSONFILE");
-
-			return jds.processJsonArrayToMap(string.toString());
-						
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return null;
-	}
-	
 	protected Set<String> generateKeys(Map map, String key) {
 		
 		Set<String> set = new HashSet<String>();
@@ -201,13 +170,36 @@ public class Objectarray extends DataType {
 		return set;
 	
 	}
-	@Override
-	public Set<Entity> generateTables(String[] data, CsvToI2b2TMMapping mapping, List<Entity> entities)
-			throws Exception {
-		// TODO Auto-generated method stub
+
+	public List<Map<String, List<String>>> generateArray(Object object){
+
+		if(object == null || object.toString().equals("")){
+		
+			return new ArrayList<Map<String, List<String>>>();
+		
+		}
+		
+		if(ARRAY_FORMAT.equalsIgnoreCase("JSONFILE")){
+
+			return buildJsonArray(object);
+			
+		}
 		return null;
 	}
 
+	private List<Map<String, List<String>>> buildJsonArray(Object string) {
 
+		try {
+			
+			JSONDataSource jds = new JSONDataSource();
 
+			return jds.processJsonArrayToMap(string.toString());
+						
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
 }

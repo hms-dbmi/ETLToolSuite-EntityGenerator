@@ -13,16 +13,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class JSONDataSource2 extends DataSource {
+public class JSONDataSource2 {
 	
 	private static ObjectMapper objectMapper = new ObjectMapper();	
 
-	public JSONDataSource2(String str) throws Exception {
-		super(str);
-		// TODO Auto-generated constructor stub
+	public JSONDataSource2() {
 	}
 
-	@Override
 	public Object processData(String... arguments) throws FileNotFoundException {
 		// TODO Auto-generated method stub
 		return null;
@@ -48,15 +45,8 @@ public class JSONDataSource2 extends DataSource {
 			//System.out.println(objectMapper.readValue((File) obj, Class.forName(_class)));
 			return (List) objectMapper.readValue((File) obj, new TypeReference<List<T>>(){});//createTypeReference(c));
 		
-		} else if ( obj instanceof String){
-			
-			//JsonNode node = objectMapper.readTree((String) obj);	
-						
-			//return (List) objectMapper.readValue((String) obj, Class.forName(_class));			
-		
-		}
+		} 
 		return null;
-		//throw new Exception("Invalid Input type for JSON Object");
 
 	}
 

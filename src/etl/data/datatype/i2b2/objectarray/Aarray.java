@@ -10,14 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.csvreader.CsvReader;
-
 import etl.data.datatype.i2b2.Objectarray;
-import etl.data.export.entities.Entity;
-import etl.data.export.entities.i2b2.ConceptDimension;
-import etl.data.export.entities.i2b2.I2B2;
-import etl.data.export.entities.i2b2.ObservationFact;
-import etl.job.jsontoi2b2tm.entity.Mapping;
+import etl.job.entity.hpds.AllConcepts;
+import etl.jobs.mappings.Mapping;
+
 
 public class Aarray extends Objectarray {
 	
@@ -33,8 +29,8 @@ public class Aarray extends Objectarray {
 	}
 
 	@Override
-	public Set<Entity> generateTables(Map map, Mapping mapping,
-			List<Entity> entities, String relationalKey, String omissionKey) throws InstantiationException, IllegalAccessException, Exception {
+	public Set<AllConcepts> generateTables(Map map, Mapping mapping,
+			List<AllConcepts> entities, String relationalKey, String omissionKey) throws InstantiationException, IllegalAccessException, Exception {
 		int x= 0;
 
 		x++;
@@ -51,7 +47,7 @@ public class Aarray extends Objectarray {
 		
 		}
 		
-		Set<Entity> ents = new HashSet<Entity>();
+		Set<AllConcepts> ents = new HashSet<AllConcepts>();
 
 		List<Map<String, List<String>>> m = (generateArray(map.get(mapping.getKey())));
 		
@@ -64,119 +60,32 @@ public class Aarray extends Objectarray {
 				String[] lKey = str.split(":");			
 
 				if(map.get(str) != null && !map.get(str).toString().isEmpty() && !str.equals(mapping.getKey()) && !omissions.contains(str.replace(mapping.getKey() + ":", ""))){
-					try {
-
-						boolean isNumeric = options.containsKey("NUMERICS") && options.get("NUMERICS").equalsIgnoreCase("true") 
-								&& map.get(str).toString().matches("[-+]?\\d*\\.?\\d+") ? true : false; 
-						
-						for(Entity entity: entities){
-						
-							if(entity instanceof ObservationFact){
-								
-								ObservationFact of = new ObservationFact("ObservationFact");
-								
-								of.setPatientNum(map.get(relationalKey).toString());
-								
-								of.setEncounterNum(map.get(relationalKey) + str);
-								
-								of.setConceptCd(str);
-								
-								if(isNumeric){
-									
-									of.setValtypeCd("N");
-									
-									of.setTvalChar("E");
-									
-									of.setNvalNum(map.get(str).toString());
-									
-								} else {
-									
-									of.setValtypeCd("T");
-															
-									of.setTvalChar(map.get(str).toString());
-								
-								}
-								
-								of.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
-
-								ents.add(of);
-														
-							} else if(entity instanceof ConceptDimension){
-						
-								ConceptDimension cd = new ConceptDimension("ConceptDimension");
-														
-								cd.setConceptCd(str);
-								
-								List<String> pathList = 
-										labels.containsKey(str.substring(str.lastIndexOf(':') + 1)) ? 
-												new ArrayList<>(Arrays.asList(mapping.getRootNode(), mapping.getSupPath(), labels.get(str.substring(str.lastIndexOf(':') + 1)) )) :
-												new ArrayList<>(Arrays.asList(mapping.getRootNode(), mapping.getSupPath(), str.substring(str.lastIndexOf(':') + 1), map.get(str).toString()));
-								
-								cd.setConceptPath(Entity.buildConceptPath(pathList));
-								
-								cd.setNameChar(map.get(str).toString());
-								
-								cd.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
-
-								ents.add(cd);
-								
-							} else if(entity instanceof I2B2){
-								
-								List<String> pathList = new ArrayList<>();
-
-								I2B2 i2b2 = new I2B2("I2B2");
-
-								if(isNumeric){
-									pathList = 
-											labels.containsKey(str.substring(str.lastIndexOf(':') + 1)) ? 
-													new ArrayList<>(Arrays.asList(mapping.getRootNode(), mapping.getSupPath(), labels.get(str.substring(str.lastIndexOf(':') + 1)) )) :
-													new ArrayList<>(Arrays.asList(mapping.getRootNode(), mapping.getSupPath(), str.substring(str.lastIndexOf(':') + 1)));
-																				
-									i2b2.setcMetaDataXML(C_METADATAXML);
-								
-								} else {
-									pathList = 
-										labels.containsKey(str.substring(str.lastIndexOf(':') + 1)) ? 
-												new ArrayList<>(Arrays.asList(mapping.getRootNode(), mapping.getSupPath(), labels.get(str.substring(str.lastIndexOf(':') + 1)), map.get(str).toString() )) :
-												new ArrayList<>(Arrays.asList(mapping.getRootNode(), mapping.getSupPath(), str.substring(str.lastIndexOf(':') + 1), map.get(str).toString()));
-											
-								}
-								
-								i2b2.setcHlevel(Entity.calculateHlevel(Entity.buildConceptPath(pathList)).toString());
-								
-								i2b2.setcFullName(Entity.buildConceptPath(pathList));
-								
-								i2b2.setcName(map.get(str).toString());
-								
-								i2b2.setcBaseCode(mapping.getKey());
-								
-								i2b2.setcVisualAttributes("LA");
-								
-								i2b2.setcTableName("CONCEPT_DIMENSION");
-								
-								i2b2.setcColumnName("CONCEPT_PATH");
-								
-								i2b2.setcColumnDataType("T");
-								
-								i2b2.setcOperator("LIKE");
-								
-								i2b2.setcDimCode(Entity.buildConceptPath(pathList));
-								
-								i2b2.setcToolTip(Entity.buildConceptPath(pathList));
-								
-								i2b2.setSourceSystemCd(DEFAULT_SOURCESYSTEM_CD);
-								
-								i2b2.setmAppliedPath("@");
-
-								ents.add(i2b2);
-								
-							}
-						}
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+	
+					boolean isNumeric = options.containsKey("NUMERICS") && options.get("NUMERICS").equalsIgnoreCase("true") 
+							&& map.get(str).toString().matches("[-+]?\\d*\\.?\\d+") ? true : false; 
 					
+					AllConcepts ac = new AllConcepts();
+					
+					String relationalValue = map.get(relationalKey).toString();
+					
+					String value = map.get(str).toString();
+					
+					List<String> pathList = new ArrayList<>(Arrays.asList( mapping.getRootNode(), mapping.getSupPath()));
+					
+					ac.setPatientNum(new Integer(relationalValue.toString()));
+					ac.setConceptPath(buildConceptPath(pathList));
+					
+					if(isNumeric) {
+					
+						ac.setNvalNum(value);
+						
+					} else {
+						
+						ac.setTvalChar(value);
+						
+					}
+					ents.add(ac);
+
 				}
 				
 			}
@@ -188,7 +97,7 @@ public class Aarray extends Objectarray {
 	}
 
 
-
+	/*
 	private Map<String, Set<String>> buildUmls(String umlsFilePath) {
 		
 		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
@@ -234,4 +143,5 @@ public class Aarray extends Objectarray {
 		return map;
 	
 	}
+	*/
 }

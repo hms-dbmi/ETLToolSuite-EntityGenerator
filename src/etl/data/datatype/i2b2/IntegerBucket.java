@@ -7,11 +7,6 @@ import java.util.Map;
 import java.util.Set;
 
 import etl.data.datatype.DataType;
-import etl.data.export.entities.Entity;
-import etl.data.export.entities.i2b2.ConceptDimension;
-import etl.data.export.entities.i2b2.I2B2;
-import etl.data.export.entities.i2b2.ObservationFact;
-import etl.job.jsontoi2b2tm.entity.Mapping;
 
 public class IntegerBucket extends Numeric {
 

@@ -10,13 +10,12 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import etl.data.export.entities.Entity;
-import etl.job.jsontoi2b2tm.entity.Mapping;
-import etl.mapping.CsvToI2b2TMMapping;
+import etl.job.entity.hpds.AllConcepts;
+import etl.jobs.mappings.Mapping;
+
 
 public abstract class DataType {
 	
-	protected static final Logger logger = LogManager.getLogger(DataType.class);
 	
 	private enum VALID_TYPES{ TEXT, OMIT, NUMERIC, MODIFIER, OBJECTARRAY, GENETIC }
 
@@ -48,7 +47,7 @@ public abstract class DataType {
 		
 	}
 	@Deprecated
-	public DataType generateDataType(Map map, Mapping mapping, List<Entity> entities, String relationalKey, String omissionKey) throws InstantiationException, IllegalAccessException {
+	public DataType generateDataType(Map map, Mapping mapping, List<AllConcepts> entities, String relationalKey, String omissionKey) throws InstantiationException, IllegalAccessException {
 				// verify is a valid datatype
 		if(DataType.isValidDataType(mapping.getDataType())){
 			
@@ -127,8 +126,8 @@ public abstract class DataType {
 	}
 	@Deprecated
 
-	public abstract Set<Entity> generateTables(Map map, Mapping mapping,
-			List<Entity> entities, String relationalKey, String omissionKey) throws InstantiationException, IllegalAccessException, Exception;
+	public abstract Set<AllConcepts> generateTables(Map map, Mapping mapping,
+			List<AllConcepts> entities, String relationalKey, String omissionKey) throws InstantiationException, IllegalAccessException, Exception;
 	
 	
 	// Utility method make a generic kv pair from denormalized string.
@@ -142,18 +141,39 @@ public abstract class DataType {
 				
 				map.put(split[0], split[1]);
 			
-			}			
+			} else if(split.length == 1) {
+				map.put(split[0], "");
+			}
 		}
 				
 		return map;
 	
 	}
+	public static String buildConceptPath(List<String> pathList) {
+		String path = "\\";
+		for(String s: pathList){ 
+			if(s != null && !s.isEmpty()){
+				
+				if(s.startsWith("\\")){
+					
+					s = s.substring(1);
+					
+				} if ( s.endsWith("\\")){
+					
+					s= s.substring(0, s.lastIndexOf("\\") - 0);
+					
+				}
+				
+				path = path + s + "\\";
+			}
+		}
+		if(path.endsWith("\\\\")) {
+			path = path.substring(0, path.lastIndexOf("\\") - 1);
 
-	@Deprecated
-	public abstract Set<Entity> generateTables(String[] data,
-			CsvToI2b2TMMapping mapping, List<Entity> entities) throws Exception;
-
-	public abstract Set<Entity> generateTables(Mapping mapping, List<Entity> entities, List<Object> values,
+		}
+		return path;
+	}
+	public abstract Set<AllConcepts> generateTables(Mapping mapping, List<AllConcepts> entities, List<Object> values,
 			List<Object> relationalValue) throws Exception;
 	
 }

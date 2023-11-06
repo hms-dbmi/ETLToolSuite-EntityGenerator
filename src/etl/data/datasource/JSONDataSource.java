@@ -19,11 +19,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 //  This class invokes Jackson to parse JSON files.
 //  Typically it will just convert the JSON in to JAVA Objects.
-public class JSONDataSource extends DataSource {
+public class JSONDataSource {
 	Map m2 = new HashMap<String, List<String>>();
 
-	public JSONDataSource(String str) throws Exception {
-		super(str);
+	public JSONDataSource() throws Exception {
 	}
 
 	private ObjectMapper objectMapper = new ObjectMapper();	
@@ -311,12 +310,6 @@ public class JSONDataSource extends DataSource {
 		if(m2.size() > 0) list.add(m2);
 
 		return list;
-	}
-
-	@Override
-	public Object processData(String... arguments) throws FileNotFoundException {
-		// TODO Auto-generated method stub
-		return null;
 	}
 	
 }
