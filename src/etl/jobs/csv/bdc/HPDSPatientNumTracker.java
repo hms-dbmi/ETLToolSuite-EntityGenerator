@@ -86,6 +86,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 				
 				if(managedInput.getDataProcessed().toUpperCase().startsWith("Y")) continue;
 				if(managedInput.getReadyToProcess().toUpperCase().startsWith("N")) continue;
+				
 				List<String[]> pms = updatePatientMapping(managedInput);
 				
 				try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(DATA_DIR + managedInput.getStudyAbvName().toUpperCase() + "_PatientMapping.v2.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
@@ -152,7 +153,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 	private static Set<String> getPatientSet(BDCManagedInput managedInput) throws IOException {
 		// ADDING code to handle nondbgap studies
 		//if(NON_DBGAP_STUDY.contains(managedInput.getStudyAbvName().toUpperCase())) return new HashSet<>();
-		if(!managedInput.getStudyType().equalsIgnoreCase("TOPMED") && !managedInput.getStudyType().equalsIgnoreCase("PARENT")) {
+		if(!managedInput.getStudyType().equalsIgnoreCase("TOPMED") && !managedInput.getStudyType().equalsIgnoreCase("PARENT") && !managedInput.getStudyType().equalsIgnoreCase("SUBSTUDY")) {
 			// READ ALL DATA SETS IN DATA DIR AND COLLECT SET OF SUBJECT IDS
 			return getGenericPatientSet(managedInput);
 		}

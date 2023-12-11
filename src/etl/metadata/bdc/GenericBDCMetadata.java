@@ -52,6 +52,10 @@ public class GenericBDCMetadata extends BDCMetadata {
 		bdcm.abbreviated_name = managedInput.getStudyAbvName();
 	
 		bdcm.full_study_name = managedInput.getStudyFullName();
+
+		bdcm.study_focus = managedInput.getStudyFocus();
+
+		bdcm.study_design = managedInput.getStudyDesign();
 		
 		bdcm.consent_group_code = GENERIC_CONSENT_CODE;
 	
@@ -69,23 +73,31 @@ public class GenericBDCMetadata extends BDCMetadata {
 		
 		bdcm.data_type = managedInput.getDataType();
 		
-		bdcm.study_version = "v1";
+		bdcm.study_version = managedInput.getVersion();
 	
-		bdcm.study_phase = "p1";
+		bdcm.study_phase = managedInput.getPhase();
 	
 		bdcm.top_level_path = "\\" + bdcm.study_identifier + "\\";
 	
 		bdcm.is_harmonized = managedInput.getIsHarmonized();
+
+		if (managedInput.getAuthZ().endsWith("_")) {
+			bdcm.authZ = managedInput.getAuthZ() + bdcm.consent_group_name_abv;
+		} else {
+			bdcm.authZ = managedInput.getAuthZ();
+		}
 		
-		if(!this.bio_data_catalyst.contains(bdcm)) {
+		if(this.bio_data_catalyst.contains(bdcm)) {
 			System.out.println("replacing " + bdcm);
 			this.bio_data_catalyst.remove(bdcm);
 			this.bio_data_catalyst.add(bdcm);
 		} else {
+			System.out.println("adding " + bdcm);
 			this.bio_data_catalyst.add(bdcm);
 		}
 		
 	}
+
 
 	private BDCManagedInput findManagedInput(List<ManagedInput> managedInputs) {
 		for(ManagedInput x: managedInputs) {

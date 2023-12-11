@@ -11,8 +11,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Map.Entry;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.CSVParserBuilder;
+import com.opencsv.CSVParser;
 import com.opencsv.CSVWriter;
 
 import etl.etlinputs.managedinputs.bdc.BDCGenomicManagedInput;
@@ -79,7 +82,7 @@ public class SampleIdGenerator extends BDCJob {
 							
 							Map<String,String> patientNumLookup = getPatientMapping(studyAbv);
 
-							Map<String,String> consentMap = getConsentMappings(phsNum);
+							Map<String,String> consentMap = getConsentMappings();
 							
 							List<String> headers2 = new ArrayList<String>();
 							
@@ -112,7 +115,7 @@ public class SampleIdGenerator extends BDCJob {
 							
 							line = null;
 							
-							while((line = reader.readNext()) != null) { 
+							while((line = reader.readNext()) != null) {
 								
 								if(patientNumLookup.containsKey(line[0])) {
 									//checks if sampleid is empty
@@ -120,9 +123,7 @@ public class SampleIdGenerator extends BDCJob {
 									//checks if sampleid fits the expected format
 									if(!line[sampidIdx].startsWith("NWD")) continue;
 									// checks if the patient belongs to the correct consent code for the index being generated
-									System.out.println("Patient num lookup result is " + patientNumLookup.get(line[0]) + " and global consent code is " + globalConsentCode);
-									if(!(consentMap.get(patientNumLookup.get(line[0])) == globalConsentCode)) continue;
-									System.out.println("Patient lookup and consent code match");
+									if(!(consentMap.get(patientNumLookup.get(line[0])).equals(globalConsentCode))) continue;
 									String[] arr = new String[] { patientNumLookup.get(line[0]), studyAbv, line[sampidIdx]};
 									patientNums.add(patientNumLookup.get(line[0]));
 									sampleIds.add(line[sampidIdx]);
@@ -199,27 +200,29 @@ public class SampleIdGenerator extends BDCJob {
 		return null;
 	}
 
-	private static Map<String, String> getConsentMappings(String phsNum) throws IOException {
-		Map<String,String> consentMap = new HashMap<>();
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + phsNum + "GLOBAL_allConcepts_merged.csv"))){
-			
-			CSVReader reader = new CSVReader(buffer, ',', '\"', 'µ');
-			String[] line;
-			
-			while((line = reader.readNext())!=null) {
-				// validate distinct patient counts in each study
-				if(line[0].equalsIgnoreCase("PATIENT_NUM")) continue;  //skip header
-				if(line[1].split("\\\\").length < 2) {
-					System.out.println(line[1]);
-					continue;
-				}
-				
-				String rootConcept = line[1].split("\\\\")[1];
+	private static Map<String, String> getConsentMappings() throws IOException {
+		Map<String, String> consentMap = new HashMap<>();
 
-				if(rootConcept.equalsIgnoreCase("_consents")) {
-						System.out.println("adding consent relationship");
-						consentMap.put(line[0], line[3]);
-					
+		try (BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "GLOBAL_allConcepts_merged.csv"))) {
+			CSVParser parser = new CSVParserBuilder().withSeparator(',').withIgnoreQuotations(true).withEscapeChar('µ').build();
+			CSVReader reader = new CSVReaderBuilder(buffer).withCSVParser(parser).build();
+			String[] line;
+
+			String currentNode = "";
+
+			while ((line = reader.readNext()) != null) {
+				String rootConcept = line[1].split("\"")[0];
+
+				if (rootConcept.equalsIgnoreCase("_topmed_consents")) {
+					String consentGroup = line[3];
+					consentMap.put(line[0], consentGroup);
+				}
+
+			}
+			try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(DATA_DIR + "Patient_Consent_Map.csv"),
+					StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+				for (Entry<String, String> entry : consentMap.entrySet()) {
+					writer.write(toCsv(new String[] { entry.getKey(), entry.getValue() }));
 				}
 			}
 		}

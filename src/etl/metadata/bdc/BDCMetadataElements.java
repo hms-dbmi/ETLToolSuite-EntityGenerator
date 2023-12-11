@@ -43,6 +43,9 @@ public class BDCMetadataElements {
 	public String study_focus = "";
 
     public String study_design = "";
+
+	public String authZ = "";
+
     public String additional_information = "";
     
 	@Override
@@ -88,7 +91,7 @@ public class BDCMetadataElements {
 				+ raw_genetic_sample_size + ", raw_clinical_sample_size=" + raw_clinical_sample_size
 				+ ", study_version=" + study_version + ", study_phase=" + study_phase + ", top_level_path="
 				+ top_level_path + ", is_harmonized=" + is_harmonized + ", study_focus=" + study_focus
-				+ ", study_design=" + study_design + ", additional_information=" + additional_information + "]";
+				+ ", study_design=" + study_design + ", authZ=" + authZ + ", additional_information=" + additional_information + "]";
 	}
 
 	

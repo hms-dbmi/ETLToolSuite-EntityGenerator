@@ -285,6 +285,8 @@ public class DbgapDecodeFiles extends Job {
 	private static String getPht(String[] fileNameArr) {
 		for(String str: fileNameArr) {
 			if(str.contains("pht")) return str;
+			if(str.contains("subjects")) return str;
+			if(str.contains("samples")) return str;
 		}
 		return null;
 	}

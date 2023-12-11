@@ -35,11 +35,8 @@ public class GenerateConsentMapping extends BDCJob {
 	}
 
 	private static void execute() throws IOException {
-		Map<String,Set<String>> patientsPerStudy = new HashMap<>();
 		
-		Map<String,Set<String>> patientsPerConsentGroup = new HashMap<>();
-		
-		Set<String> _studies = new HashSet<>();
+		Map<String,String> patientsPerConsentGroup = new HashMap<>();
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "GLOBAL_allConcepts_merged.csv"))){
 			
@@ -51,38 +48,26 @@ public class GenerateConsentMapping extends BDCJob {
 			while((line = reader.readNext())!=null) {
 				// validate distinct patient counts in each study
 				if(line[0].equalsIgnoreCase("PATIENT_NUM")) continue;  //skip header
-				if(line[1].split("\\\\").length < 2) {
-					System.out.println(line[1]);
-					continue;
-				}
 				
-				String rootConcept = line[1].split("\\\\")[1];
+				String rootConcept = line[1].split("\",")[0];
 
 				if(!rootConcept.equals(currentNode)) {
 					System.out.println("Working on " + rootConcept);
 					currentNode = rootConcept;
 				}
 				if(rootConcept.equalsIgnoreCase("_consents")) {
-					
-					if(patientsPerConsentGroup.containsKey(line[3])) {
-						patientsPerConsentGroup.get(line[3]).add(line[0]);
-					} else {
-						patientsPerConsentGroup.put(line[3], new HashSet<String>(Arrays.asList(line[0])));
-					}
+					String consentGroup = line[1].split("\",")[2].split(",")[0];
+					System.out.println("Consent group is " + consentGroup);
+					patientsPerConsentGroup.put(line[0], consentGroup);
 					
 				}
 
 			}
 							
 		}
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "Patient_Consent_Map.csv"), StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING)) {
-			for(Entry<String,Set<String>> entry: patientsPerConsentGroup.entrySet()) {
-				String[] patientNums = entry.getValue().toArray(new String[0]);
-				
-				for (int i = 0; i < entry.getValue().size(); i++){
-					writer.write(toCsv(new String[] { entry.getKey(), patientNums[0]}));
-				}
-				
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(DATA_DIR + "Patient_Consent_Map.csv"), StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING)) {
+			for(Entry<String,String> entry: patientsPerConsentGroup.entrySet()) {
+					writer.write(toCsv(new String[] { entry.getKey(), entry.getValue()}));
 			}
 		}
 	}

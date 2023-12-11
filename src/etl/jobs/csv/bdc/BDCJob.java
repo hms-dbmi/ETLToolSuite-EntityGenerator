@@ -250,6 +250,8 @@ public abstract class BDCJob extends Job {
 		String[] fileNameArr = dbGapFileName.split("\\.");
 		for(String str: fileNameArr) {
 			if(str.contains("pht")) return str;
+			if (str.contains("subjects")) return str;
+			if (str.contains("samples")) return str;
 		}
 		return null;
 	}
@@ -257,6 +259,8 @@ public abstract class BDCJob extends Job {
 	public static String getPht(String[] dbGapFileNameArr) {
 		for(String str: dbGapFileNameArr) {
 			if(str.contains("pht")) return str;
+			if (str.contains("subjects")) return str;
+			if (str.contains("samples")) return str;
 		}
 		return null;
 	}

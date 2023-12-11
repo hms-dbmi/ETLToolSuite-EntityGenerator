@@ -22,8 +22,16 @@ public class BDCManagedInput extends ManagedInput {
 	private String studyFocus = "";
 	
 	private String studyDesign = "";
+
+	private String authZ = "";
+
+	private String version = "";
+
+	private String phase = "";
 	
 	private String additionalInformation = "";
+
+
 			
 	public BDCManagedInput(String[] inputCsv) {
 		super(inputCsv);
@@ -38,7 +46,10 @@ public class BDCManagedInput extends ManagedInput {
 		this.dataProcessed = inputCsv[8];
 		this.studyFocus = inputCsv[9];
 		this.studyDesign = inputCsv[10];
-		this.additionalInformation = inputCsv[11];
+		this.authZ = inputCsv[11];
+		this.version = inputCsv[12];	
+		this.phase = inputCsv[13];
+		this.additionalInformation = inputCsv[14];
 	}
 	
 	public static List<ManagedInput> buildAll(List<String[]> managedInputs){
@@ -115,6 +126,10 @@ public class BDCManagedInput extends ManagedInput {
 	public String getAdditionalInformation() {
 		return additionalInformation;
 	}
+	
+	public String getAuthZ(){
+		return authZ;
+	}
 
 	public void setAdditionalInformation(String additionalInformation) {
 		this.additionalInformation = additionalInformation;
@@ -144,6 +159,27 @@ public class BDCManagedInput extends ManagedInput {
 		this.phsSubjectIdColumn = phsSubjectIdColumn;
 	}
 
+	public void setAuthZ(String authZ) {
+		this.authZ = authZ;
+	}
+	
+	public String getVersion() {
+		return this.version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
+	public String getPhase() {
+		return this.phase;
+	}
+
+	public void setPhase(String phase) {
+		this.phase = phase;
+	}
+
+
 	@Override
 	public String toString() {
 		return "BDCManagedInput [studyIdentifier=" + studyIdentifier + ", studyType=" + studyType + ", studyFullName="
@@ -168,6 +204,7 @@ public class BDCManagedInput extends ManagedInput {
 	public boolean isDBGapCompliant() {
 		if(this.studyType.equalsIgnoreCase("topmed")) return true;
 		if(this.studyType.equalsIgnoreCase("parent")) return true;
+		if(this.studyType.equalsIgnoreCase("substudy")) return true;
 		return false;
 	}
 	
