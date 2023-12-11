@@ -672,7 +672,6 @@ public abstract class BDCJob extends Job {
 		return (List<BDCManagedInput>)(List<?>) ManagedInputFactory.readManagedInput(METADATA_TYPE,MANAGED_INPUT);
 		
 	}
-
 	protected static Map<String, Map<String, String>> getPatientMappings() throws IOException {
 		
 		return Job.getPatientMappings(ManagedInputFactory.readManagedInput(METADATA_TYPE,MANAGED_INPUT));
