@@ -95,5 +95,4 @@ public class GenericBDCMetadata extends BDCMetadata {
 		}
 		return null;
 	}
-	
 }
