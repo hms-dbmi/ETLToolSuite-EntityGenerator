@@ -92,7 +92,6 @@ public class BDCMetadata implements Metadata {
 										
 					bdcm.consent_group_name_abv = entry.getValue().replaceAll(".*\\(","").replaceAll("\\).*", "").trim();
 					
-					
 					bdcm.request_access = REQEUST_ACCESS_LINK + bdcm.study_identifier;
 					
 					bdcm.raw_clinical_variable_count = clinicalCount;

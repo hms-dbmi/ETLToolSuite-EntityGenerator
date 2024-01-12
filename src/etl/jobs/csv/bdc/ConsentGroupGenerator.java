@@ -150,6 +150,12 @@ public class ConsentGroupGenerator extends BDCJob {
 					writer.write(toCsv(line));
 				}
 			}
+			if(consents.containsKey("SUBSTUDY")) {
+
+				for(String[] line: consents.get("SUBSTUDY")) {
+					writer.write(toCsv(line));
+				}
+			}
 		}
 		
 		/*	
@@ -486,7 +492,6 @@ public class ConsentGroupGenerator extends BDCJob {
 					System.out.println("looking for consent header");
 					
 					for(String header: headers) {
-						
 						if(header.toLowerCase().contains("consent")) {
 							consentidx = x;
 							System.out.println("Found consent header " + header);

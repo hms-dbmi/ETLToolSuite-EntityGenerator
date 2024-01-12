@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVParserBuilder;
@@ -123,15 +126,23 @@ public class SampleIdGenerator extends BDCJob {
 									//checks if sampleid fits the expected format
 									if(!line[sampidIdx].startsWith("NWD")) continue;
 									// checks if the patient belongs to the correct consent code for the index being generated
-									if(!(consentMap.get(patientNumLookup.get(line[0])).equals(globalConsentCode))) continue;
-									String[] arr = new String[] { patientNumLookup.get(line[0]), studyAbv, line[sampidIdx]};
-									patientNums.add(patientNumLookup.get(line[0]));
-									sampleIds.add(line[sampidIdx]);
+									boolean consentCheck;
+									try{
+										consentCheck = (consentMap.get(patientNumLookup.get(line[0])).equals(globalConsentCode));
 									
+									}
+									catch(NullPointerException e){
+										consentCheck =  false;
+										System.out.println("Null pointer exception on " + fullId);
+									}
+
+									if(!consentCheck) continue;
+									String[] arr = new String[] { patientNumLookup.get(line[0]), studyAbv, line[sampidIdx]};
+									patientNums.add(patientNumLookup.get(line[0]).trim());
+									sampleIds.add(line[sampidIdx].trim());
 									writer.write(toCsv(arr));
 									
 								}
-								
 							}
 							writer.flush();
 						}
@@ -143,7 +154,8 @@ public class SampleIdGenerator extends BDCJob {
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + fullId + "_vcfIndex.tsv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
 			
 			CSVWriter csv = new CSVWriter(writer, '\t');
-			
+			String[] topText = new String[] {fullId};
+			csv.writeNext(topText);
 			String[] headers = new String[] {"vcf_path","chromosome","isAnnotated","isGzipped","sample_ids","patient_ids","sample_relationship","related_sample_ids"};
 			csv.writeNext(headers);
 			String isAnnotated = "1";
@@ -155,13 +167,11 @@ public class SampleIdGenerator extends BDCJob {
 				}
 				String vcfPath = "data/vcfInput/" + fullId + ".chr" + chromosome + ".annotated.hpds.vcf.gz";
 	
-				String[] line = new String[] { vcfPath, chromosome, isAnnotated, isGzipped, String.join(",", sampleIds),
-						String.join(",", patientNums), "", "" };
-				if (!sampleIds.isEmpty()) {
-					csv.writeNext(line);
-				}
-			}
+				String[] line = new String[] { vcfPath, chromosome, isAnnotated, isGzipped, String.join(",", sampleIds), String.join(",", patientNums) };
 
+				csv.writeNext(line);
+			}
+			csv.flush();
 			
 		}
 

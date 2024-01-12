@@ -98,7 +98,6 @@ public class GenericBDCMetadata extends BDCMetadata {
 		
 	}
 
-
 	private BDCManagedInput findManagedInput(List<ManagedInput> managedInputs) {
 		for(ManagedInput x: managedInputs) {
 			BDCManagedInput mi = (BDCManagedInput) x;
