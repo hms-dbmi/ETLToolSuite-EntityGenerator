@@ -264,7 +264,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 			
 			for(String header: headers) {
 				
-				System.out.println("Checking for consents in Static Headers");
+				System.out.println("Checking for consents in Static Headers: " + header);
 
 				if(CONSENT_HEADERS.contains(header.toLowerCase())) {
 					consentidx = x;

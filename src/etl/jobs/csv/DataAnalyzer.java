@@ -192,6 +192,7 @@ public class DataAnalyzer extends Job {
 	private static Mapping analyzeData(Mapping mapping, Path path) throws IOException {
 		
 		int col = new Integer(mapping.getKey().split(":")[1]);
+		System.out.println(" analyzing column: " + col + " in file " + path);
 		System.out.println(mapping);
 		
 		try(BufferedReader buffer = Files.newBufferedReader(path)){
@@ -218,12 +219,15 @@ public class DataAnalyzer extends Job {
 
 				if(col <= newLine.length - 1) {
 					String val = newLine[col];
+					
 					if(val.isEmpty()) {
 						continue;
 					}
 					if(NumberUtils.isCreatable(val)) {
+						System.out.println("column: " + col + " value: " + val + " in file " + path + " numeric++");
 						numericVals++;
 					} else if(val != null || !val.isEmpty()){
+						System.out.println("column: " + col + " value: " + val + " in file " + path + " alpha++");
 						alphaVals++;
 					};
 				}

@@ -713,14 +713,19 @@ public abstract class BDCJob extends Job {
 	public static String[] getDataHeaders(File file) throws IOException {
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(file.getAbsolutePath()), StandardCharsets.ISO_8859_1)) {
-			
+			System.out.println(file.getAbsolutePath());
 			String line;
 			
 			while((line = buffer.readLine()) != null) {
-				
+				System.out.println(line);
 				String[] record = line.split(new Character('\t').toString());
-				
-				if(record[0] == null) continue;
+				try{
+					if(record[0] == null) continue;
+				}
+				catch(ArrayIndexOutOfBoundsException e){
+					System.out.println("caught array exception");
+					continue;
+				}
 				if(record[0].startsWith("#")) continue;
 				if(record[0].trim().isEmpty()) continue;
 				if(record[0].toLowerCase().contains("dbgap")) return record;

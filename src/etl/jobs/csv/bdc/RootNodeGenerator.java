@@ -57,7 +57,7 @@ public class RootNodeGenerator extends BDCJob {
 			//if(managedInput.getDataProcessed().toLowerCase().startsWith("y")) continue;
 
 			if(managedInput.getStudyType().equalsIgnoreCase("topmed") || 
-					managedInput.getStudyType().equalsIgnoreCase("parent")) {
+					managedInput.getStudyType().equalsIgnoreCase("parent") || managedInput.getStudyType().equalsIgnoreCase("substudy") ) {
 			
 				String rootNode = managedInput.getStudyIdentifier();
 	
