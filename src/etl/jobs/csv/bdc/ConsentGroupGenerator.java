@@ -156,44 +156,14 @@ public class ConsentGroupGenerator extends BDCJob {
 					writer.write(toCsv(line));
 				}
 			}
-		}
-		
-		/*	
-		for(Entry<String,List<String[]>> entry: consents.entrySet()) {
-				
-			for(String[] line: entry.getValue()) {
-				String consent = line[1];
+			if(consents.containsKey("C4R")) {
 
-				try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + consent + "_studies_consents.csv"),StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
-
-					String[] newLine = new String[2];
-					newLine[0] = line[0];
-					newLine[1] = "TRUE";
-					
-					writer.write(toCsv(newLine));
+				for(String[] line: consents.get("C4R")) {
+					writer.write(toCsv(line));
 				}
-			
-			}
-
-		}
-		
-		File dir = new File(WRITE_DIR);
-		File[] files = dir.listFiles(new FilenameFilter() {
-			
-			@Override
-			public boolean accept(File dir, String name) {
-				if(name.contains("_studies_consents.csv")) return true;
-				return false;
-			}
-		});
-		
-		for(File f: files) {
-			try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "studies_consents_mapping.csv"), StandardOpenOption.CREATE, StandardOpenOption.APPEND )) {
-				Mapping mapping = new Mapping( f.getName().split("\\_")[0] + "_studies_consents.csv:1", "µ_studies_consentsµ" + f.getName().split("\\_")[0] + "µ", "", "TEXT", "");
-				writer.write(mapping.toCSV() + '\n');
 			}
 		}
-*/
+		
 		if(consents.containsKey("PARENT")) {
 			try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "parent_consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 				for(String[] line: consents.get("PARENT")) {
@@ -280,34 +250,7 @@ public class ConsentGroupGenerator extends BDCJob {
 		
 	}
 
-	private static List<String[]> generateConsents(List<BDCManagedInput> managedInputs, Map<String,Map<String,String>> patientMappings, String consentType) throws IOException, ParseException {
-		List<String[]> _consents = new ArrayList<>();
-
-		for(BDCManagedInput managedInput: managedInputs) {
-			System.out.println("Building Consents for " + managedInput.getStudyAbvName() + " - " + managedInput.getStudyIdentifier() + " - " + consentType);
-			
-			if(managedInput.getStudyType().equalsIgnoreCase(consentType)) {
-				
-				String studyAbvName = managedInput.getStudyAbvName();
-				String studyIdentifier = managedInput.getStudyIdentifier();
-				
-				// hpds_id,consents value for parent
-				//_consents.add(); consentLookup = buildParentConsents(studyAbvName, patientMappings);
-				_consents.addAll(buildConsents(studyIdentifier,studyAbvName,patientMappings));
-				
-				if(managedInput.getIsHarmonized().equalsIgnoreCase("Y") && !HARMONIZE_OMISSION.contains(studyAbvName.toUpperCase())) {
-				
-					addHarmonizedConsents(studyIdentifier,studyAbvName,patientMappings);
-					
-				}
-					
-			} else if(managedInput.getStudyAbvName().equalsIgnoreCase("ORCHID")) {
-				_consents.addAll(buildOrchidConsents());
-			}
-			
-		}
-		return _consents;
-	}
+	
 
 	
 	private static Collection<? extends String[]> buildOrchidConsents() throws IOException {
@@ -323,110 +266,6 @@ public class ConsentGroupGenerator extends BDCJob {
 		}
 		
 		return rs;
-	}
-
-	private static void addHarmonizedConsents(String studyIdentifier, String studyAbvName,
-			Map<String, Map<String, String>> patientMappings) throws IOException, ParseException {
-		File dataDir = new File(DATA_DIR);
-		
-		List<String[]> returnSet = new ArrayList<>();
-		
-		if(dataDir.isDirectory()) {
-			
-			String[] fileNames = dataDir.list(new FilenameFilter() {
-				
-				@Override
-				public boolean accept(File dir, String name) {
-					if(name.startsWith(studyIdentifier) && name.toLowerCase().contains("subject.multi") && name.toLowerCase().endsWith(".txt")) {
-						return true;
-					} else {
-						return false;
-					}
-				}
-			});
-			
-			if(fileNames.length == 1) {
-				
-			
-				try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + fileNames[0]))) {
-					CSVReader reader = new CSVReader(buffer, '\t', 'π');
-					
-					String[] headers;
-					
-					while((headers = reader.readNext()) != null) {
-		
-						boolean isComment = ( headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty() ) ? true: headers[0].isEmpty() ? true: false;
-						
-						if(isComment) {
-							
-							continue;
-							
-						} else {
-							
-							break;
-							
-						}
-						
-					}
-					
-					int consentidx = -1;
-					int x = 0;
-				
-					for(String header: headers) {
-						
-						if(CONSENT_HEADERS.contains(header.toLowerCase())) {
-							consentidx = x;
-							break;
-						}
-						x++;
-						
-					}
-					x = 0;
-					if(consentidx == -1) {
-						System.out.println("looking for consent header");
-						
-						for(String header: headers) {
-							
-							if(header.toLowerCase().contains("consent")) {
-								consentidx = x;
-								System.out.println("Found consent header " + header);
-								break;
-							}
-							x++;
-							
-						}
-					}
-					if(consentidx != -1) {
-					
-						String[] line;
-						while((line = reader.readNext()) != null) {
-							
-							if(line.length < consentidx) continue;
-							if(line[consentidx].isEmpty()) continue;
-							
-							String hpds_id = Job.mappingLookup(line[0], patientMappings.get(studyAbvName));
-							if(hpds_id == null || hpds_id.isEmpty()) {
-								System.err.println(studyAbvName + " Patient is not mapped in current data load dbgap_id=" + line[0]);
-							}
-							if(!HARMONIZED_HPDS_IDS.contains(hpds_id)) continue; 
-							
-							String consentCode = "c" + line[consentidx];
-							
-							String consentVal = studyIdentifier + "." + consentCode;
-							
-							returnSet.add(new String[] { hpds_id, consentVal });
-							
-						}
-						
-					} else {
-						throw new ParseException("Cannot find header for " + fileNames[0], new Throwable().fillInStackTrace());
-					}
-				}
-			}
-		} else {
-			throw new IOException("parameter DATA_DIR = " + DATA_DIR + " is not a directory!", new Throwable().fillInStackTrace() );
-		}
-		_harmonized_consents.addAll(returnSet);	
 	}
 
 	private static List<String[]> buildConsents(String studyIdentifier, String studyAbvName, Map<String, Map<String, String>> patientMappings) throws IOException, ParseException {

@@ -28,6 +28,8 @@ public class BDCManagedInput extends ManagedInput {
 	private String version = "";
 
 	private String phase = "";
+
+	private String hasMulti = "";
 	
 	private String additionalInformation = "";
 
@@ -49,7 +51,8 @@ public class BDCManagedInput extends ManagedInput {
 		this.authZ = inputCsv[11];
 		this.version = inputCsv[12];	
 		this.phase = inputCsv[13];
-		this.additionalInformation = inputCsv[14];
+		this.hasMulti = inputCsv[14];
+		this.additionalInformation = inputCsv[15];
 	}
 	
 	public static List<ManagedInput> buildAll(List<String[]> managedInputs){
@@ -178,6 +181,13 @@ public class BDCManagedInput extends ManagedInput {
 	public void setPhase(String phase) {
 		this.phase = phase;
 	}
+	public String getHasMulti() {
+		return this.hasMulti;
+	}
+
+	public void setHasMulti(String hasMulti) {
+		this.hasMulti = hasMulti;
+	}
 
 
 	@Override
@@ -205,6 +215,7 @@ public class BDCManagedInput extends ManagedInput {
 		if(this.studyType.equalsIgnoreCase("topmed")) return true;
 		if(this.studyType.equalsIgnoreCase("parent")) return true;
 		if(this.studyType.equalsIgnoreCase("substudy")) return true;
+		if(this.hasMulti.equalsIgnoreCase("yes")) return true;
 		return false;
 	}
 	

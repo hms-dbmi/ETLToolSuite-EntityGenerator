@@ -79,10 +79,6 @@
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 	  	</jar>
-
-
-     <!--
-				
 		<jar destfile="jars/RootNodeGenerator.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.bdc.RootNodeGenerator"/>
@@ -91,8 +87,7 @@
 			<fileset dir="bin" includes="*.xml"></fileset>
 	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar>
-
-				<jar destfile="jars/DbgapTreeBuilder3.jar">
+	<jar destfile="jars/DbgapTreeBuilder3.jar">
 			<manifest>
 			<attribute name="Main-Class" value="etl.jobs.csv.bdc.DbgapTreeBuilder3"/>
 			</manifest>
@@ -198,6 +193,11 @@
 			<fileset dir="bin" includes="*.xml"></fileset>
 	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar>  
+     <!--
+				
+
+
+	
 		<jar destfile="jars/PHSIdGenerator.jar">
     			<manifest>
     				<attribute name="Main-Class" value="etl.jobs.csv.bdc.PHSIdGenerator"/>

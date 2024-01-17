@@ -169,9 +169,7 @@ public class BDCMetadata implements Metadata {
 		if(managedInput.getDataProcessed().toUpperCase().startsWith("Y")) {
 			continue;
 		}
-		if (!managedInput.getStudyType().toUpperCase().equals("TOPMED") && !managedInput.getStudyType().toUpperCase()
-				.equals("PARENT") && !managedInput.getStudyType().toUpperCase()
-				.equals("SUBSTUDY")) {
+		if (!managedInput.isDBGapCompliant()) {
 
 			continue;
 		}

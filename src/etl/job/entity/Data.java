@@ -4,7 +4,6 @@ package etl.job.entity;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

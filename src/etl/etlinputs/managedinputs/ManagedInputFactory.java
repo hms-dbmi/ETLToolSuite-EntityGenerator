@@ -10,8 +10,6 @@ import com.opencsv.CSVReader;
 
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 import etl.etlinputs.managedinputs.bdc.BDCGenomicManagedInput;
-import etl.metadata.Metadata;
-import etl.metadata.bdc.BDCMetadata;
 
 public class ManagedInputFactory {
 
