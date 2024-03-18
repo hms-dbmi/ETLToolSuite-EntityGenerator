@@ -165,7 +165,7 @@ public class SampleIdGenerator extends BDCJob {
 				if (chrom == 23){
 					chromosome = "X";
 				}
-				String vcfPath = "data/vcfInput/" + fullId + ".chr" + chromosome + ".annotated.hpds.vcf.gz";
+				String vcfPath = "data/vcfInput/" + fullId + ".chr" + chromosome + ".annotated_remove_modifiers.hpds.vcf.gz";
 	
 				String[] line = new String[] { vcfPath, chromosome, isAnnotated, isGzipped, String.join(",", sampleIds), String.join(",", patientNums) };
 

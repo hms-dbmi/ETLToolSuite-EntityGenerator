@@ -153,7 +153,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 	private static Set<String> getPatientSet(BDCManagedInput managedInput) throws IOException {
 		// ADDING code to handle nondbgap studies
 		//if(NON_DBGAP_STUDY.contains(managedInput.getStudyAbvName().toUpperCase())) return new HashSet<>();
-		if(!managedInput.isDBGapCompliant()) {
+		if(!managedInput.hasSubjectMultiFile()) {
 			// READ ALL DATA SETS IN DATA DIR AND COLLECT SET OF SUBJECT IDS
 			return getGenericPatientSet(managedInput);
 		}
@@ -163,7 +163,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 			throw new IOException("Critical error: " + managedInput.toString() + 
 					" missing subject multi file! All studies must have a subject multi file to proceed ahead!");
 		}
-		
+		System.out.println("Getting patients from subject multi file");
 		Set<String> patientSet = new HashSet<>();
 		
 		try(CSVReader reader = readRawBDCDataset(Paths.get(DATA_DIR + "decoded/" + BDCJob.getStudySubjectMultiFile(managedInput)),true)){
@@ -171,7 +171,8 @@ public class HPDSPatientNumTracker extends BDCJob {
 			String[] line;
 			
 			while((line = reader.readNext()) != null) {
-				if(NumberUtils.isCreatable(line[0])) patientSet.add(line[0]);				
+				System.out.println("Subject multi file line0: " + line[0]);
+					if(NumberUtils.isCreatable(line[0])) patientSet.add(line[0]);								
 			}
 			
 		}
@@ -182,7 +183,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 		File f = new File(DATA_DIR);
 		
 		Set<String>  patientSet = new HashSet<>();
-		
+		System.out.println("Getting generic patient set");
 		if(f.isDirectory()) {
 			File[] files = new File(DATA_DIR).listFiles(new FilenameFilter() {
 				

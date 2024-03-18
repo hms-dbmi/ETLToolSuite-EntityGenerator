@@ -134,35 +134,7 @@ public class ConsentGroupGenerator extends BDCJob {
 		
 		Map<String,List<String[]>> consents = generateConsents(managedInputs, patientMappings);
 				
-		//System.out.println("Building Topmed Consents");
-		//List<String[]> _topmed_consent = generateConsents(managedInputs, patientMappings,"topmed");
-		
-		
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-			if(consents.containsKey("PARENT")) {
-				for(String[] line: consents.get("PARENT")) {
-					writer.write(toCsv(line));
-				}
-			}
-			if(consents.containsKey("TOPMED")) {
 
-				for(String[] line: consents.get("TOPMED")) {
-					writer.write(toCsv(line));
-				}
-			}
-			if(consents.containsKey("SUBSTUDY")) {
-
-				for(String[] line: consents.get("SUBSTUDY")) {
-					writer.write(toCsv(line));
-				}
-			}
-			if(consents.containsKey("C4R")) {
-
-				for(String[] line: consents.get("C4R")) {
-					writer.write(toCsv(line));
-				}
-			}
-		}
 		
 		if(consents.containsKey("PARENT")) {
 			try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "parent_consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
@@ -193,6 +165,8 @@ public class ConsentGroupGenerator extends BDCJob {
 		
 		Map<String,List<String[]>> consents = new HashMap<>();
 		
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+
 		for(BDCManagedInput managedInput: managedInputs) {
 			
 			String studyType = managedInput.getStudyType().toUpperCase();
@@ -200,20 +174,32 @@ public class ConsentGroupGenerator extends BDCJob {
 			String studyAbvName = managedInput.getStudyAbvName();
 			
 			String studyIdentifier = managedInput.getStudyIdentifier();
+
+			Boolean isCompliant = managedInput.hasSubjectMultiFile();
 			
 			System.out.println("Building Consents for " + studyAbvName + " - " + studyIdentifier + " - " + studyType);
 			
+			List<String[]> studyConsents = buildConsents(studyIdentifier,studyAbvName,patientMappings);
+
 			if(consents.containsKey(studyType)) {
-				consents.get(studyType).addAll(buildConsents(studyIdentifier,studyAbvName,patientMappings));
+				consents.get(studyType).addAll(studyConsents);
 			} else {
-				consents.put(studyType.toUpperCase(), new ArrayList<String[]>(buildConsents(studyIdentifier,studyAbvName,patientMappings)));
+				consents.put(studyType.toUpperCase(), new ArrayList<String[]>(studyConsents));
 			}
+
+			if(isCompliant) {
+				for(String[] line: studyConsents){
+					writer.write(toCsv(line));
+				}
+			}
+
 			if(managedInput.getIsHarmonized().equalsIgnoreCase("Y") && !HARMONIZE_OMISSION.contains(studyAbvName.toUpperCase())) {
 				
-				addHarmonizedConsents2(studyAbvName,buildConsents(studyIdentifier,studyAbvName,patientMappings),patientMappings);
+				addHarmonizedConsents2(studyAbvName,studyConsents,patientMappings);
 				
 			}
 		}
+	}
 		return consents;
 	}
 

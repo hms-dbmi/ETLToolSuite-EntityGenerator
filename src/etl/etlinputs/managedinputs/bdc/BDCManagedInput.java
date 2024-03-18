@@ -210,12 +210,17 @@ public class BDCManagedInput extends ManagedInput {
 		return list;
 		
 	}
+//use for classes/methods which depend on subject multi. Mostly used for consent generations
+	public boolean hasSubjectMultiFile() {
+		if(this.hasMulti.equalsIgnoreCase("Yes")) return true;
+		return false;
 
+	}
+//use for classes/methods which require compliant format for all data
 	public boolean isDBGapCompliant() {
 		if(this.studyType.equalsIgnoreCase("topmed")) return true;
 		if(this.studyType.equalsIgnoreCase("parent")) return true;
 		if(this.studyType.equalsIgnoreCase("substudy")) return true;
-		if(this.hasMulti.equalsIgnoreCase("yes")) return true;
 		return false;
 	}
 	

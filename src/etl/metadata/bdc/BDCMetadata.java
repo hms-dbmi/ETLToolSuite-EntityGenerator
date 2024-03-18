@@ -169,8 +169,7 @@ public class BDCMetadata implements Metadata {
 		if(managedInput.getDataProcessed().toUpperCase().startsWith("Y")) {
 			continue;
 		}
-		if (!managedInput.isDBGapCompliant()) {
-
+		if (!managedInput.hasSubjectMultiFile()) {
 			continue;
 		}
 		if(consentGroups.containsKey(managedInput.getStudyIdentifier())) {
@@ -378,7 +377,7 @@ public class BDCMetadata implements Metadata {
 			
 			BDCManagedInput managedInput = (BDCManagedInput) _managedInput;
 			
-			if(!managedInput.isDBGapCompliant()) {
+			if(!managedInput.hasSubjectMultiFile()) {
 				continue;
 			}
 			
