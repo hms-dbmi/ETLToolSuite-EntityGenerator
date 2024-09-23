@@ -85,7 +85,7 @@ public class NewDictionaryConverter extends BDCJob {
                 concept.setConceptType(varMeta.get("columnmeta_data_type").asText());
                 concept.setDescription(varMeta.get("columnmeta_description").asText());
                 concept.setStigmatized(varMeta.get("is_stigmatized").asBoolean());
-                concept.setConceptPath(varMeta.get("columnmeta_hpds_path").asText().replace("\\\\", "\\"));
+                concept.setConceptPath(varMeta.get("columnmeta_hpds_path").asText());
 
                 if (concept.getConceptType().equalsIgnoreCase("continuous")) {
                     concept.setValues("[" + varMeta.get("columnmeta_min").asText() + ","
@@ -95,15 +95,15 @@ public class NewDictionaryConverter extends BDCJob {
                 }
                 if (name.startsWith("_")) {
                     // global var handling
-                    concept.setParentConceptPath("\\global_variables\\");
+                    concept.setParentConceptPath("\\\\global_variables\\\\");
                 } else if (name.endsWith("All Variables")) {
                     // study doesnt have tables
-                    concept.setParentConceptPath("\\" + studyMeta.get("columnmeta_study_id").asText() + "\\");
+                    concept.setParentConceptPath("\\\\" + studyMeta.get("columnmeta_study_id").asText() + "\\\\");
                     String studyId = studyMeta.get("columnmeta_study_id").asText();
                     if (!tableNames.contains(studyId)) {
                         tableNames.add(studyId);
                         Concept studyConcept = new Concept();
-                        studyConcept.setConceptPath("\\" + studyId + "\\");
+                        studyConcept.setConceptPath("\\\\" + studyId + "\\\\");
                         studyConcept.setDataset(variable.get("studyId").asText());
                         studyConcept.setConceptName(studyId);
                         studyConcept.setConceptType("categorical");
@@ -113,7 +113,7 @@ public class NewDictionaryConverter extends BDCJob {
                     // study has tables
                     String tableId = variable.get("dtId").asText();
                     String studyId = studyMeta.get("columnmeta_study_id").asText();
-                    concept.setParentConceptPath("\\" + studyId + "\\" + tableId + "\\");
+                    concept.setParentConceptPath("\\\\" + studyId + "\\\\" + tableId + "\\\\");
                     if (!tableNames.contains(tableId)) {
                         tableNames.add(tableId);
                         Concept tableConcept = new Concept();
@@ -123,13 +123,13 @@ public class NewDictionaryConverter extends BDCJob {
                         tableConcept.setDisplayName(varMeta.get("derived_group_name").asText());
                         tableConcept.setConceptType("categorical");
                         tableConcept.setDescription(varMeta.get("derived_group_description").asText());
-                        tableConcept.setParentConceptPath("\\" + studyId + "\\");
+                        tableConcept.setParentConceptPath("\\\\" + studyId + "\\\\");
                         concepts.add(tableConcept);
                     }
                     if (!tableNames.contains(studyId)) {
                         tableNames.add(studyId);
                         Concept studyConcept = new Concept();
-                        studyConcept.setConceptPath("\\" + studyId + "\\");
+                        studyConcept.setConceptPath("\\\\" + studyId + "\\\\");
                         studyConcept.setDataset(variable.get("studyId").asText());
                         studyConcept.setConceptName(studyId);
                         studyConcept.setConceptType("categorical");
