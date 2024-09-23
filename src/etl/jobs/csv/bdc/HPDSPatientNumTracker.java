@@ -161,7 +161,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 		// if missing subject multi file fail job completely as it is critical to have all patient counts for new data load
 		if(BDCJob.getStudySubjectMultiFile(managedInput) == null) {
 			throw new IOException("Critical error: " + managedInput.toString() + 
-					" missing subject multi file! All studies must have a subject multi file to proceed ahead!");
+					" missing subject multi file at " + DATA_DIR + "decoded/" + "! All studies must have a subject multi file to proceed ahead!");
 		}
 		System.out.println("Getting patients from subject multi file");
 		Set<String> patientSet = new HashSet<>();

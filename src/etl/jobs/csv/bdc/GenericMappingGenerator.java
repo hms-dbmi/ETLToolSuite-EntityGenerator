@@ -18,7 +18,7 @@ import com.opencsv.CSVReader;
 import etl.jobs.mappings.Mapping;
 
 public class GenericMappingGenerator extends BDCJob {
-
+	protected static boolean HASDATATABLES = false;
 	public static void main(String[] args) {
 		try {
 			setVariables(args, buildProperties(args));
@@ -76,7 +76,7 @@ public class GenericMappingGenerator extends BDCJob {
 					String[] headers = reader.readNext();
 					int x = 0;
 					
-					System.out.println("Processing mappings for: " + f.getName());
+					System.out.println("Processing mappings for: " + f.getName() + " with datatable format set to " + HASDATATABLES);
 					
 					if(headers == null) {
 						System.out.println(f.getName() + " has an issue with it's headers.");
@@ -88,7 +88,15 @@ public class GenericMappingGenerator extends BDCJob {
 						Mapping mapping = new Mapping();
 						
 						mapping.setKey(f.getName() + ":" + x);
-						mapping.setRootNode(PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + f.getName() + col + PATH_SEPARATOR);
+						if (HASDATATABLES){
+							String tablename= f.getName().substring(0, f.getName().lastIndexOf('.'));
+							mapping.setRootNode(
+								//if datatables enabled, sets the paths to include the filename as an identifier
+									PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + tablename + PATH_SEPARATOR + col + PATH_SEPARATOR);
+						}
+						else{
+							mapping.setRootNode(PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + col + PATH_SEPARATOR);
+						}
 						mapping.setSupPath("");
 						mapping.setDataType("TEXT");
 						
@@ -107,7 +115,11 @@ public class GenericMappingGenerator extends BDCJob {
 	}
 
 	private static void setClassVariables(String[] args) {
-		// TODO Auto-generated method stub
+		for(String arg: args) {
+			if(arg.equalsIgnoreCase("-hasDatatables")) {
+				HASDATATABLES= true;
+			}
+		}
 		
 	}
 

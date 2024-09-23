@@ -28,7 +28,7 @@
         <pathelement location="resources/log4j-api-2.11.0.jar"/>
         <pathelement location="resources/log4j-core-2.11.0.jar"/>
     	<pathelement location="resources/opencsv-2.3.jar"/>
-    	<pathelement location="resources/opencsv-4.2.jar"/>
+		<pathelement location="resources/opencsv-4.2.jar"/>
         <pathelement location="resources/reflections-0.9.8.jar"/>
 		<pathelement location="resources/commons-lang3-3.8.jar"/>
         <pathelement location="resources/gson-2.3.1.jar"/>
@@ -71,7 +71,16 @@
             <src path="resources"/>
             <classpath refid="classpath"/>
         </javac>
-		<jar destfile="jars/SampleIdGenerator.jar">
+		<jar destfile="/Users/sharra/github/ETL-MissionControl-dbgap-submodule/jars/NewDictionaryConverter.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.newdictionary.NewDictionaryConverter"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+	  	</jar>
+
+<!-- 		<jar destfile="jars/SampleIdGenerator.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.bdc.SampleIdGenerator"/>
 			</manifest>
@@ -79,7 +88,23 @@
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 	  	</jar>
-		
+		<jar destfile="jars/GenericMappingGenerator.jar">
+    				<manifest>
+    				<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenericMappingGenerator"/>
+    				</manifest>
+    			    <fileset dir="bin" includes="**/*.class" />
+    				<fileset dir="bin" includes="*.xml"></fileset>
+    	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    	    	</jar>
+
+		<jar destfile="jars/HPDSPatientNumTracker.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.HPDSPatientNumTracker"/>
+			</manifest>
+	  	    <fileset dir="bin" includes="**/*.class" />
+	  		<fileset dir="bin" includes="*.xml"></fileset>
+	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar> -->
      <!--
 		<jar destfile="jars/RootNodeGenerator.jar">
 			<manifest>
@@ -146,14 +171,7 @@
     	    <fileset dir="bin" includes="*.xml"></fileset>
     	    <zipgroupfileset dir="bin" includes="**/*.jar" />
     	</jar>
- 		<jar destfile="jars/HPDSPatientNumTracker.jar">
-			<manifest>
-				<attribute name="Main-Class" value="etl.jobs.csv.bdc.HPDSPatientNumTracker"/>
-			</manifest>
-	  	    <fileset dir="bin" includes="**/*.class" />
-	  		<fileset dir="bin" includes="*.xml"></fileset>
-	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
-		</jar>
+
  		<jar destfile="jars/JsonMetadataGenerator.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.JsonMetadataGenerator"/>
@@ -349,14 +367,7 @@
 		 -->
 
 		    <!-- 
-    	<jar destfile="jars/GenericMappingGenerator.jar">
-    				<manifest>
-    				<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenericMappingGenerator"/>
-    				</manifest>
-    			    <fileset dir="bin" includes="**/*.class" />
-    				<fileset dir="bin" includes="*.xml"></fileset>
-    	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
-    	    	</jar>
+
 
 
 		<jar destfile="jars/RemoveConsentZeroPatients.jar">
