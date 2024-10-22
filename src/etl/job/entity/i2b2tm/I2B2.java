@@ -63,7 +63,11 @@ public class I2B2 implements Cloneable{
 	
 		
 	@Override
+<<<<<<< HEAD
 	public Object clone() throws CloneNotSupportedException {
+=======
+	protected Object clone() throws CloneNotSupportedException {
+>>>>>>> d28fd24 (Update for metadata and counts)
 		// TODO Auto-generated method stub
 		return super.clone();
 	}
@@ -72,6 +76,7 @@ public class I2B2 implements Cloneable{
 
 	}
 
+<<<<<<< HEAD
 	public I2B2(String[] record) {
 		cHlevel = record[0];
 		cFullName = record[1];
@@ -130,6 +135,8 @@ public class I2B2 implements Cloneable{
 		this.cSymbol = node.cSymbol;
 	}
 
+=======
+>>>>>>> d28fd24 (Update for metadata and counts)
 	public boolean isValid() {
 		return (this.cFullName != null && this.cName != null) ? true: false;
 	}
@@ -147,6 +154,12 @@ public class I2B2 implements Cloneable{
 	}
 
 	public void setcFullName(String cFullName) {
+<<<<<<< HEAD
+=======
+		cFullName = cFullName.replaceAll("[*|/<\\?%>\":]", "");
+		
+		cFullName = cFullName.replaceAll(" \\\\", "\\\\");		
+>>>>>>> d28fd24 (Update for metadata and counts)
 		this.cFullName = cFullName;
 	}
 
@@ -155,6 +168,13 @@ public class I2B2 implements Cloneable{
 	}
 
 	public void setcName(String cName) {
+<<<<<<< HEAD
+=======
+		cName = cName.replaceAll("[*|/<\\?%>\":]", "");
+		
+		cName = cName.replaceAll(" \\\\", "\\\\");
+		cName = cName.trim();
+>>>>>>> d28fd24 (Update for metadata and counts)
 		this.cName = cName;
 	}
 
@@ -342,6 +362,7 @@ public class I2B2 implements Cloneable{
 		this.cSymbol = cSymbol;
 	}
 
+<<<<<<< HEAD
 	public String[] toStringArray() {
 		
 		String[] array = new String[] {
@@ -356,6 +377,8 @@ public class I2B2 implements Cloneable{
 		return array;
 	}
 	
+=======
+>>>>>>> d28fd24 (Update for metadata and counts)
 	@Override
 	public String toString() {
 		return "I2B2 [cHlevel=" + cHlevel + ", cFullName=" + cFullName
@@ -374,6 +397,7 @@ public class I2B2 implements Cloneable{
 				+ mExclusionCd + ", cPath=" + cPath + ", cSymbol=" + cSymbol
 				+ "]";
 	}
+<<<<<<< HEAD
 	/**
 	 * Fill in tree by taking all clevel where the most diversity occurs base nodes then recursively back fill them
 	 *  
@@ -381,6 +405,56 @@ public class I2B2 implements Cloneable{
 	 * @throws Exception
 	 */
 
+=======
+
+	public static void fillTree(Set<I2B2> nodes) throws Exception{
+		
+		Set<I2B2> set = new HashSet<I2B2>();
+		
+		nodes.forEach(node ->{
+			Integer x = StringUtils.countMatches(node.getcFullName(),"\\") - 1;
+					
+			while(x > 1){
+				
+				I2B2 i2b2 = null;
+				try {
+					i2b2 = (I2B2) node.clone();
+				} catch (CloneNotSupportedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				if(i2b2 == null) {
+					break;
+				}
+				
+				i2b2.setcFullName(node.getcFullName().substring(0, StringUtils.ordinalIndexOf(node.getcFullName(), "\\", x) + 1 ));
+				
+				i2b2.setcDimCode(node.getcFullName().substring(0, StringUtils.ordinalIndexOf(node.getcFullName(), "\\", x) + 1 ));
+				
+				i2b2.setcToolTip(node.getcFullName().substring(0, StringUtils.ordinalIndexOf(node.getcFullName(), "\\", x) + 1 ));
+				
+				i2b2.setcHlevel(new Integer(x - 2).toString());
+				i2b2.setcBaseCode(null);
+				i2b2.setcVisualAttributes("FA");
+				
+				i2b2.setcMetaDataXML("");
+				
+				String[] fullNodes = i2b2.getcFullName().split("\\\\");
+				
+				i2b2.setcName(fullNodes[fullNodes.length - 1]);
+				
+				if(node.getcHlevel() != null) {
+					set.add(i2b2);
+				}
+				
+				
+				
+				x--;
+			}
+		});
+		nodes.addAll(set);
+	}
+>>>>>>> d28fd24 (Update for metadata and counts)
 	@Override
 	public int hashCode() {
 		final int prime = 31;
