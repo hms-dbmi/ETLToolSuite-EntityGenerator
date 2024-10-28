@@ -17,7 +17,8 @@ public class BDCGenomicManagedInput extends GenomicManagedInput {
 
 	private String subjectMultiLocation = "";
 	
-	private String additionalInformation = "";
+	private String studyFreeze = "9";
+
 			
 	public BDCGenomicManagedInput(String[] inputCsv) {
 
@@ -31,7 +32,7 @@ public class BDCGenomicManagedInput extends GenomicManagedInput {
 		this.nhlbiAccount = inputCsv[6];
 		this.sampleMultiLocation = inputCsv[7];
 		this.subjectMultiLocation = inputCsv[8];
-		this.additionalInformation = inputCsv[9];
+		this.studyFreeze = inputCsv[9];
 	}
 	
 	public static List<GenomicManagedInput> buildAll(List<String[]> managedInputs){
@@ -89,12 +90,13 @@ public class BDCGenomicManagedInput extends GenomicManagedInput {
 		this.subjectMultiLocation = subjectMultiLocation;
 	}
 
-	public String getAdditionalInformation() {
-		return this.additionalInformation;
+
+	public String getStudyFreeze() {
+		return this.studyFreeze;
 	}
 
-	public void setAdditionalInformation(String additionalInformation) {
-		this.additionalInformation = additionalInformation;
+	public void setStudyFreeze(String studyFreeze) {
+		this.studyFreeze = studyFreeze;
 	}
 
 	public String getStudyIdAndConsent() {
@@ -123,7 +125,7 @@ public class BDCGenomicManagedInput extends GenomicManagedInput {
 				", nhlbiAccount='" + getNhlbiAccount() + "'" +
 				", sampleMultiLocation='" + getSampleMultiLocation() + "'" +
 				", subjectMultiLocation='" + getSubjectMultiLocation() + "'" +
-				", additionalInformation='" + getAdditionalInformation() + "'" +
+				", studyFreeze='" + getStudyFreeze() + "'" +
 				"}";
 	}
 

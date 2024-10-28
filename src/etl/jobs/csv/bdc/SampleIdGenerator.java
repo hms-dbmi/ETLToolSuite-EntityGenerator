@@ -54,11 +54,11 @@ public class SampleIdGenerator extends BDCJob {
 		//cleanSampleIdFile();
 		List<BDCGenomicManagedInput> managedInputs = BDCJob.getGenomicManagedInputs();
 		for (BDCGenomicManagedInput managedInput : managedInputs) {
-				buildSampleIds(managedInput.getStudyIdAndConsent(), managedInput.getGlobalConsentCode(), managedInput.getStudyIdentifier());
+				buildSampleIds(managedInput.getStudyIdAndConsent(), managedInput.getGlobalConsentCode(), managedInput.getStudyIdentifier(), managedInput.getStudyFreeze());
 		}
 	}
 
-	private static void buildSampleIds(String fullId, String globalConsentCode, String phsNum) throws IOException {
+	private static void buildSampleIds(String fullId, String globalConsentCode, String phsNum, String freeze) throws IOException {
 		
 		File dataDir = new File(DATA_DIR);
 		

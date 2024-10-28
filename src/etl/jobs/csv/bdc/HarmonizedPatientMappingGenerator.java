@@ -34,11 +34,13 @@ public class HarmonizedPatientMappingGenerator extends BDCJob {
 		STUDY_ID_SYNONYM.put("HCHSSOL", "HCHS_SOL");
 
 		STUDY_ID_SYNONYM.put("COPDGENE", "COPDGene");
+		
 
 		
 		SUBJECT_ID_COL_OVERRIDE.put("JHS", "SOURCE_SUBJECT_ID2");
 		SUBJECT_ID_COL_OVERRIDE.put("CARDIA", "SUBJID");
 		SUBJECT_ID_COL_OVERRIDE.put("GOLDN", "SUBJECT_ID");
+
 	};
 	
 	

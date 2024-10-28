@@ -91,7 +91,7 @@ public class GenericMappingGenerator extends BDCJob {
 						if (HASDATATABLES){
 							String tablename= f.getName().substring(0, f.getName().lastIndexOf('.')).replace(".", PATH_SEPARATOR);
 							mapping.setRootNode(
-								//if datatables enabled, sets the paths to include the filename as an identifier
+								//if datatables enabled, sets the paths to include the filename, with . replaced by path separator,  as an identifier
 									PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + tablename + PATH_SEPARATOR + col + PATH_SEPARATOR);
 						}
 						else{
