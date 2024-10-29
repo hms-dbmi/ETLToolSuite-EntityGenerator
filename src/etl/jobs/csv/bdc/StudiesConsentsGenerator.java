@@ -34,7 +34,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 	 */
 	private static List<String> CONSENT_HEADERS = new ArrayList<String>();
 
-	private static String WRITE_DIR = "./completed_consents/";
+	private static String WRITE_DIR = "./completed";
 	static {
 
 		CONSENT_HEADERS.add("consent".toLowerCase());
