@@ -56,7 +56,7 @@ public class GenericMappingGenerator extends BDCJob {
 
 			@Override
 			public int compare(Mapping o1, Mapping o2) {
-				return o1.getRootNode().compareTo(o2.getRootNode());
+				return o1.getKey().compareTo(o2.getKey());
 			}
 		});
 		

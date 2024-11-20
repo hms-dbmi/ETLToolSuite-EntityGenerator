@@ -110,6 +110,7 @@ public class DbGapDataMerge extends Job {
 							rootNode = rootNode.replaceAll("\"", "");
 							rootNode = rootNode.substring(1);
 							rootNode = rootNode.replaceAll("µ.*", "");
+							
 							rootnodes.put(rootNode, studyid);
 							break;
 						}

@@ -2,10 +2,9 @@ package etl.utils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-<<<<<<< HEAD
+
 import java.lang.instrument.Instrumentation;
-=======
->>>>>>> d28fd24 (Update for metadata and counts)
+
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,11 +56,8 @@ public class Utils {
 	
 	public static <T> void writeToCsv(BufferedWriter buffer,Collection<T> objectsToWrite,char quotedString,char dataSeparator) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 		@SuppressWarnings("unchecked")
-<<<<<<< HEAD
-		StatefulBeanToCsv<T> writer = new StatefulBeanToCsvBuilder<T>(buffer)
-=======
+
 		StatefulBeanToCsv<T> writer = new StatefulBeanToCsvBuilder(buffer)
->>>>>>> d28fd24 (Update for metadata and counts)
 				.withQuotechar(quotedString)
 				.withSeparator(dataSeparator)
 				.withEscapechar(ESCAPE_CHAR)
@@ -69,7 +65,6 @@ public class Utils {
 		
 		writer.write(objectsToWrite.stream().collect(Collectors.toList()));
 	}
-<<<<<<< HEAD
 
 	// checks passed arguments and sends back value for that argument
 	public static String checkPassedArgs(String arg, String[] args) throws Exception {
@@ -104,7 +99,5 @@ public class Utils {
 	}	
 	
 
-	
-=======
->>>>>>> d28fd24 (Update for metadata and counts)
+
 }

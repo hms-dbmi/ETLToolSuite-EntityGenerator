@@ -34,7 +34,6 @@ public class StudiesConsentsGenerator extends BDCJob {
 	 */
 	private static List<String> CONSENT_HEADERS = new ArrayList<String>();
 
-	private static String WRITE_DIR = "./completed";
 	static {
 
 		CONSENT_HEADERS.add("consent".toLowerCase());
@@ -252,7 +251,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 
 	private static int getConsentIdx(String fileName) throws IOException {
 
-		try (BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + fileName))) {
+		try (BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "raw/" + fileName))) {
 			CSVReader reader = new CSVReader(buffer, '\t', 'π');
 
 			String[] headers;

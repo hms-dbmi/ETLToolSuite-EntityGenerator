@@ -223,6 +223,7 @@ public class DataAnalyzer extends Job {
 					if(val.isEmpty()) {
 						continue;
 					}
+					//TODO add check for null here - null should default to numeric
 					if(NumberUtils.isCreatable(val)) {
 						System.out.println("column: " + col + " value: " + val + " in file " + path + " numeric++");
 						numericVals++;
