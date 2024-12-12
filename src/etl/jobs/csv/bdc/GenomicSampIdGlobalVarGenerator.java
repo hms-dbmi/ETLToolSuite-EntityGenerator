@@ -173,21 +173,6 @@ public class GenomicSampIdGlobalVarGenerator extends BDCJob {
  			writer.close();
 		}
 
-		
-		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_vcfIndex.tsv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
-			
-			CSVWriter csv = new CSVWriter(writer, '\t');
-			
-			String[] headers = new String[] {"vcf_path","contig","isAnnotated","isGzipped","sample_ids","patient_ids","sample_relationship","related_sample_ids"};
-			String[] line = new String[] {"","","","",String.join(",", sampleIds),String.join(",", patientNums),"",""};
-			
-			if(!sampleIds.isEmpty()) {
-				csv.writeNext(headers);
-				csv.writeNext(line);
-			}
-			
-		}
-
 	}
 
 	private static Map<String, String> getPatientMapping(String studyId) throws IOException {

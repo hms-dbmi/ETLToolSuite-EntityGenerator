@@ -51,14 +51,18 @@ public class SampleIdGenerator extends BDCJob {
 	}
 
 	private static void execute() throws IOException {
-		//cleanSampleIdFile();
+		System.out.println("Starting sample id generator");
 		List<BDCGenomicManagedInput> managedInputs = BDCJob.getGenomicManagedInputs();
 		for (BDCGenomicManagedInput managedInput : managedInputs) {
-				buildSampleIds(managedInput.getStudyIdAndConsent(), managedInput.getGlobalConsentCode(), managedInput.getStudyIdentifier(), managedInput.getStudyFreeze());
+				if (managedInput.getIsStudyAnnotated().toLowerCase().equals("yes") && managedInput.getIsStudyProcessed().toLowerCase().equals("no")){
+					System.out.println(managedInput.toString());
+					buildSampleIds(managedInput.getStudyIdAndConsent(), managedInput.getGlobalConsentCode(), managedInput.getStudyIdentifier());
+				}
+					
 		}
 	}
 
-	private static void buildSampleIds(String fullId, String globalConsentCode, String phsNum, String freeze) throws IOException {
+	private static void buildSampleIds(String fullId, String globalConsentCode, String phsNum) throws IOException {
 		
 		File dataDir = new File(DATA_DIR);
 		
@@ -71,7 +75,7 @@ public class SampleIdGenerator extends BDCJob {
 				
 				for(String f: dataDir.list()) {
 										
-					if(f.toLowerCase().contains(phsNum+".sample.multi")) {
+					if(f.toLowerCase().contains(phsNum) && f.toLowerCase().contains("sample.multi")) {
 						
 						
 						String studyAbv = getStudyAccessions(fullId);
@@ -80,6 +84,7 @@ public class SampleIdGenerator extends BDCJob {
 							System.err.println("No study associated with " + fullId + " in genomic managed input file");
 							continue;
 						};
+						System.out.println("Found fullId " + fullId + ": "+ studyAbv + " in managed inputs");
 						
 						try(BufferedReader buffer = Files.newBufferedReader(Paths.get(new File(DATA_DIR + f).getAbsolutePath()))) {
 							
@@ -102,6 +107,7 @@ public class SampleIdGenerator extends BDCJob {
 								for(String col: line) {
 									if(SAMPLE_HEADERS.contains(col.toUpperCase())) {
 										sampidIdx = x;
+										System.out.println(phsNum + " sample id column number is " + sampidIdx);
 										break;
 									} else {
 										x++;

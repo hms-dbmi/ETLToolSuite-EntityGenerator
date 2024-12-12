@@ -97,7 +97,7 @@
     	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
     	 </jar>
 
-<!-- 		<jar destfile="jars/SampleIdGenerator.jar">
+	<jar destfile="/Users/sharra/github/ETL-MissionControl-dbgap-submodule/jars/SampleIdGenerator.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.bdc.SampleIdGenerator"/>
 			</manifest>
@@ -105,8 +105,16 @@
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 	  	</jar>
+	<jar destfile="/Users/sharra/github/ETL-MissionControl-dbgap-submodule/jars/GenericGlobalConceptsGenerator.jar">
+    	    <manifest>
+    	    	<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenericGlobalConceptsGenerator"/>
+    	    </manifest>
+    	    <fileset dir="bin" includes="**/*.class" />
+    	    <fileset dir="bin" includes="*.xml"></fileset>
+    	    <zipgroupfileset dir="bin" includes="**/*.jar" />
+    	</jar>
 		
-
+<!-- 	
 		<jar destfile="jars/HPDSPatientNumTracker.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.bdc.HPDSPatientNumTracker"/>
@@ -166,14 +174,7 @@
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar> 
-		 <jar destfile="jars/GenericGlobalConceptsGenerator.jar">
-    	    <manifest>
-    	    	<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenericGlobalConceptsGenerator"/>
-    	    </manifest>
-    	    <fileset dir="bin" includes="**/*.class" />
-    	    <fileset dir="bin" includes="*.xml"></fileset>
-    	    <zipgroupfileset dir="bin" includes="**/*.jar" />
-    	</jar>
+
 
  		<jar destfile="jars/JsonMetadataGenerator.jar">
 			<manifest>

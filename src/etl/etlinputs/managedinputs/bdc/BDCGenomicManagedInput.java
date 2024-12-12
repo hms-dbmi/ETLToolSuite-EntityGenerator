@@ -13,11 +13,11 @@ public class BDCGenomicManagedInput extends GenomicManagedInput {
 	
 	private String nhlbiAccount = "";
 	
-	private String sampleMultiLocation = "";
+	private String studyBucket = "";
 
-	private String subjectMultiLocation = "";
+
 	
-	private String studyFreeze = "9";
+
 
 			
 	public BDCGenomicManagedInput(String[] inputCsv) {
@@ -30,9 +30,7 @@ public class BDCGenomicManagedInput extends GenomicManagedInput {
 		this.isStudyProcessed = inputCsv[4];
 		this.isStudyIngested = inputCsv[5];
 		this.nhlbiAccount = inputCsv[6];
-		this.sampleMultiLocation = inputCsv[7];
-		this.subjectMultiLocation = inputCsv[8];
-		this.studyFreeze = inputCsv[9];
+		this.studyBucket = inputCsv[7];
 	}
 	
 	public static List<GenomicManagedInput> buildAll(List<String[]> managedInputs){
@@ -73,30 +71,12 @@ public class BDCGenomicManagedInput extends GenomicManagedInput {
 	public void setNhlbiAccount(String nhlbiAccount) {
 		this.nhlbiAccount = nhlbiAccount;
 	}
-
-	public String getSampleMultiLocation() {
-		return this.sampleMultiLocation;
+	public String getStudyBucket() {
+		return this.studyBucket;
 	}
 
-	public void setSampleMultiLocation(String sampleMultiLocation) {
-		this.sampleMultiLocation = sampleMultiLocation;
-	}
-
-	public String getSubjectMultiLocation() {
-		return this.subjectMultiLocation;
-	}
-
-	public void setSubjectMultiLocation(String subjectMultiLocation) {
-		this.subjectMultiLocation = subjectMultiLocation;
-	}
-
-
-	public String getStudyFreeze() {
-		return this.studyFreeze;
-	}
-
-	public void setStudyFreeze(String studyFreeze) {
-		this.studyFreeze = studyFreeze;
+	public void setStudyBucket(String studyBucket) {
+		this.studyBucket = studyBucket;
 	}
 
 	public String getStudyIdAndConsent() {
@@ -123,9 +103,7 @@ public class BDCGenomicManagedInput extends GenomicManagedInput {
 				" studyIdentifier='" + getStudyIdentifier() + "'" +
 				", studyConsent='" + getStudyConsent() + "'" +
 				", nhlbiAccount='" + getNhlbiAccount() + "'" +
-				", sampleMultiLocation='" + getSampleMultiLocation() + "'" +
-				", subjectMultiLocation='" + getSubjectMultiLocation() + "'" +
-				", studyFreeze='" + getStudyFreeze() + "'" +
+				", studyBucket='" + getStudyBucket() + "'" +
 				"}";
 	}
 
