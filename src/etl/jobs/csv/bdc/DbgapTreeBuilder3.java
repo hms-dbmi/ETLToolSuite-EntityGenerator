@@ -171,27 +171,29 @@ public class DbgapTreeBuilder3 extends BDCJob {
 			buffer.flush();
 			buffer.close();
 		}
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_DictionaryKeys.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(LOG_DIR + TRIAL_ID + "_DictionaryKeys.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 			for(String dk: DICTIONARY_KEYS) {
 				buffer.write(dk + '\n');
 			}
 			buffer.flush();
 			buffer.close();
 		}
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_MissingDataTypes.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(LOG_DIR + TRIAL_ID + "_MissingDataTypes.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 			for(String mdt: VARIABLES_MISSING_DATA_TYPE) {
 				buffer.write(mdt + '\n');
 			}
 			buffer.flush();
 			buffer.close();
 		}
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_FilesMissingDictionaries.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(LOG_DIR + TRIAL_ID + "_FilesMissingDictionaries.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 			for(String fmd: FILES_MISSING_DICTIONARIES) {
 				buffer.write(fmd + '\n');
 			}
 			buffer.flush();
 			buffer.close();
 		}
+		if(FILES_MISSING_DICTIONARIES.size()>0 || VARIABLES_MISSING_DATA_TYPE.size()>0)
+			System.exit(255);
 	}
 
 	private static void generateMappings(BufferedWriter buffer, File file, String[] headers, Document dictionary) throws IOException {

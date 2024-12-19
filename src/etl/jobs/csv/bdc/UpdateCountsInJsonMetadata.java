@@ -118,9 +118,18 @@ public class UpdateCountsInJsonMetadata extends BDCJob {
 
 	private static void updatePhenoCount(BDCMetadataElements element, Map<String, String> phenoCounts) {
 		
-		if(phenoCounts.containsKey(element.study_identifier + "." + element.consent_group_code)) {
-			element.clinical_sample_size = new Integer(phenoCounts.get(element.study_identifier + "." + element.consent_group_code));
-			element.clinical_variable_count = element.raw_clinical_variable_count;
+		if(phenoCounts.containsKey(element.study_identifier + "." + element.consent_group_code) || phenoCounts.containsKey(element.study_identifier)) {
+			if(!element.consent_group_code.equalsIgnoreCase("none") && !element.consent_group_code.equalsIgnoreCase("") && element.consent_group_code != null){
+				System.out.println("Updating auth study counts for " + element.study_identifier + "." + element.consent_group_code);
+				element.clinical_sample_size = new Integer(phenoCounts.get(element.study_identifier + "." + element.consent_group_code));
+				element.clinical_variable_count = element.raw_clinical_variable_count;
+			}
+			else{
+				System.out.println("Updating public study counts for " + element.study_identifier);
+				element.clinical_sample_size = new Integer(phenoCounts.get(element.study_identifier));
+				element.clinical_variable_count = element.raw_clinical_variable_count;
+			}
+
 		} else {
 			
 			System.err.println("missing pheno counts for " + element.study_identifier);

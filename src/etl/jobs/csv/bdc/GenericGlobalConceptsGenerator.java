@@ -19,6 +19,7 @@ import etl.jobs.mappings.PatientMapping;
 public class GenericGlobalConceptsGenerator extends BDCJob {
 
 	private static String STUDY_ACCESSION = "";
+	private static String STUDY_TYPE = "";
 	private static String CONSENT = "";
 	private static String CONSENT_NAME = "";
 	private static String CONSENT_ID = "";
@@ -98,7 +99,8 @@ public class GenericGlobalConceptsGenerator extends BDCJob {
 		globalVars.addAll(generateStudyConsents(patientMappings));
 		globalVars.addAll(generateStudies(patientMappings));
 		globalVars.addAll(generateTopmedSubjectId(patientMappings));
-
+		if(STUDY_TYPE.contains("g"))
+			globalVars.addAll(generateTopmedConsents(patientMappings));
 		return globalVars;
 	}
 
@@ -123,7 +125,7 @@ public class GenericGlobalConceptsGenerator extends BDCJob {
 		for(PatientMapping pm: patientMappings) {
 			AllConcepts ac = new AllConcepts();
 			ac.setPatientNum(pm.getPatientNum());
-			ac.setConceptPath(PATH_SEPARATOR + "_Topmed Study Accession with Subject ID" + PATH_SEPARATOR + STUDY_ACCESSION + "_" + pm.getSourceId().replaceAll("\"", "") + PATH_SEPARATOR );
+			ac.setConceptPath(PATH_SEPARATOR + "_Topmed Study Accession with Subject ID" + PATH_SEPARATOR + STUDY_ACCESSION + "_" + pm.getSourceId() + PATH_SEPARATOR );
 		    ac.setTvalChar("TRUE");
 		    ac.setNvalNum("");
 		    ac.setStartDate("0");
@@ -133,38 +135,90 @@ public class GenericGlobalConceptsGenerator extends BDCJob {
 	
 		return studies;
 	}
-	private static Collection<? extends AllConcepts> generateStudyConsents(List<PatientMapping> patientMappings) {
-		List<AllConcepts> studyConsents = new ArrayList<>();
+	private static Collection<? extends AllConcepts> generateTopmedConsents(List<PatientMapping> patientMappings) {
+		List<AllConcepts> consents = new ArrayList<>();
 		for(PatientMapping pm: patientMappings) {
 			AllConcepts ac = new AllConcepts();
 			ac.setPatientNum(pm.getPatientNum());
-			ac.setConceptPath(PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR + STUDY_ACCESSION + PATH_SEPARATOR + CONSENT_ID 
-					+ PATH_SEPARATOR);
-		    ac.setTvalChar("TRUE");
+			ac.setConceptPath(PATH_SEPARATOR + "_genomic_sample_id" + PATH_SEPARATOR);
+		    ac.setTvalChar(pm.getSourceId());
 		    ac.setNvalNum("");
 		    ac.setStartDate("0");
 		    
-		    studyConsents.add(ac);
-		    
+		    consents.add(ac);
 			AllConcepts ac2 = new AllConcepts();
 			ac2.setPatientNum(pm.getPatientNum());
-		    ac2.setTvalChar("TRUE");
+			ac2.setConceptPath(PATH_SEPARATOR + "_topmed_consents" + PATH_SEPARATOR);
+		    ac2.setTvalChar(STUDY_ACCESSION);
 		    ac2.setNvalNum("");
 		    ac2.setStartDate("0");
 		    
-		    ac2.setConceptPath(PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR + STUDY_ACCESSION + PATH_SEPARATOR);
-		    
-		    studyConsents.add(ac2);
-		    
-			AllConcepts ac3 = new AllConcepts();
-			ac3.setPatientNum(pm.getPatientNum());
-		    ac3.setTvalChar("TRUE");
-		    ac3.setNvalNum("");
-		    ac3.setStartDate("0");
-		    
-			ac3.setConceptPath(PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR);
-		    
-		    studyConsents.add(ac3);
+		    consents.add(ac2);;
+			
+		}
+	
+		return consents;
+	}
+	private static Collection<? extends AllConcepts> generateStudyConsents(List<PatientMapping> patientMappings) {
+		List<AllConcepts> studyConsents = new ArrayList<>();
+		for(PatientMapping pm: patientMappings) {
+			if(CONSENT_ID.equals("none")){
+
+				AllConcepts ac2 = new AllConcepts();
+				ac2.setPatientNum(pm.getPatientNum());
+				ac2.setTvalChar("TRUE");
+				ac2.setNvalNum("");
+				ac2.setStartDate("0");
+
+				ac2.setConceptPath(
+						PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR + STUDY_ACCESSION + PATH_SEPARATOR);
+
+				studyConsents.add(ac2);
+
+				AllConcepts ac3 = new AllConcepts();
+				ac3.setPatientNum(pm.getPatientNum());
+				ac3.setTvalChar("TRUE");
+				ac3.setNvalNum("");
+				ac3.setStartDate("0");
+
+				ac3.setConceptPath(PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR);
+
+				studyConsents.add(ac3);
+			}
+			else{
+				AllConcepts ac = new AllConcepts();
+				ac.setPatientNum(pm.getPatientNum());
+				ac.setConceptPath(PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR + STUDY_ACCESSION
+						+ PATH_SEPARATOR + CONSENT_ID
+						+ PATH_SEPARATOR);
+				ac.setTvalChar("TRUE");
+				ac.setNvalNum("");
+				ac.setStartDate("0");
+
+				studyConsents.add(ac);
+
+				AllConcepts ac2 = new AllConcepts();
+				ac2.setPatientNum(pm.getPatientNum());
+				ac2.setTvalChar("TRUE");
+				ac2.setNvalNum("");
+				ac2.setStartDate("0");
+
+				ac2.setConceptPath(
+						PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR + STUDY_ACCESSION + PATH_SEPARATOR);
+
+				studyConsents.add(ac2);
+
+				AllConcepts ac3 = new AllConcepts();
+				ac3.setPatientNum(pm.getPatientNum());
+				ac3.setTvalChar("TRUE");
+				ac3.setNvalNum("");
+				ac3.setStartDate("0");
+
+				ac3.setConceptPath(PATH_SEPARATOR + "_studies_consents" + PATH_SEPARATOR);
+
+				studyConsents.add(ac3);
+			}
+			
 		}
 	
 		return studyConsents;
@@ -173,13 +227,25 @@ public class GenericGlobalConceptsGenerator extends BDCJob {
 	private static List<AllConcepts> generateConsents(List<PatientMapping> patientMappings) {
 		List<AllConcepts> consents = new ArrayList<>();
 		for(PatientMapping pm: patientMappings) {
-			AllConcepts ac = new AllConcepts();
-			ac.setPatientNum(pm.getPatientNum());
-			ac.setConceptPath(PATH_SEPARATOR + "_consents" + PATH_SEPARATOR );
-		    ac.setTvalChar(STUDY_ACCESSION + ".c1");
-		    ac.setNvalNum("");
-		    ac.setStartDate("0");
-		    consents.add(ac);
+			if(CONSENT_ID.equals("none")){
+				AllConcepts ac = new AllConcepts();
+				ac.setPatientNum(pm.getPatientNum());
+				ac.setConceptPath(PATH_SEPARATOR + "_consents" + PATH_SEPARATOR);
+				ac.setTvalChar(STUDY_ACCESSION);
+				ac.setNvalNum("");
+				ac.setStartDate("0");
+				consents.add(ac);
+			}
+			else{
+				AllConcepts ac = new AllConcepts();
+				ac.setPatientNum(pm.getPatientNum());
+				ac.setConceptPath(PATH_SEPARATOR + "_consents" + PATH_SEPARATOR);
+				ac.setTvalChar(STUDY_ACCESSION + ".c1");
+				ac.setNvalNum("");
+				ac.setStartDate("0");
+				consents.add(ac);
+			}
+
 		}
 		
 		return consents;
@@ -208,6 +274,9 @@ public class GenericGlobalConceptsGenerator extends BDCJob {
 			}
 			if(arg.equalsIgnoreCase("-accession")) {
 				STUDY_ACCESSION = checkPassedArgs(arg, args);;
+			}
+			if(arg.equalsIgnoreCase("-study_type")) {
+				STUDY_TYPE = checkPassedArgs(arg, args);;
 			}
 		}
 		

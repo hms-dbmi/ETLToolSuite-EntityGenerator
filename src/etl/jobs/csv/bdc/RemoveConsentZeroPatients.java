@@ -83,12 +83,12 @@ public class RemoveConsentZeroPatients extends BDCJob {
 
 		globalNonConsentZeroPatientNums = readConsents(GLOBAL_CONSENTS_PATH);
 		
-		System.out.println(globalNonConsentZeroPatientNums.size());
+		System.out.println("count of studies with nonzero consents: " + globalNonConsentZeroPatientNums.size());
 		// build a hash set with only harmonized 
 		
 		harmonizedValidPatientNums = buildHarmonizedValidPatNums();
 		
-		System.out.println(harmonizedValidPatientNums.size());
+		System.out.println("count of valid harmonized participant ids: " + harmonizedValidPatientNums.size());
 
 		topmedNonCzeroPatNums = buildTopmedPatNums();
 		
@@ -217,25 +217,13 @@ public class RemoveConsentZeroPatients extends BDCJob {
 							bw.write(toCsv(line));
 						}
 					}
-					if(rootNode.equals("_VCF Sample Id")) {
-						if(topmedNonCzeroPatNums.contains(line[0])) {
-							
-							bw.write(toCsv(line));
-						}					
-					} if(rootNode.equals("_genomic_sample_id")) {
+					if(rootNode.equals("_VCF Sample Id") || rootNode.equals("_genomic_sample_id")) {
 						if(topmedNonCzeroPatNums.contains(line[0])) {
 							
 							bw.write(toCsv(line));
 						}					
 					}
-					else if(rootNode.equals("_topmed_consents")) { 
-						if(line[3].contains("c0")) continue;
-						bw.write(toCsv(line));
-					} else if(rootNode.equals("_parent_consents")) { 
-						if(line[3].contains("c0")) continue;
-						
-						bw.write(toCsv(line));
-					} else if(rootNode.equals("_consents")) {
+					else if(rootNode.equals("_consents") || rootNode.equals("_harmonized_consent") || rootNode.equals("_parent_consents") || rootNode.equals("_topmed_consents")) {
 						if(line[3].contains("c0")) continue;
 						
 						bw.write(toCsv(line));
@@ -244,14 +232,10 @@ public class RemoveConsentZeroPatients extends BDCJob {
 						
 						bw.write(toCsv(line));
 						
-					} else if(rootNode.equals("_harmonized_consent")) {
-						if(line[3].contains("c0")) continue;
-						
-						bw.write(toCsv(line));
 					}
 				} else {
 					if(globalNonConsentZeroPatientNums.containsKey(phsIdentifier.trim())) {
-						if(globalNonConsentZeroPatientNums.get(phsIdentifier).contains(line[0])) {
+						if(globalNonConsentZeroPatientNums.get(phsIdentifier.trim()).contains(line[0])) {
 							
 							bw.write(toCsv(line));
 							

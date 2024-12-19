@@ -81,7 +81,7 @@ public class DataAnalyzer extends Job {
 				mappingsMap.get(fileName).add(m);
 				
 			} else {
-				
+				System.out.println("Adding file" + fileName + "to file list");
 				mappingsMap.put(fileName, new ArrayList<Mapping>(Arrays.asList(m)));
 				
 			}
@@ -97,7 +97,7 @@ public class DataAnalyzer extends Job {
 				if(Files.exists(path)) { 
 
 					try {
-						
+						System.out.println("found path " + path);
 						newMappings.add(analyzeData(m,path));
 						
 					} catch (IOException e) {
@@ -192,6 +192,7 @@ public class DataAnalyzer extends Job {
 	private static Mapping analyzeData(Mapping mapping, Path path) throws IOException {
 		
 		int col = new Integer(mapping.getKey().split(":")[1]);
+		System.out.println(" analyzing column: " + col + " in file " + path);
 		System.out.println(mapping);
 		
 		try(BufferedReader buffer = Files.newBufferedReader(path)){
@@ -218,12 +219,16 @@ public class DataAnalyzer extends Job {
 
 				if(col <= newLine.length - 1) {
 					String val = newLine[col];
+					
 					if(val.isEmpty()) {
 						continue;
 					}
+					//TODO add check for null here - null should default to numeric
 					if(NumberUtils.isCreatable(val)) {
+						System.out.println("column: " + col + " value: " + val + " in file " + path + " numeric++");
 						numericVals++;
 					} else if(val != null || !val.isEmpty()){
+						System.out.println("column: " + col + " value: " + val + " in file " + path + " alpha++");
 						alphaVals++;
 					};
 				}

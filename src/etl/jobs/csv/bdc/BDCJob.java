@@ -30,6 +30,7 @@ import com.opencsv.CSVReader;
 
 import etl.etlinputs.managedinputs.ManagedInputFactory;
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
+import etl.etlinputs.managedinputs.bdc.BDCGenomicManagedInput;
 import etl.jobs.Job;
 
 public abstract class BDCJob extends Job {
@@ -40,6 +41,17 @@ public abstract class BDCJob extends Job {
 		add("RED_CORAL");
 		
 	}};
+	private static List<String> CONSENT_HEADERS = new ArrayList<String>();
+
+
+	static {
+
+		CONSENT_HEADERS.add("consent".toLowerCase());
+		CONSENT_HEADERS.add("consent_1217".toLowerCase());
+		CONSENT_HEADERS.add("consentcol");
+		CONSENT_HEADERS.add("gencons");
+
+	}
 	
 	public static CSVReader readRawBDCDataset(Path fileName) throws IOException {
 		return readRawBDCDataset(fileName,false);
@@ -80,6 +92,36 @@ public abstract class BDCJob extends Job {
 	
 	public static CSVReader readRawBDCDataset(File file) throws IOException {
 		return readRawBDCDataset(Paths.get(file.getCanonicalPath()), false);
+	}
+
+	public static String findSubjectIdColumnName(Path subjectMultiFileName) throws IOException, NullPointerException {
+		return findRawDataColumnNameAtIndex(subjectMultiFileName, 1);
+	}
+
+	public static String findRawDataColumnNameAtIndex(Path fileName, int columnIndex) throws IOException, NullPointerException {
+		if(fileName == null) return null;
+		BufferedReader buffer = Files.newBufferedReader(fileName);
+		CSVReader reader = new CSVReader(buffer, '\t', 'π');
+		
+		String[] headers;
+		String columnName = "";
+	
+		while((headers = reader.readNext()) != null) {
+
+			boolean isComment = ( headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty() ) ? true: headers[0].isEmpty() ? true: false;
+			
+			if(isComment) {
+				
+				continue;
+				
+			} else {
+				
+				columnName = headers[columnIndex];
+				
+			}
+			
+		}
+		return columnName;
 	}
 
 	public static int findRawDataColumnIdx(Path fileName, String columnName) throws IOException {
@@ -249,6 +291,8 @@ public abstract class BDCJob extends Job {
 		String[] fileNameArr = dbGapFileName.split("\\.");
 		for(String str: fileNameArr) {
 			if(str.contains("pht")) return str;
+			if (str.contains("subjects")) return str;
+			if (str.contains("samples")) return str;
 		}
 		return null;
 	}
@@ -256,6 +300,8 @@ public abstract class BDCJob extends Job {
 	public static String getPht(String[] dbGapFileNameArr) {
 		for(String str: dbGapFileNameArr) {
 			if(str.contains("pht")) return str;
+			if (str.contains("subjects")) return str;
+			if (str.contains("samples")) return str;
 		}
 		return null;
 	}
@@ -464,33 +510,69 @@ public abstract class BDCJob extends Job {
 	    return valueLookup;
 	    
 	}
+	public static int getConsentIdx(String fileName) throws IOException {
+
+		try (BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + fileName))) {
+			CSVReader reader = new CSVReader(buffer, '\t', 'π');
+
+			String[] headers;
+
+			while ((headers = reader.readNext()) != null) {
+
+				boolean isComment = (headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty())
+						? true
+						: headers[0].isEmpty() ? true : false;
+
+				if (isComment) {
+
+					continue;
+
+				} else {
+
+					break;
+
+				}
+
+			}
+
+			int consentidx = -1;
+			int x = 0;
+			System.out.println("Checking for header matching expected consent name block");
+			for (String header : headers) {
+				if (CONSENT_HEADERS.contains(header.toLowerCase())) {
+					System.out.println("Consent header found = " + header);
+					consentidx = x;
+					break;
+				}
+				x++;
+			}
+			x = 0;
+			if (consentidx == -1) {
+
+				System.out.println("Consent header not found in expected header block.  Searching dynamically for any header containing 'consent'");
+				for (String header : headers) {
+
+					if (header.toLowerCase().contains("consent")) {
+						System.out.println("Consent header found = " + header);
+						consentidx = x;
+						break;
+					}
+					x++;
+				}
+
+			}
+
+			return consentidx;
+		}
+	}
+
 	public static List<String> getPatientSetForConsentFromRawData(String subjectFileName, BDCManagedInput managedInput, List<String> consentHeaders, String consent_group_code) throws IOException {
 		List<String> patientSet = new ArrayList<>();
 		if(!new File(DATA_DIR + "raw/" + subjectFileName).exists()) return patientSet;
-		int cgcidx = -1;
-		
-		for(String header: consentHeaders) {
-			
-			cgcidx = findRawDataColumnIdx(Paths.get(DATA_DIR +"raw/"+ subjectFileName), header); 
-			if(cgcidx != -1) break;
-		
-		}
+		int cgcidx = getConsentIdx( "raw/" + subjectFileName);
 
-		int patientIdCol = findRawDataColumnIdx(Paths.get(DATA_DIR +"raw/" + subjectFileName), managedInput.getPhsSubjectIdColumn());
+		int patientIdCol = 1;
 		
-		if(patientIdCol == -1) {
-			System.err.println("Error no subject id column found for " + managedInput.getStudyAbvName() + " - " + managedInput.getPhsSubjectIdColumn() +
-					" in subject file for " + subjectFileName + " will try SUBJECT_ID");
-			
-			patientIdCol = findRawDataColumnIdx(Paths.get(DATA_DIR + subjectFileName), "SUBJECT_ID");
-			
-			if(patientIdCol == -1) {
-				System.err.println("Error no subject id column found for " + managedInput.getStudyAbvName() + " - " + "SUBJECT_ID" +
-						" in subject file for " + subjectFileName + " will try SUBJECT_ID");
-				return patientSet;
-
-			}
-		}
 		
 		if(cgcidx != -1) {
 			
@@ -525,25 +607,21 @@ public abstract class BDCJob extends Job {
 		return patientSet;
 	}
 	
-	public static List<String> getPatientSetFromSampleFile(String sampleFileName, BDCManagedInput managedInput) throws IOException {
+	public static List<String> getPatientSetFromSampleFile(String subjectFileName, String sampleFileName, BDCManagedInput managedInput) throws IOException {
 		List<String> patientSet = new ArrayList<>();
-		
-		int patientIdCol = findRawDataColumnIdx(Paths.get(DATA_DIR + "raw/" + sampleFileName), managedInput.getPhsSubjectIdColumn()); 
+		try{
+		String subjectColumnName = findSubjectIdColumnName(Paths.get(DATA_DIR + "raw/" + subjectFileName));
+		int patientIdCol = findRawDataColumnIdx(Paths.get(DATA_DIR + "raw/" + sampleFileName), subjectColumnName); 
 		
 		if(patientIdCol == -1) {
-			System.err.println("Error no subject id column found for " + managedInput.getStudyAbvName() + " - " +
-					managedInput.getPhsSubjectIdColumn() + " in sample multi file for " + sampleFileName
+			System.err.println("Error no subject id column found for " + managedInput.getStudyIdentifier() + " - " +
+					subjectColumnName + " in sample multi file for " + sampleFileName
 						);
 			
 			patientIdCol = findRawDataColumnIdx(Paths.get(DATA_DIR + "raw/" + sampleFileName), "SUBJECT_ID");
-			
-			if(patientIdCol == -1) {
-				System.err.println("Error no subject id column found for " + managedInput.getStudyAbvName() + " - " + "SUBJECT_ID" +
-						" in subject file for " + sampleFileName + " will try SUBJECT_ID");
-				return patientSet;
-
-			}		
+					
 		}
+		
 		
 		BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "raw/" + sampleFileName));
 		
@@ -561,7 +639,7 @@ public abstract class BDCJob extends Job {
 				
 			} else {
 				
-				if(headers[patientIdCol].equalsIgnoreCase(managedInput.getPhsSubjectIdColumn())) continue;
+				if(headers[patientIdCol].equalsIgnoreCase(subjectColumnName)) continue;
 				
 				patientSet.add(headers[patientIdCol]);
 				
@@ -570,6 +648,13 @@ public abstract class BDCJob extends Job {
 		}
 		
 		return patientSet;
+	}
+		catch(IOException e){
+			System.err.println("Subject and/or sample multi not found for " + managedInput.getStudyIdentifier() + " at " + DATA_DIR + "raw/ - Please check your directories and try again.");
+			System.exit(255);
+		}
+		return null;
+
 	}
 	public static String getVersion(BDCManagedInput managedInput) throws IOException {
 		String subjMultiFile = BDCJob.getStudySubjectMultiFile(managedInput);
@@ -667,7 +752,6 @@ public abstract class BDCJob extends Job {
 		return (List<BDCManagedInput>)(List<?>) ManagedInputFactory.readManagedInput(METADATA_TYPE,MANAGED_INPUT);
 		
 	}
-	
 	protected static Map<String, Map<String, String>> getPatientMappings() throws IOException {
 		
 		return Job.getPatientMappings(ManagedInputFactory.readManagedInput(METADATA_TYPE,MANAGED_INPUT));
@@ -709,14 +793,19 @@ public abstract class BDCJob extends Job {
 	public static String[] getDataHeaders(File file) throws IOException {
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(file.getAbsolutePath()), StandardCharsets.ISO_8859_1)) {
-			
+			System.out.println(file.getAbsolutePath());
 			String line;
 			
 			while((line = buffer.readLine()) != null) {
-				
-				String[] record = line.split(new Character('\t').toString());
-				
-				if(record[0] == null) continue;
+				System.out.println(line);
+				String[] record = line.split("\t");
+				try{
+					if(record[0] == null) continue;
+				}
+				catch(ArrayIndexOutOfBoundsException e){
+					System.out.println("caught array exception");
+					continue;
+				}
 				if(record[0].startsWith("#")) continue;
 				if(record[0].trim().isEmpty()) continue;
 				if(record[0].toLowerCase().contains("dbgap")) return record;
@@ -772,7 +861,7 @@ public abstract class BDCJob extends Job {
 		
 		CSVReader reader = BDCJob.readRawBDCDataset(new File(DATA_DIR + multi), true);		
 		
-		int idx = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + multi), managedInput.getPhsSubjectIdColumn());
+		int idx = 1;
 		
 		String[] line;
 		
@@ -830,7 +919,7 @@ public abstract class BDCJob extends Job {
 		if(overrides.containsKey(managedInput.getStudyAbvName())) {
 			idx = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + multi), overrides.get(managedInput.getStudyAbvName()));
 		} else {
-			idx = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + multi), managedInput.getPhsSubjectIdColumn());
+			idx = 1;
 		}
 		String[] line;
 		
@@ -840,6 +929,22 @@ public abstract class BDCJob extends Job {
 		}
 		
 		return subjIds;
+	}
+
+
+	/**
+	 * Separate job and helpers for specifically getting the genomic inputs file in
+	 * BDC and generating the index file needs
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
+	@SuppressWarnings("unchecked")
+	protected static List<BDCGenomicManagedInput> getGenomicManagedInputs() throws IOException {
+
+		return (List<BDCGenomicManagedInput>) (List<?>) ManagedInputFactory.readGenomicManagedInput("BDCGenomic",
+				GENOMIC_MANAGED_INPUT);
+
 	}
 	
 	

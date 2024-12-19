@@ -21,5 +21,19 @@
 	<classpathentry kind="lib" path="/Users/Tom/git/ETLToolSuite-EntityGenerator-Mar19/resources/opencsv-4.2.jar"/>
 	<classpathentry kind="lib" path="/Users/Tom/git/ETLToolSuite-EntityGenerator-Mar19/resources/commons-lang3-3.8.jar"/>
 	<classpathentry kind="lib" path="resources/commons-io-2.4.jar"/>
+	<classpathentry kind="lib" path="resources/commons-beanutils-1.9.3.jar"/>
+	<classpathentry kind="lib" path="resources/commons-collections4-4.3.jar"/>
+	<classpathentry kind="lib" path="resources/commons-csv-1.7-sources.jar"/>
+	<classpathentry kind="lib" path="resources/commons-csv-1.7.jar"/>
+	<classpathentry kind="lib" path="resources/commons-lang3-3.8.jar"/>
+	<classpathentry kind="lib" path="resources/commons-logging-1.2.jar"/>
+	<classpathentry kind="lib" path="resources/log4j-api-2.11.0.jar"/>
+	<classpathentry kind="lib" path="resources/log4j-core-2.11.0.jar"/>
+	<classpathentry kind="lib" path="resources/opencsv-4.2.jar"/>
+	<classpathentry kind="lib" path="resources/jackson-annotations-2.8.8.jar"/>
+	<classpathentry kind="lib" path="resources/jackson-core-2.8.8.jar"/>
+	<classpathentry kind="lib" path="resources/jackson-databind-2.8.8.jar"/>
+	<classpathentry kind="lib" path="/Users/Tom/git/ETLToolSuite-EntityGenerator-Mar19/resources/opencsv-4.2.jar"/>
+	<classpathentry kind="lib" path="/Users/Tom/git/ETLToolSuite-EntityGenerator-Mar19/resources/commons-lang3-3.8.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

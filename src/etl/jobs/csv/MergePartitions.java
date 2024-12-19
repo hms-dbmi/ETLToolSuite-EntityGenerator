@@ -6,28 +6,11 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import java.util.stream.Stream;
-
-import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.StatefulBeanToCsv;
-import com.opencsv.bean.StatefulBeanToCsvBuilder;
-import com.opencsv.exceptions.CsvDataTypeMismatchException;
-import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
-
-import etl.job.entity.i2b2tm.ConceptCounts;
-import etl.job.entity.i2b2tm.ConceptDimension;
-import etl.job.entity.i2b2tm.I2B2;
-import etl.job.entity.i2b2tm.I2B2Secure;
-import etl.job.entity.i2b2tm.ObservationFact;
 import etl.jobs.Job;
-import etl.utils.Utils;
 
 public class MergePartitions extends Job {
 

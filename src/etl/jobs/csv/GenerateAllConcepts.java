@@ -52,6 +52,7 @@ public class GenerateAllConcepts extends Job {
 	private static final boolean BUILD_VAR_REPORTS = false;
 
 	private static boolean USE_PATIENT_MAPPING = true;
+
 	
 	private static Set<String> MAPPINGS_WITH_BAD_DATA_TYPES = new HashSet<>();
 	
@@ -561,7 +562,6 @@ public class GenerateAllConcepts extends Job {
 			if(properties.contains("patientcol")) {
 				
 				PATIENT_COL = new Integer(properties.get("patientcol").toString());
-				
 				
 			}
 		}

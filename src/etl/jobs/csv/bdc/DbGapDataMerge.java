@@ -99,7 +99,6 @@ public class DbGapDataMerge extends Job {
 				
 				if(f.getName().contains("_allConcepts")) {
 					
-					
 					try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + f.getName()))){
 						String line;
 						String studyid = DATA_DIR + f.getName();
@@ -111,6 +110,7 @@ public class DbGapDataMerge extends Job {
 							rootNode = rootNode.replaceAll("\"", "");
 							rootNode = rootNode.substring(1);
 							rootNode = rootNode.replaceAll("µ.*", "");
+							
 							rootnodes.put(rootNode, studyid);
 							break;
 						}

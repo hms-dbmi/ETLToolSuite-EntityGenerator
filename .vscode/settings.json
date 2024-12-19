@@ -1,0 +1,21 @@
+{
+    "java.project.sourcePaths": [
+        "src",
+        "resources"
+    ],
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "resources/commons-beanutils-1.9.3.jar",
+        "resources/commons-collections4-4.3.jar",
+        "resources/commons-csv-1.7-sources.jar",
+        "resources/commons-csv-1.7.jar",
+        "resources/commons-lang3-3.8.jar",
+        "resources/commons-logging-1.2.jar",
+        "resources/jackson-annotations-2.8.8.jar",
+        "resources/jackson-core-2.8.8.jar",
+        "resources/jackson-databind-2.8.8.jar",
+        "resources/log4j-api-2.11.0.jar",
+        "resources/log4j-core-2.11.0.jar",
+        "resources/opencsv-4.2.jar"
+    ]
+}

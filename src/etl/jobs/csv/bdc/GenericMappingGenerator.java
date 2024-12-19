@@ -18,7 +18,7 @@ import com.opencsv.CSVReader;
 import etl.jobs.mappings.Mapping;
 
 public class GenericMappingGenerator extends BDCJob {
-
+	protected static boolean HASDATATABLES = false;
 	public static void main(String[] args) {
 		try {
 			setVariables(args, buildProperties(args));
@@ -41,7 +41,10 @@ public class GenericMappingGenerator extends BDCJob {
 		//ROOT_NODE = "PETAL Repository of Electronic Data COVID-19 Observational Study (RED CORAL) ( phs002363 )";
 		//DATA_DIR = "./TEST/";
 		Set<Mapping> mappings = buildMappings();
-		
+		if (mappings.isEmpty()){
+			System.err.println("Mappings for " + TRIAL_ID + " empty - verify your files and try again.");
+			System.exit(255);
+		}
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_" + "mapping.csv"), StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING)) {
 			for(Mapping mapping:mappings) {
 				writer.write(mapping.toCSV() + '\n');
@@ -56,7 +59,7 @@ public class GenericMappingGenerator extends BDCJob {
 
 			@Override
 			public int compare(Mapping o1, Mapping o2) {
-				return o1.getRootNode().compareTo(o2.getRootNode());
+				return o1.getKey().compareTo(o2.getKey());
 			}
 		});
 		
@@ -76,10 +79,16 @@ public class GenericMappingGenerator extends BDCJob {
 					String[] headers = reader.readNext();
 					int x = 0;
 					
-					System.out.println("Processing mappings for: " + f.getName());
 					
+					if(f.getName().startsWith("._")){
+						continue;
+					}
+					else{
+						System.out.println("Processing mappings for: " + f.getName() + " with datatable format set to " + HASDATATABLES);
+					}
+
 					if(headers == null) {
-						System.out.println(f.getName() + " has an issue with it's headers.");
+						System.err.println(f.getName() + " has an issue with it's headers.");
 						continue;
 					}
 					
@@ -88,7 +97,16 @@ public class GenericMappingGenerator extends BDCJob {
 						Mapping mapping = new Mapping();
 						
 						mapping.setKey(f.getName() + ":" + x);
-						mapping.setRootNode(PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + col + PATH_SEPARATOR);
+						if (HASDATATABLES){
+							String tablename= f.getName().substring(0, f.getName().lastIndexOf('.')).replace(".", PATH_SEPARATOR);
+							mapping.setRootNode(
+								//if datatables enabled, sets the paths to include the filename, with . replaced by path separator,  as an identifier
+									PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + tablename + PATH_SEPARATOR + col + PATH_SEPARATOR);
+						}
+						
+						else{
+							mapping.setRootNode(PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + col + PATH_SEPARATOR);
+						}
 						mapping.setSupPath("");
 						mapping.setDataType("TEXT");
 						
@@ -107,7 +125,11 @@ public class GenericMappingGenerator extends BDCJob {
 	}
 
 	private static void setClassVariables(String[] args) {
-		// TODO Auto-generated method stub
+		for(String arg: args) {
+			if(arg.equalsIgnoreCase("-hasDatatables")) {
+				HASDATATABLES= true;
+			}
+		}
 		
 	}
 

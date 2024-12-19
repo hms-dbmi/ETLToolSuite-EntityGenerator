@@ -41,88 +41,7 @@ public class BDCMetadata implements Metadata {
 		add("Consent");
 		
 	}};
-	@Deprecated
-	public BDCMetadata(List<ManagedInput> managedInputs) throws IOException {
-		
-		Map<String,Map<String,String>> consentGroups = getConsentGroups(managedInputs);		
-		
-		for(ManagedInput _managedInput: managedInputs) {
-			if(STATIC_META.contains(_managedInput.getStudyAbvName())) {
-				System.out.println("Skipping static metadata: " + _managedInput.getStudyAbvName());
-				continue;
-			}
-			if(!(_managedInput instanceof BDCManagedInput)) {
-				continue;
-			}
-			BDCManagedInput managedInput = (BDCManagedInput) _managedInput;
-			
-			if(managedInput.getStudyAbvName().toUpperCase().equalsIgnoreCase("STUDY ABBREVIATED NAME")) {
-				continue;
-			}
-			
-			if(consentGroups.containsKey(managedInput.getStudyAbvName())) {
-				
-				int clinicalCount = getClinicalVariableCount(managedInput);
-				
-				for(Entry<String, String> entry: consentGroups.get(managedInput.getStudyAbvName()).entrySet()) {
-					
-					BDCMetadataElements bdcm = new BDCMetadataElements();
-					
-					bdcm.study_identifier = managedInput.getStudyIdentifier();
-					
-					bdcm.study_type = managedInput.getStudyType();
-				
-					bdcm.abbreviated_name = managedInput.getStudyAbvName();
-				
-					bdcm.full_study_name = managedInput.getStudyFullName();
-					
-					bdcm.consent_group_code = "c" + entry.getKey();
-				
-					bdcm.consent_group_name = entry.getValue();
-										
-					bdcm.consent_group_name_abv = entry.getValue().replaceAll(".*\\(","").replaceAll("\\).*", "").trim();
-					
-					bdcm.request_access = REQEUST_ACCESS_LINK + bdcm.study_identifier;
-					
-					bdcm.raw_clinical_variable_count = clinicalCount;
-							
-					getCounts(bdcm, managedInput, entry.getKey());
-					
-					if(bdcm.genetic_sample_size == 0 && bdcm.clinical_sample_size == 0) {
-						
-						bdcm.data_type = "";
-						
-					} else if(bdcm.genetic_sample_size == 0 && bdcm.clinical_sample_size > 0) {
-						
-						bdcm.data_type = "P";
-						
-					} else if(bdcm.genetic_sample_size > 0 && bdcm.clinical_variable_count <= 0) {
-						
-						bdcm.data_type = "G";
-					
-					} else if(bdcm.genetic_sample_size > 0 && bdcm.clinical_variable_count > 0) {
-						bdcm.data_type = "P/G";
-					}
-
-					bdcm.study_version = BDCJob.getVersion(managedInput);
-				
-					bdcm.study_phase = BDCJob.getPhase(managedInput);
-				
-					bdcm.top_level_path = "\\" + bdcm.full_study_name + " ( " + bdcm.study_identifier + " )" + "\\";
-				
-					bdcm.is_harmonized = managedInput.getIsHarmonized();
-				
-					this.bio_data_catalyst.add(bdcm);	
-				}
-			} else {
-				System.err.println("NO CONSENT GROUPS FOUND FOR " + managedInput.getStudyAbvName());
-				
-				addMissingConsents(managedInput);
-				
-			}
-
-		}
-	}
+	
 	
 	public BDCMetadata(List<ManagedInput> managedInputs, File metadata) throws IOException {
 	Map<String,Map<String,String>> consentGroups = getConsentGroups(managedInputs);		
@@ -159,6 +78,9 @@ public class BDCMetadata implements Metadata {
 		if(managedInput.getDataProcessed().toUpperCase().startsWith("Y")) {
 			continue;
 		}
+		if (!managedInput.hasSubjectMultiFile()) {
+			continue;
+		}
 		if(consentGroups.containsKey(managedInput.getStudyIdentifier())) {
 			
 			int clinicalCount = getClinicalVariableCount(managedInput);
@@ -176,6 +98,10 @@ public class BDCMetadata implements Metadata {
 					bdcm.full_study_name = managedInput.getStudyFullName();
 					
 					bdcm.consent_group_code = "c" + entry.getKey();
+					if (bdcm.consent_group_code.equals("c0")){
+						System.out.println("Skipping metadata for c0 participants");
+						continue;
+					}
 				
 					bdcm.consent_group_name = entry.getValue();
 					
@@ -190,6 +116,13 @@ public class BDCMetadata implements Metadata {
 					bdcm.study_focus = managedInput.getStudyFocus();
 					
 					bdcm.study_design = managedInput.getStudyDesign();
+					//builds the authZ value from the relevant components if needed
+					if(managedInput.getAuthZ().endsWith("_")){
+						bdcm.authZ = managedInput.getAuthZ()+bdcm.consent_group_name_abv;
+					}
+					else{
+						bdcm.authZ = managedInput.getAuthZ();
+					}
 					
 					bdcm.additional_information = managedInput.getAdditionalInformation();
 					
@@ -202,27 +135,10 @@ public class BDCMetadata implements Metadata {
 					}
 					
 					bdcm.data_type = managedInput.getDataType();
-					/*
-					// Old methodology for data type
-					if(bdcm.genetic_sample_size == 0 && bdcm.clinical_sample_size == 0) {
-						
-						bdcm.data_type = "";
-						
-					} else if(bdcm.genetic_sample_size == 0 && bdcm.clinical_sample_size > 0) {
-						
-						bdcm.data_type = "P";
-						
-					} else if(bdcm.genetic_sample_size > 0 && bdcm.clinical_variable_count <= 0) {
-						
-						bdcm.data_type = "G";
-					
-					} else if(bdcm.genetic_sample_size > 0 && bdcm.clinical_variable_count > 0) {
-						bdcm.data_type = "P/G";
-					}
-					*/
-					bdcm.study_version = BDCJob.getVersion(managedInput);
 				
-					bdcm.study_phase = BDCJob.getPhase(managedInput);
+					bdcm.study_version = managedInput.getVersion();
+				
+					bdcm.study_phase = managedInput.getPhase();
 				
 					bdcm.top_level_path = "\\" + bdcm.study_identifier + "\\";
 				
@@ -236,10 +152,8 @@ public class BDCMetadata implements Metadata {
 					this.bio_data_catalyst.add(bdcm);	
 				}
 			} else {
-				System.err.println("NO CONSENT GROUPS FOUND FOR " + managedInput.getStudyAbvName());
-				
-				addMissingConsents(managedInput);
-				
+				System.err.println("NO CONSENT GROUPS FOUND FOR " + managedInput.getStudyIdentifier() + ": " + managedInput.getStudyAbvName());
+				System.exit(-1);
 			}
 	
 		}	
@@ -272,9 +186,9 @@ public class BDCMetadata implements Metadata {
 		
 		bdcm.data_type = managedInput.getDataType();
 		
-		bdcm.study_version = "v1";
-	
-		bdcm.study_phase = "p1";
+		bdcm.study_version = managedInput.getVersion();
+
+		bdcm.study_phase = managedInput.getPhase();
 	
 		bdcm.top_level_path = "\\" + bdcm.study_identifier + "\\";
 		
@@ -284,6 +198,12 @@ public class BDCMetadata implements Metadata {
 	
 		bdcm.is_harmonized = managedInput.getIsHarmonized();
 		
+		if (managedInput.getAuthZ().endsWith("_")) {
+			bdcm.authZ = managedInput.getAuthZ() + bdcm.consent_group_name_abv;
+		} else {
+			bdcm.authZ = managedInput.getAuthZ();
+		}
+					
 		if(!this.bio_data_catalyst.contains(bdcm)) {
 			//System.out.println("replacing " + bdcm);
 			//this.bio_data_catalyst.remove(bdcm);
@@ -324,7 +244,7 @@ public class BDCMetadata implements Metadata {
 		
 		if(sampleFileName != null && !sampleFileName.isEmpty()) {
 
-			sampleFilePatientSet = BDCJob.getPatientSetFromSampleFile(sampleFileName,managedInput);
+			sampleFilePatientSet = BDCJob.getPatientSetFromSampleFile(subjectFileName,sampleFileName,managedInput);
 		
 		}
 		
@@ -347,7 +267,7 @@ public class BDCMetadata implements Metadata {
 			
 			BDCManagedInput managedInput = (BDCManagedInput) _managedInput;
 			
-			if(!managedInput.isDBGapCompliant()) {
+			if(!managedInput.hasSubjectMultiFile()) {
 				continue;
 			}
 			
@@ -420,13 +340,16 @@ public class BDCMetadata implements Metadata {
 	
 		bdcm.clinical_sample_size = -1;
 	
-		bdcm.study_version = "";
-	
-		bdcm.study_phase = "";
+		bdcm.study_version = managedInput.getVersion();
+
+		bdcm.study_phase = managedInput.getPhase();
 	
 		bdcm.top_level_path = "\\" + bdcm.study_identifier + "\\";
 	
 		bdcm.is_harmonized = managedInput.getIsHarmonized();
+
+		bdcm.authZ = "";
+					
 		if(!this.bio_data_catalyst.contains(bdcm)) {
 			this.bio_data_catalyst.add(bdcm);		
 		}
