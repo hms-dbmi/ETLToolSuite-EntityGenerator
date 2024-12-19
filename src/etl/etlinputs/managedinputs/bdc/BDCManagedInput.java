@@ -106,10 +106,6 @@ public class BDCManagedInput extends ManagedInput {
 		return isHarmonized;
 	}
 
-	public String getPhsSubjectIdColumn() {
-		return phsSubjectIdColumn;
-	}
-
 	public String getStudyFocus() {
 		return studyFocus;
 	}

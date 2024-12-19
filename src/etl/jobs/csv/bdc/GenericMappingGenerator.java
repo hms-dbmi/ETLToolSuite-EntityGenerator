@@ -41,7 +41,10 @@ public class GenericMappingGenerator extends BDCJob {
 		//ROOT_NODE = "PETAL Repository of Electronic Data COVID-19 Observational Study (RED CORAL) ( phs002363 )";
 		//DATA_DIR = "./TEST/";
 		Set<Mapping> mappings = buildMappings();
-		
+		if (mappings.isEmpty()){
+			System.err.println("Mappings for " + TRIAL_ID + " empty - verify your files and try again.");
+			System.exit(255);
+		}
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_" + "mapping.csv"), StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING)) {
 			for(Mapping mapping:mappings) {
 				writer.write(mapping.toCSV() + '\n');
@@ -76,10 +79,16 @@ public class GenericMappingGenerator extends BDCJob {
 					String[] headers = reader.readNext();
 					int x = 0;
 					
-					System.out.println("Processing mappings for: " + f.getName() + " with datatable format set to " + HASDATATABLES);
 					
+					if(f.getName().startsWith("._")){
+						continue;
+					}
+					else{
+						System.out.println("Processing mappings for: " + f.getName() + " with datatable format set to " + HASDATATABLES);
+					}
+
 					if(headers == null) {
-						System.out.println(f.getName() + " has an issue with it's headers.");
+						System.err.println(f.getName() + " has an issue with it's headers.");
 						continue;
 					}
 					

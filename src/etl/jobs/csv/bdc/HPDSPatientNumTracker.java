@@ -128,6 +128,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 		Set<String> patientIdsFromSource = getPatientSet(managedInput);
 		
 		int patientsCreated = 0;
+		int patientsExisting = 0;
 		
 		for(String patId: patientIdsFromSource) {
 			if(!currentIds.contains(patId)) {
@@ -143,11 +144,18 @@ public class HPDSPatientNumTracker extends BDCJob {
 				PATIENT_NUMS.add(CURRENT_PATIENT_NUM);
 				
 			}
+			else {
+				//keep record of existing participants for error handling
+				patientsExisting++;
+			}
 			
 		}
-		// remove patient mappings not found in patient set
-
+		System.out.println(patientsExisting + " existing subjects identified for: " + managedInput);
 		System.out.println("Created " + patientsCreated + " subjects for: " + managedInput);
+		if(patientsCreated == 0 & patientsExisting == 0){
+			System.err.println("Patients unable to be sequenced. Please verify the format of the subject.multi and/or data files.");
+			System.exit(-1);
+		}
 		return pms;
 	}
 	private static Set<String> getPatientSet(BDCManagedInput managedInput) throws IOException {
@@ -161,7 +169,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 		// if missing subject multi file fail job completely as it is critical to have all patient counts for new data load
 		if(BDCJob.getStudySubjectMultiFile(managedInput) == null) {
 			throw new IOException("Critical error: " + managedInput.toString() + 
-					" missing subject multi file at " + DATA_DIR + "decoded/" + "! All studies must have a subject multi file to proceed ahead!");
+					" missing subject multi file at " + DATA_DIR + "decoded/" + "! All compliant/semi-compliant studies must have a subject multi file to proceed ahead!");
 		}
 		System.out.println("Getting patients from subject multi file");
 		Set<String> patientSet = new HashSet<>();
@@ -171,7 +179,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 			String[] line;
 			
 			while((line = reader.readNext()) != null) {
-				System.out.println("Subject multi file line0: " + line[0]);
+				System.out.println("Subject multi file line0(DBGap Subject Id): " + line[0]);
 					if(NumberUtils.isCreatable(line[0])) patientSet.add(line[0]);								
 			}
 			
@@ -231,7 +239,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 			
 			while((line = buffer.readLine())!=null) {
 				if(NumberUtils.isCreatable(line)) {
-					PATIENT_NUMS.add(new Integer(line));
+					PATIENT_NUMS.add(Integer.parseInt(line));
 				} else {
 					System.err.println("Invalid patient num: " + line);
 				}
@@ -271,7 +279,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 					while((line = reader.readNext()) != null) {
 						if(line.length < 3) continue;
 						if(!NumberUtils.isCreatable(line[2])) continue;
-						if(!PATIENT_NUMS.add(new Integer(line[2]))) {
+						if(!PATIENT_NUMS.add(Integer.parseInt(line[2]))) {
 							System.err.println("Duplicate patient num in data set found " + line[0] + "," + line[1] + "," + line[2]);
 							throw new IOException("INVALID PATIENT MAPPINGS.  FIX DUPLICATE PATIENT NUMS");
 						}

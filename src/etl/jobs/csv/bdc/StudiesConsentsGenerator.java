@@ -32,16 +32,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 	/**
 	 * Contains all the variants of consent columns in lowercase format
 	 */
-	private static List<String> CONSENT_HEADERS = new ArrayList<String>();
 
-	static {
-
-		CONSENT_HEADERS.add("consent".toLowerCase());
-		CONSENT_HEADERS.add("consent_1217".toLowerCase());
-		CONSENT_HEADERS.add("consentcol");
-		CONSENT_HEADERS.add("gencons");
-
-	}
 
 	public static void main(String[] args) {
 		try {
@@ -51,20 +42,17 @@ public class StudiesConsentsGenerator extends BDCJob {
 
 		} catch (Exception e) {
 
-			System.err.println("Error processing variables");
-
-			System.err.println(e);
+			System.err.println("Error processing job options");
+			e.printStackTrace();
 
 		}
 
 		try {
 			execute();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.exit(-1);
 		}
 	}
 
@@ -75,8 +63,6 @@ public class StudiesConsentsGenerator extends BDCJob {
 		// gather patient mappings for all studies
 		Map<String, Map<String, String>> patientMappings = getPatientMappings();
 
-		System.out.println(patientMappings.size());
-		System.out.println(patientMappings);
 		Set<Mapping> mappings = new HashSet<Mapping>();
 
 		Set<String> generatedMappings = new HashSet<>();
@@ -88,6 +74,10 @@ public class StudiesConsentsGenerator extends BDCJob {
 		Set<String> rootNodePatients = new HashSet<>();
 
 		for (BDCManagedInput input : managedInputs) {
+			if (input.getHasMulti().toLowerCase().equals("no")){
+				System.out.println(input.getStudyIdentifier() + " marked as not having subject multi. Skipping.");
+				continue;
+			}
 			String firstLevelName = "µ_studies_consentsµ" + input.getStudyIdentifier() + "µ";
 
 			mappings.add(new Mapping(input.getStudyAbvName() + "_" + input.getStudyIdentifier() + "_first_level.csv:1",
@@ -199,9 +189,10 @@ public class StudiesConsentsGenerator extends BDCJob {
 			});
 
 			if (fileNames.length != 1) {
-				return returnSet;
-				// sys("Expecting one subject.multi file per study aborting! : " +
-				// studyIdentifier, new Throwable().fillInStackTrace());
+				System.err.println("Expecting one subject.multi file per study aborting! : " +studyIdentifier);
+				System.exit(255);
+				//return returnSet;
+				
 
 			}
 
@@ -246,65 +237,9 @@ public class StudiesConsentsGenerator extends BDCJob {
 			throw new IOException("parameter DATA_DIR = " + dataDir + " is not a directory!",
 					new Throwable().fillInStackTrace());
 		}
+		System.out.println("Consents found in " + studyIdentifier + ": " + returnSet.keySet().toString());
 		return returnSet;
 	}
 
-	private static int getConsentIdx(String fileName) throws IOException {
 
-		try (BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "raw/" + fileName))) {
-			CSVReader reader = new CSVReader(buffer, '\t', 'π');
-
-			String[] headers;
-
-			while ((headers = reader.readNext()) != null) {
-
-				boolean isComment = (headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty())
-						? true
-						: headers[0].isEmpty() ? true : false;
-
-				if (isComment) {
-
-					continue;
-
-				} else {
-
-					break;
-
-				}
-
-			}
-
-			int consentidx = -1;
-			int x = 0;
-
-			for (String header : headers) {
-
-				System.out.println("Checking for consents in Static Headers: " + header);
-
-				if (CONSENT_HEADERS.contains(header.toLowerCase())) {
-					consentidx = x;
-					break;
-				}
-				x++;
-			}
-			x = 0;
-			if (consentidx == -1) {
-
-				System.out
-						.println("Consent header not found in static block.  Searching Dynamically for consent header");
-				for (String header : headers) {
-
-					if (header.toLowerCase().contains("consent")) {
-						System.out.println("Consent header found = " + header);
-						consentidx = x;
-						break;
-					}
-					x++;
-				}
-
-			}
-
-			return consentidx;
-		}
-	}
 }

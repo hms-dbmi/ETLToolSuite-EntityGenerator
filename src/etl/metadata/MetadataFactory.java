@@ -10,12 +10,6 @@ import etl.metadata.bdc.GenericBDCMetadata;
 
 public class MetadataFactory {
 	
-	public static Metadata buildMetadata(String type, List<ManagedInput> managedInputs) throws IOException {
-		if("BDC".equalsIgnoreCase(type)) return new BDCMetadata(managedInputs);
-		
-		return null;
-	}
-	
 	
 	public static Metadata buildMetadata(String type) {
 		if("BDC".equalsIgnoreCase(type)) return new BDCMetadata();

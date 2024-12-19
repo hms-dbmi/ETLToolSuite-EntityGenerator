@@ -39,6 +39,8 @@ public abstract class Job implements Serializable {
 	protected static boolean SKIP_HEADERS = false;
 
 	protected static String WRITE_DIR = "./completed/";
+
+	protected static String LOG_DIR = "./logs/";
 	
 	protected static String RESOURCE_DIR = "./resources/";
 

@@ -40,6 +40,7 @@ public class DbgapDecodeFiles extends Job {
 
 	}};
 	private static Map<String,String> SAMPLE_TO_SUBJECT_ID = new HashMap<>();
+	private static int studyWarnCount = 0;
 	
 	public static void main(String[] args) {
 		try {
@@ -98,10 +99,16 @@ public class DbgapDecodeFiles extends Job {
 				// get Data Dictionary
 				File dictionaryFile = getDictFile(pht);
 				
-				translateData(data, dictionaryFile);
+				studyWarnCount += translateData(data, dictionaryFile);
 			}
 			
+			//Sets job to unstable if any 
+			if (studyWarnCount > 0){
+				System.err.println(studyWarnCount + " warnings for files in study. Review build log to ensure no unexpected errors occurred.");
+								System.exit(255);
+			}
 		}
+
 		
 	}
 	/**
@@ -113,15 +120,23 @@ public class DbgapDecodeFiles extends Job {
 	 * @param data
 	 * @param dictionaryFile
 	 */
-	private static void translateData(File data, File dictionaryFile) {
+	private static int translateData(File data, File dictionaryFile) {
+		int warnCount = 0;
 		
 		Document dataDic = buildDictionary(dictionaryFile);
 	
 		Map<String,String> headerLookup = new HashMap<>();
 		 
 		Map<String,String> phvLookup = new HashMap<>();
-		
-		Map<String, Map<String, String>> valueLookup = (dataDic == null) ? null: buildValueLookup(dataDic);
+		Map<String, Map<String, String>> valueLookup = null;
+		try{
+		valueLookup = (dataDic == null) ? null: buildValueLookup(dataDic);
+		}
+		catch(NullPointerException e){
+			System.err.println("Null pointer exception! Make sure all values for encoded variables are present in the xml");
+			e.printStackTrace();
+			System.exit(-1);
+		}
 	
 		if(dataDic != null) buildHeaderLookup(dataDic, headerLookup, phvLookup);
 	
@@ -149,6 +164,8 @@ public class DbgapDecodeFiles extends Job {
 							
 							System.err.println("Malformed row detected - skipping row");
 							System.err.println(data.getName() + " - " + toCsv(line));
+							warnCount++;
+
 						}
 						int colidx = 0;
 						for(String cell: line) {
@@ -161,7 +178,7 @@ public class DbgapDecodeFiles extends Job {
 								Map<String,String> codedValues = valueLookup.get(header);
 	
 								if(codedValues.containsKey(cell)) {
-	
+									
 									cell = codedValues.get(cell);	
 									
 								}
@@ -186,18 +203,21 @@ public class DbgapDecodeFiles extends Job {
 					buffer.close();
 					
 					Files.delete(Paths.get(WRITE_DIR + data.getName()));
+					warnCount++;
 				}
 			} else {
 				
 				System.err.println("Missing headers for " + data.getName());
+				warnCount++;
 				
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			System.err.println("Error writing to " + WRITE_DIR + data.getName());
 			e.printStackTrace();
+			System.exit(-1);
 		}
-	
+		return warnCount;
 	}
 
 	private static void setSampleToSubject() throws IOException {
@@ -255,10 +275,10 @@ public class DbgapDecodeFiles extends Job {
 			return builder.parse(dictionaryFile);
 			
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			// TODO Auto-generated catch block
 			System.err.println("Error processing dictionary file " + dictionaryFile.getAbsolutePath());
 			System.err.println(e.toString());
 			e.printStackTrace();
+			System.exit(-1);
 		}
 		return null;
 	}
@@ -493,9 +513,14 @@ public class DbgapDecodeFiles extends Job {
 
 	private static String findValueCodeName(Node vnode) {
 		System.out.println(vnode.getAttributes().toString());
+
 		if(vnode.getAttributes().getNamedItem("code") != null) return "code";
 		if(vnode.getAttributes().getNamedItem("value code") != null) return "value code";
-		else System.err.println("MISSING Value Codes for " + vnode.getTextContent());
+		else 
+		{
+			System.err.println("No value code provided in xml for " + vnode.getTextContent());
+			
+	}
 		return null;
 	}
 	
