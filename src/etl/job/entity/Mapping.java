@@ -16,7 +16,6 @@ import java.util.Set;
 import com.opencsv.CSVReader;
 import com.opencsv.bean.CsvBindByPosition;
 import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.CsvToBeanBuilder;
 
 import etl.utils.Utils;
 
@@ -55,35 +54,38 @@ public class Mapping implements Cloneable{
 			
 		}
 		
-		CSVReader reader = new CSVReader(Files.newBufferedReader(Paths.get(filePath)), delimiter);
-
-		// skip header
-		//reader.readHeaders();
-		Iterator<String[]> iter = reader.iterator();
-		while(iter.hasNext()){
-			String[] record = iter.next();
-			if(record.length < 5) continue;
-			// Check if delimiter exists if so set default.
-			if(record.length == Mapping.class.getDeclaredFields().length ){
-				
-				Mapping m = new Mapping();
-				
-				m.setKey(record[0]);
-				
-				m.setRootNode(record[1]);
-				
-				m.setSupPath(record[2]);
-				
-				m.setDataType(record[3]);
-				
-				m.setOptions(record[4]);
-								
-				mapping.put(m.getKey() + ":" + m.getDataType(), m);
-				
+		try (CSVReader reader = new CSVReader(Files.newBufferedReader(Paths.get(filePath)), delimiter)) {
+			// skip header
+			//reader.readHeaders();
+			Iterator<String[]> iter = reader.iterator();
+			while(iter.hasNext()){
+				String[] record = iter.next();
+				if(record.length < 5) continue;
+				// Check if delimiter exists if so set default.
+				if(record.length == Mapping.class.getDeclaredFields().length ){
+					
+					Mapping m = new Mapping();
+					
+					m.setKey(record[0]);
+					
+					m.setRootNode(record[1]);
+					
+					m.setSupPath(record[2]);
+					
+					m.setDataType(record[3]);
+					
+					m.setOptions(record[4]);
+									
+					mapping.put(m.getKey() + ":" + m.getDataType(), m);
+					
+				}
+			
 			}
-		
-		}		
-		
+		} catch (SecurityException e) {
+			
+			e.printStackTrace();
+		}
+
 		return mapping;
 		
 	}

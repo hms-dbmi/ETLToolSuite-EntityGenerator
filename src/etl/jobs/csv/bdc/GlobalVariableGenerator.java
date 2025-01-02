@@ -35,7 +35,7 @@ public class GlobalVariableGenerator extends BDCJob {
 		try {
 			execute();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 	}

@@ -8,9 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.opencsv.CSVReader;
@@ -65,55 +63,52 @@ public class GenericMappingGenerator extends BDCJob {
 		
 		// read data dir
 		File dataDir = new File(DATA_DIR);
-		// Map of rootNode and trial id
-		Map<String,String> rootnodes = new TreeMap<>();
-		
 		if(dataDir.isDirectory()) {
 			
 			for(File f: dataDir.listFiles()) {
 				
 				try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + f.getName()))) {
 					
-					CSVReader reader = new CSVReader(buffer);
-					
-					String[] headers = reader.readNext();
-					int x = 0;
-					
-					
-					if(f.getName().startsWith("._")){
-						continue;
-					}
-					else{
-						System.out.println("Processing mappings for: " + f.getName() + " with datatable format set to " + HASDATATABLES);
-					}
-
-					if(headers == null) {
-						System.err.println(f.getName() + " has an issue with it's headers.");
-						continue;
-					}
-					
-					for(String col: headers) {
+					try (CSVReader reader = new CSVReader(buffer)) {
+						String[] headers = reader.readNext();
+						int x = 0;
 						
-						Mapping mapping = new Mapping();
 						
-						mapping.setKey(f.getName() + ":" + x);
-						if (HASDATATABLES){
-							String tablename= f.getName().substring(0, f.getName().lastIndexOf('.')).replace(".", PATH_SEPARATOR);
-							mapping.setRootNode(
-								//if datatables enabled, sets the paths to include the filename, with . replaced by path separator,  as an identifier
-									PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + tablename + PATH_SEPARATOR + col + PATH_SEPARATOR);
+						if(f.getName().startsWith("._")){
+							continue;
 						}
-						
 						else{
-							mapping.setRootNode(PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + col + PATH_SEPARATOR);
+							System.out.println("Processing mappings for: " + f.getName() + " with datatable format set to " + HASDATATABLES);
 						}
-						mapping.setSupPath("");
-						mapping.setDataType("TEXT");
+
+						if(headers == null) {
+							System.err.println(f.getName() + " has an issue with it's headers.");
+							continue;
+						}
 						
-						mappings.add(mapping);
-						
-						x++;
-						
+						for(String col: headers) {
+							
+							Mapping mapping = new Mapping();
+							
+							mapping.setKey(f.getName() + ":" + x);
+							if (HASDATATABLES){
+								String tablename= f.getName().substring(0, f.getName().lastIndexOf('.')).replace(".", PATH_SEPARATOR);
+								mapping.setRootNode(
+									//if datatables enabled, sets the paths to include the filename, with . replaced by path separator,  as an identifier
+										PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + tablename + PATH_SEPARATOR + col + PATH_SEPARATOR);
+							}
+							
+							else{
+								mapping.setRootNode(PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + col + PATH_SEPARATOR);
+							}
+							mapping.setSupPath("");
+							mapping.setDataType("TEXT");
+							
+							mappings.add(mapping);
+							
+							x++;
+							
+						}
 					}
 					
 				}

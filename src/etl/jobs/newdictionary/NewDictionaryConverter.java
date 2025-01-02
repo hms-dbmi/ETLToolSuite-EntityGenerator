@@ -1,31 +1,17 @@
 package etl.jobs.newdictionary;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.apache.logging.log4j.core.util.JsonUtils;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.opencsv.CSVWriter;
-import com.opencsv.CSVWriterBuilder;
-import com.opencsv.ICSVWriter;
 
 import etl.jobs.csv.bdc.BDCJob;
 import etl.jobs.jobproperties.JobProperties;
@@ -105,55 +91,56 @@ public class NewDictionaryConverter extends BDCJob {
                     try {
                         concept.setValues(om.writeValueAsString(vals));
                     } catch (JsonProcessingException e) {
-                        // TODO Auto-generated catch block
+                        
                         e.printStackTrace();
                     }
                 }
-                if (name.startsWith("_")) {
+                if (!name.startsWith("_")) {
                     // global var handling
-                    concept.setParentConceptPath("\\\\global_variables\\\\");
-                } else if (name.endsWith("All Variables")) {
-                    // study doesnt have tables
-                    concept.setParentConceptPath("\\\\" + studyMeta.get("columnmeta_study_id").asText() + "\\\\");
-                    String studyId = studyMeta.get("columnmeta_study_id").asText();
-                    if (!tableNames.contains(studyId)) {
-                        tableNames.add(studyId);
-                        Concept studyConcept = new Concept();
-                        studyConcept.setConceptPath("\\\\" + studyId + "\\\\");
-                        studyConcept.setDataset(variable.get("studyId").asText());
-                        studyConcept.setConceptName(studyId);
-                        studyConcept.setConceptType("categorical");
-                        concepts.add(studyConcept);
-                    }
-                } else {
-                    // study has tables
-                    String tableId = variable.get("dtId").asText();
-                    String studyId = studyMeta.get("columnmeta_study_id").asText();
-                    concept.setParentConceptPath("\\\\" + studyId + "\\\\" + tableId + "\\\\");
-                    if (!tableNames.contains(tableId)) {
-                        tableNames.add(tableId);
-                        Concept tableConcept = new Concept();
-                        tableConcept.setConceptPath(concept.getParentConceptPath());
-                        tableConcept.setDataset(variable.get("studyId").asText());
-                        tableConcept.setConceptName(tableId);
-                        tableConcept.setDisplayName(varMeta.get("derived_group_name").asText());
-                        tableConcept.setConceptType("categorical");
-                        tableConcept.setDescription(varMeta.get("derived_group_description").asText());
-                        tableConcept.setParentConceptPath("\\\\" + studyId + "\\\\");
-                        concepts.add(tableConcept);
-                    }
-                    if (!tableNames.contains(studyId)) {
-                        tableNames.add(studyId);
-                        Concept studyConcept = new Concept();
-                        studyConcept.setConceptPath("\\\\" + studyId + "\\\\");
-                        studyConcept.setDataset(variable.get("studyId").asText());
-                        studyConcept.setConceptName(studyId);
-                        studyConcept.setConceptType("categorical");
-                        concepts.add(studyConcept);
-                    }
+                    
+                    if (name.endsWith("All Variables")) {
+                        // study doesnt have tables
+                        concept.setParentConceptPath("\\\\" + studyMeta.get("columnmeta_study_id").asText() + "\\\\");
+                        String studyId = studyMeta.get("columnmeta_study_id").asText();
+                        if (!tableNames.contains(studyId)) {
+                            tableNames.add(studyId);
+                            Concept studyConcept = new Concept();
+                            studyConcept.setConceptPath("\\\\" + studyId + "\\\\");
+                            studyConcept.setDataset(variable.get("studyId").asText());
+                            studyConcept.setConceptName(studyId);
+                            studyConcept.setConceptType("categorical");
+                            concepts.add(studyConcept);
+                        }
+                    } else {
+                        // study has tables
+                        String tableId = variable.get("dtId").asText();
+                        String studyId = studyMeta.get("columnmeta_study_id").asText();
+                        concept.setParentConceptPath("\\\\" + studyId + "\\\\" + tableId + "\\\\");
+                        if (!tableNames.contains(tableId)) {
+                            tableNames.add(tableId);
+                            Concept tableConcept = new Concept();
+                            tableConcept.setConceptPath(concept.getParentConceptPath());
+                            tableConcept.setDataset(variable.get("studyId").asText());
+                            tableConcept.setConceptName(tableId);
+                            tableConcept.setDisplayName(varMeta.get("derived_group_name").asText());
+                            tableConcept.setConceptType("categorical");
+                            tableConcept.setDescription(varMeta.get("derived_group_description").asText());
+                            tableConcept.setParentConceptPath("\\\\" + studyId + "\\\\");
+                            concepts.add(tableConcept);
+                        }
+                        if (!tableNames.contains(studyId)) {
+                            tableNames.add(studyId);
+                            Concept studyConcept = new Concept();
+                            studyConcept.setConceptPath("\\\\" + studyId + "\\\\");
+                            studyConcept.setDataset(variable.get("studyId").asText());
+                            studyConcept.setConceptName(studyId);
+                            studyConcept.setConceptType("categorical");
+                            concepts.add(studyConcept);
+                        }
 
-                }
-                concepts.add(concept);
+                    }
+                    concepts.add(concept);
+            }
             });
 
         });

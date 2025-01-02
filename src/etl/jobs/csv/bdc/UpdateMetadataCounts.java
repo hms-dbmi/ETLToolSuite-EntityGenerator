@@ -12,7 +12,6 @@ import com.opencsv.CSVReader;
 
 import etl.metadata.MetadataFactory;
 import etl.metadata.bdc.BDCMetadata;
-import etl.metadata.bdc.BDCMetadataElements;
 
 public class UpdateMetadataCounts extends BDCJob {
 
@@ -75,40 +74,40 @@ public class UpdateMetadataCounts extends BDCJob {
 		HashMap<String,Map<String,String>> consentGroups = new HashMap<>();
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "columnMeta.csv"))) {
-			CSVReader csvReader = new CSVReader(buffer, ',', '\"', 'µ');
-			
-			String[] line;
-			while((line = csvReader.readNext()) != null ) {
-				
-				String[] path = line[0].split("\\\\");
-				String rootNode = path[1];
-				
-				if(rootNode.equals("_studies_consents")) {
-					
-					if(path.length == 4) {
-						
-						String phs = path[2];
-						String consentGroup = path[3];
-						String count = line[10];
-						
-						if(!consentGroups.containsKey(phs)) {
-							HashMap<String, String> m = new HashMap<String,String>();
-							m.put(consentGroup, count);
-							consentGroups.put(phs, m);
-						} else {
-							
-							if(consentGroups.get(phs).containsKey(consentGroup)) {
-								System.err.println("multiple entries for studies consent group! - " + phs + ":" + consentGroup );
-							} else {
-								consentGroups.get(phs).put(consentGroup, count);
-							}
-							
-						}
-					}
-					
-				}
-				
-			}
+			try (CSVReader csvReader = new CSVReader(buffer, ',', '\"', 'µ')) {
+                String[] line;
+                while((line = csvReader.readNext()) != null ) {
+                	
+                	String[] path = line[0].split("\\\\");
+                	String rootNode = path[1];
+                	
+                	if(rootNode.equals("_studies_consents")) {
+                		
+                		if(path.length == 4) {
+                			
+                			String phs = path[2];
+                			String consentGroup = path[3];
+                			String count = line[10];
+                			
+                			if(!consentGroups.containsKey(phs)) {
+                				HashMap<String, String> m = new HashMap<String,String>();
+                				m.put(consentGroup, count);
+                				consentGroups.put(phs, m);
+                			} else {
+                				
+                				if(consentGroups.get(phs).containsKey(consentGroup)) {
+                					System.err.println("multiple entries for studies consent group! - " + phs + ":" + consentGroup );
+                				} else {
+                					consentGroups.get(phs).put(consentGroup, count);
+                				}
+                				
+                			}
+                		}
+                		
+                	}
+                	
+                }
+            }
 		}
 		
 		return consentGroups;

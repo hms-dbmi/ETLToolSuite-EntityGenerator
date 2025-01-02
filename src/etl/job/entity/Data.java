@@ -21,7 +21,7 @@ public class Data {
 	private List<DataRecord> dataRecords;
 	
 	public Data() {
-		// TODO Auto-generated constructor stub
+		
 	}
 
 	public Data(String fileName, String dataLabel, String dataType, int colIndex, List<DataRecord> dataRecords) {
@@ -115,31 +115,32 @@ public class Data {
 					
 					String fileName = file.getName();
 					
-					CSVReader csvReader = new CSVReader(new BufferedReader(new FileReader(file)), dataFileDelimiter, dataFileQuotedString);
-					if(dataFileHasHeaders) {
-						
-						String[] headers = csvReader.readNext();
-						int colNum = 0;
-						
-						for(String header:headers) {
+					try (CSVReader csvReader = new CSVReader(new BufferedReader(new FileReader(file)), dataFileDelimiter, dataFileQuotedString)) {
+						if(dataFileHasHeaders) {
 							
-							Data data = new Data(fileName, header, "", colNum, new ArrayList<DataRecord>());
-							dataList.add(data);
-							colNum++;
+							String[] headers = csvReader.readNext();
+							int colNum = 0;
 							
-						}
-						
-					} else {
-						// just use Column index as data Label
-						String[] firstRow = csvReader.readNext();
-						int colNum = 0;
-						
-						for(String row:firstRow) {
+							for(String header:headers) {
+								
+								Data data = new Data(fileName, header, "", colNum, new ArrayList<DataRecord>());
+								dataList.add(data);
+								colNum++;
+								
+							}
 							
-							Data data = new Data(fileName, "COLUMN " + colNum, "", colNum, new ArrayList<DataRecord>());
-							dataList.add(data);
-							colNum++;
+						} else {
+							// just use Column index as data Label
+							String[] firstRow = csvReader.readNext();
+							int colNum = 0;
 							
+							for(@SuppressWarnings("unused") String row:firstRow) {
+								
+								Data data = new Data(fileName, "COLUMN " + colNum, "", colNum, new ArrayList<DataRecord>());
+								dataList.add(data);
+								colNum++;
+								
+							}
 						}
 					}
 				}
@@ -155,6 +156,7 @@ public class Data {
 		
 	}
 	
+	@SuppressWarnings("resource")
 	public static List<Data> buildDataList(String dataURI, boolean dataFileHasHeaders,
 			char dataFileDelimiter, char dataFileQuotedString) throws Exception {
 		List<Data> dataList = new ArrayList<Data>();
@@ -198,7 +200,6 @@ public class Data {
 					
 					for(String cell: rec) {
 						
-						Data d = null;
 						if(dataList.isEmpty() || dataList.size() == colIndex) {
 							dataList.add(new Data(fileName, headers[colIndex], "", colIndex, new ArrayList<DataRecord>()));								
 						} else if(dataList.size() > colIndex){

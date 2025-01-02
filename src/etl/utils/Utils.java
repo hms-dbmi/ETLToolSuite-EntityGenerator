@@ -2,9 +2,7 @@ package etl.utils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-
 import java.lang.instrument.Instrumentation;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,9 +53,7 @@ public class Utils {
 	}
 	
 	public static <T> void writeToCsv(BufferedWriter buffer,Collection<T> objectsToWrite,char quotedString,char dataSeparator) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
-		@SuppressWarnings("unchecked")
-
-		StatefulBeanToCsv<T> writer = new StatefulBeanToCsvBuilder(buffer)
+		StatefulBeanToCsv<T> writer = new StatefulBeanToCsvBuilder<T>(buffer)
 				.withQuotechar(quotedString)
 				.withSeparator(dataSeparator)
 				.withEscapechar(ESCAPE_CHAR)

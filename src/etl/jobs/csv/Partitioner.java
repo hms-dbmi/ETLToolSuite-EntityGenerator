@@ -2,18 +2,13 @@ package etl.jobs.csv;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -21,9 +16,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 
-import com.opencsv.CSVReader;
-
-import etl.job.entity.ConfigFile;
 import etl.jobs.Job;
 import etl.jobs.mappings.Mapping;
 
@@ -39,10 +31,6 @@ import etl.jobs.mappings.Mapping;
 public class Partitioner extends Job {
 			
 	private static String CONFIG_FILE = "./resources/job.config";
-	
-	private static String EVALUATIONS_DIR = "./resources/";
-	
-	private static final String EVALUATION_FILE_CONCEPTS = EVALUATIONS_DIR + "conceptevaluation.txt";
 	
 	private static final String DELETE_ONLY = "N";
 		
@@ -102,8 +90,6 @@ public class Partitioner extends Job {
 
     			int partition = 1;
     			
-    			int currentConceptSeq = CONCEPT_CD_STARTING_SEQ;
-    			    			
     			MAPPING_FILE = prop.getProperty("mappingfile");
     			
     			checkDataTypes(mappings);
@@ -228,33 +214,5 @@ public class Partitioner extends Job {
 		      }
 		    }
 		  } 	
-	}
-
-	/**
-	 * Reads the evaluation file to find the expected concept size for this mapping.
-	 * This is important to properly sequence the data.
-	 * 
-	 * No longer needed for transmart onlyx
-	 * 
-	 * @param mappingKey
-	 * @return
-	 * @throws FileNotFoundException
-	 * @throws IOException
-	 */
-	@Deprecated
-	private static Integer getEstimatedConcepts(String mappingKey) throws FileNotFoundException, IOException {
-		Path path = Paths.get(EVALUATION_FILE_CONCEPTS);
-		try (CSVReader reader = new CSVReader(Files.newBufferedReader(path))) {
-			Iterator<String[]> iter = reader.iterator();
-			while(iter.hasNext()) {
-				String[] row = iter.next();
-				String k = row[0];
-
-				if(k.equals(mappingKey)) {
-					return new Integer(row[2]);
-				}
-			}
-		}
-		return 0;
 	}
 }

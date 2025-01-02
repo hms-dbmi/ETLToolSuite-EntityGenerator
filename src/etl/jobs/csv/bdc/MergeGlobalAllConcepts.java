@@ -78,8 +78,9 @@ public class MergeGlobalAllConcepts extends BDCJob {
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "GLOBAL_allConcepts.csv"))) {
 			
-			CSVReader reader = new CSVReader(buffer);
-			set.addAll(reader.readAll());
+			try (CSVReader reader = new CSVReader(buffer)) {
+				set.addAll(reader.readAll());
+			}
 		}
 		
 		File dataDir = new File(DATA_DIR);
@@ -98,8 +99,9 @@ public class MergeGlobalAllConcepts extends BDCJob {
 			for(File f: files) {
 				try(BufferedReader buffer = Files.newBufferedReader(f.toPath())) {
 					
-					CSVReader reader = new CSVReader(buffer);
-					set.addAll(reader.readAll());
+					try (CSVReader reader = new CSVReader(buffer)) {
+						set.addAll(reader.readAll());
+					}
 				}
 			}
 		}

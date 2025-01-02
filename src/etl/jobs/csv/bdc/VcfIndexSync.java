@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -42,8 +40,6 @@ public class VcfIndexSync extends BDCJob {
 		Map<String,String> vcfIndex = readVcfIndex();
 		System.out.println("VCF INDEX SIZE: " + vcfIndex.size());
 		Map<String, AllConcepts> acs = readGlobalConcepts();
-		
-		List<String[]> output = new ArrayList<>();
 		
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "vcfRemap.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 
@@ -85,15 +81,15 @@ public class VcfIndexSync extends BDCJob {
 		Map<String, AllConcepts> acs = new TreeMap<>();
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "GLOBAL_allConcepts.csv"))) {
 			
-			CSVReader reader = new CSVReader(buffer);
-			
-			String[] line;
-			
-			while((line = reader.readNext()) != null) {
+			try (CSVReader reader = new CSVReader(buffer)) {
+				String[] line;
 				
-				AllConcepts ac = new AllConcepts(line);
-			
-				if(ac.getConceptPath().toLowerCase().contains("vcf sample id")) acs.put(ac.getTvalChar(), ac);
+				while((line = reader.readNext()) != null) {
+					
+					AllConcepts ac = new AllConcepts(line);
+				
+					if(ac.getConceptPath().toLowerCase().contains("vcf sample id")) acs.put(ac.getTvalChar(), ac);
+				}
 			}
 			
 		}

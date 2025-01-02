@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -61,12 +60,7 @@ public class VariantPatientIdentifier extends BDCJob {
 
 			Set<Integer> hpdsIds = PatientMapping.getHpdsPatIdKeySet(patientMappings);
 			
-			Map<String,Integer> patientLookup = PatientMapping.buildSeqMap(patientMappings);
-			
 			Set<String> idCount = new HashSet<>();
-			// read sample multi file
-			String sampleMulti = BDCJob.getStudySampleMultiFile(mi);
-			
 			for(PicSureExtract pe: psExtract) {
 				
 				if(mi.getStudyType().equals("TOPMED")) {
@@ -163,24 +157,24 @@ public class VariantPatientIdentifier extends BDCJob {
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "data_extract.csv"))) {
 			
-			CSVReader reader = new CSVReader(buffer);
-			
-			reader.readNext(); // skip header
-			String[] line;
-			
-			while((line = reader.readNext()) != null) {
+			try (CSVReader reader = new CSVReader(buffer)) {
+				reader.readNext(); // skip header
+				String[] line;
 				
-				PicSureExtract pe = new VariantPatientIdentifier().new PicSureExtract();
-				//Patient ID,\_Parent Study Accession with Subject ID\,\_Topmed Study Accession with Subject ID\,\_VCF Sample Id\,\_consents\
+				while((line = reader.readNext()) != null) {
+					
+					PicSureExtract pe = new VariantPatientIdentifier().new PicSureExtract();
+					//Patient ID,\_Parent Study Accession with Subject ID\,\_Topmed Study Accession with Subject ID\,\_VCF Sample Id\,\_consents\
 
-				pe.patientId = line[0];
-				pe.parentStudyId = line[1];
-				
-				pe.topmedStudyId = line[2];
-				pe.vcfSampleId = line[3];
-				pe.consents = line[4];
-				
-				rs.add(pe);
+					pe.patientId = line[0];
+					pe.parentStudyId = line[1];
+					
+					pe.topmedStudyId = line[2];
+					pe.vcfSampleId = line[3];
+					pe.consents = line[4];
+					
+					rs.add(pe);
+				}
 			}
 			
 			return rs;
@@ -195,24 +189,24 @@ public class VariantPatientIdentifier extends BDCJob {
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "chr1_10_21_22_partial_vcf_files_with_variants.tsv"))) {
 			
-			CSVReader reader = new CSVReader(buffer,'\t');
-			
-			reader.readNext(); // skip header
-			String[] line;
-			while((line = reader.readNext()) != null) {
-				
-				HailExtract he = new VariantPatientIdentifier().new HailExtract();
-				
-				he.locusContig = line[0];
-				he.locusPostion = line[1];
-				
-				String alleles = line[2].substring(1,line[2].length()-1).replaceAll("['\\s]", "");
-				String het = line[3].isEmpty() ? "" : line[3].substring(1,line[3].length()-1).replaceAll("['\\s]", "");
-				String hom = line[4].isEmpty() ? "" : line[4].substring(1,line[4].length()-1).replaceAll("['\\s]", "");
-				he.alleles = alleles.split(",");
-				he.het = het.split(",");
-				he.hom = hom.split(",");
-				rs.add(he);
+			try (CSVReader reader = new CSVReader(buffer,'\t')) {
+				reader.readNext(); // skip header
+				String[] line;
+				while((line = reader.readNext()) != null) {
+					
+					HailExtract he = new VariantPatientIdentifier().new HailExtract();
+					
+					he.locusContig = line[0];
+					he.locusPostion = line[1];
+					
+					String alleles = line[2].substring(1,line[2].length()-1).replaceAll("['\\s]", "");
+					String het = line[3].isEmpty() ? "" : line[3].substring(1,line[3].length()-1).replaceAll("['\\s]", "");
+					String hom = line[4].isEmpty() ? "" : line[4].substring(1,line[4].length()-1).replaceAll("['\\s]", "");
+					he.alleles = alleles.split(",");
+					he.het = het.split(",");
+					he.hom = hom.split(",");
+					rs.add(he);
+				}
 			}
 			
 			return rs;

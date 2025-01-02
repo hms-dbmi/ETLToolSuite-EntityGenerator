@@ -68,35 +68,38 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 			
 		}
 		
-		CSVReader reader = new CSVReader(Files.newBufferedReader(Paths.get(filePath)), delimiter);
-
-		// skip header
-		//reader.readHeaders();
-		Iterator<String[]> iter = reader.iterator();
-		while(iter.hasNext()){
-			String[] record = iter.next();
-			if(record.length < 5) continue;
-			// Check if delimiter exists if so set default.
-			if(record.length == Mapping.class.getDeclaredFields().length ){
-				
-				Mapping m = new Mapping();
-				
-				m.setKey(record[0]);
-				
-				m.setRootNode(record[1]);
-				
-				m.setSupPath(record[2]);
-				
-				m.setDataType(record[3]);
-				
-				m.setOptions(record[4]);
-								
-				mapping.put(m.getKey() + ":" + m.getDataType(), m);
-				
+		try (CSVReader reader = new CSVReader(Files.newBufferedReader(Paths.get(filePath)), delimiter)) {
+			// skip header
+			//reader.readHeaders();
+			Iterator<String[]> iter = reader.iterator();
+			while(iter.hasNext()){
+				String[] record = iter.next();
+				if(record.length < 5) continue;
+				// Check if delimiter exists if so set default.
+				if(record.length == Mapping.class.getDeclaredFields().length ){
+					
+					Mapping m = new Mapping();
+					
+					m.setKey(record[0]);
+					
+					m.setRootNode(record[1]);
+					
+					m.setSupPath(record[2]);
+					
+					m.setDataType(record[3]);
+					
+					m.setOptions(record[4]);
+									
+					mapping.put(m.getKey() + ":" + m.getDataType(), m);
+					
+				}
+			
 			}
-		
-		}		
-		
+		} catch (SecurityException e) {
+			
+			e.printStackTrace();
+		}
+
 		return mapping;
 		
 	}
@@ -378,7 +381,6 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 	}
 	
 	public char toCSV(char mAPPING_DELIMITER, char mAPPING_QUOTED_STRING) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 	public String toCSV() {
@@ -386,6 +388,7 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 				+ makeStringSafe(supPath) + ',' + makeStringSafe(dataType) + ',' + makeStringSafe(options);
 	}
 	
+	@SuppressWarnings("unlikely-arg-type")
 	public static String makeStringSafe(String string){
 		
 		if(string != null && !string.isEmpty()){

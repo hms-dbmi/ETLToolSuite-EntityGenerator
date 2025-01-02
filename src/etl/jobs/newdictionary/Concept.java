@@ -1,11 +1,6 @@
 package etl.jobs.newdictionary;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-
-import org.apache.commons.collections4.iterators.IteratorIterable;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 public class Concept {
     String dataset = "";

@@ -40,7 +40,7 @@ public class GlobalVariableGenerator2 extends BDCJob {
 		try {
 			execute();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 	}

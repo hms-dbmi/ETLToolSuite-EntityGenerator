@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,7 +28,7 @@ public class HarmonizedSyncPatients extends Job {
 	public static void main(String[] args) {
 		try {
 			setVariables(args, buildProperties(args));
-			setClassVariables(args);
+		
 		} catch (Exception e) {
 			System.err.println("Error processing variables");
 			System.err.println(e);
@@ -127,16 +126,6 @@ public class HarmonizedSyncPatients extends Job {
 		
 	}
 
-	private static void validateConsentInfo(List<String[]> hrmnConsentInfo) {
-		
-		for(String[] record: hrmnConsentInfo) {
-			
-			
-			
-		}
-		
-	}
-
 	private static Map<String,String> syncPatientMapping(List<String[]> hrmnPatientMapping, List<String[]> hrmnConsentInfo) throws IOException {
 		// study ids
 		Set<String> studyids = new HashSet<String>();
@@ -222,41 +211,41 @@ public class HarmonizedSyncPatients extends Job {
 				
 				// study's_hpds_id, dbgap_id
 						
-				CSVReader reader = new CSVReader(buffer, ',', '\"', '√');
-
-				String[] line;
-				while((line = reader.readNext()) != null) {
-										
-					if(line.length < 3) continue;
-					
-					String dbgapid = line[0];
-					
-					if(hrmnidsmap.containsKey(dbgapid)){
+				try (CSVReader reader = new CSVReader(buffer, ',', '\"', '√')) {
+					String[] line;
+					while((line = reader.readNext()) != null) {
+											
+						if(line.length < 3) continue;
 						
-						String[] arr = hrmnidsmap.get(dbgapid);
+						String dbgapid = line[0];
 						
-						patidMapping.put(arr[1],line[2]);
-						
-					}
-					/*
-					for(String[] hrmnid: hrmnids) {
-						
-						if(dbgapid.equals(hrmnid[2])) {
+						if(hrmnidsmap.containsKey(dbgapid)){
 							
-							patidMapping.put(hrmnid[1], line[2]);
-							break;
+							String[] arr = hrmnidsmap.get(dbgapid);
+							
+							patidMapping.put(arr[1],line[2]);
+							
 						}
-						
-					}
-					/*
-					if(hrmnids.containsKey(studyid.toUpperCase() + "_" + line[0])) {
+						/*
+						for(String[] hrmnid: hrmnids) {
+							
+							if(dbgapid.equals(hrmnid[2])) {
+								
+								patidMapping.put(hrmnid[1], line[2]);
+								break;
+							}
+							
+						}
+						/*
+						if(hrmnids.containsKey(studyid.toUpperCase() + "_" + line[0])) {
 
-						patidMapping.put(hrmnids.get(studyid.toUpperCase() + "_" + line[0]), line[2]);
-						
-					} else {
-						//System.out.println(studyid.toUpperCase() + "_" + line[0] + " not found.");
+							patidMapping.put(hrmnids.get(studyid.toUpperCase() + "_" + line[0]), line[2]);
+							
+						} else {
+							//System.out.println(studyid.toUpperCase() + "_" + line[0] + " not found.");
+						}
+						*/
 					}
-					*/
 				}
 			}
 	
@@ -289,9 +278,9 @@ public class HarmonizedSyncPatients extends Job {
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "HarmonizedPatientsWithConsentInfo.csv"))) {
 			
-			CSVReader reader = new CSVReader(buffer, ',', '\"', '√');
-			
-			return reader.readAll();
+			try (CSVReader reader = new CSVReader(buffer, ',', '\"', '√')) {
+				return reader.readAll();
+			}
 			
 		}
 		
@@ -301,28 +290,14 @@ public class HarmonizedSyncPatients extends Job {
 	
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "HRMN_PatientMapping.v2.csv"))) {
 		
-			CSVReader reader = new CSVReader(buffer, ',', '\"', '√');
-			
-			return reader.readAll();
+			try (CSVReader reader = new CSVReader(buffer, ',', '\"', '√')) {
+				return reader.readAll();
+			}
 			
 		}
 	}
 
-	private static void setClassVariables(String[] args) throws NumberFormatException, Exception {
-		/**
-		 *  Flags override all settings
-		 */
-		for(String arg: args) {
-			/*
-			if(arg.equalsIgnoreCase( "-encodedlabel" )){
-				String isencoded = checkPassedArgs(arg, args);
-				if(isencoded.equalsIgnoreCase("Y")) {
-					LABEL_IS_ENCODED = true;
-				} 
-			} 
-			*/
-		}		
-	}
+
 	protected static char[] toCsv(String[] line) {
 		StringBuilder sb = new StringBuilder();
 		

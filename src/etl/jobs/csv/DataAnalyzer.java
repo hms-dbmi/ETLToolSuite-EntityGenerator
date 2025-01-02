@@ -15,8 +15,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Stream;
 
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -223,14 +221,14 @@ public class DataAnalyzer extends Job {
 					if(val.isEmpty()) {
 						continue;
 					}
-					//TODO add check for null here - null should default to numeric
-					if(NumberUtils.isCreatable(val)) {
+					if(NumberUtils.isCreatable(val) || val == null || val.isEmpty() || val.equalsIgnoreCase("null") || val.equalsIgnoreCase("na")) {
 						System.out.println("column: " + col + " value: " + val + " in file " + path + " numeric++");
 						numericVals++;
-					} else if(val != null || !val.isEmpty()){
+					}
+					else {
 						System.out.println("column: " + col + " value: " + val + " in file " + path + " alpha++");
 						alphaVals++;
-					};
+					}
 				}
 			}
 			

@@ -21,7 +21,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -30,7 +29,6 @@ import com.opencsv.CSVReader;
 
 import etl.etlinputs.managedinputs.ManagedInputFactory;
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
-import etl.etlinputs.managedinputs.bdc.BDCGenomicManagedInput;
 import etl.jobs.Job;
 
 public abstract class BDCJob extends Job {
@@ -101,59 +99,60 @@ public abstract class BDCJob extends Job {
 	public static String findRawDataColumnNameAtIndex(Path fileName, int columnIndex) throws IOException, NullPointerException {
 		if(fileName == null) return null;
 		BufferedReader buffer = Files.newBufferedReader(fileName);
-		CSVReader reader = new CSVReader(buffer, '\t', 'π');
-		
-		String[] headers;
-		String columnName = "";
-	
-		while((headers = reader.readNext()) != null) {
+		try (CSVReader reader = new CSVReader(buffer, '\t', 'π')) {
+			String[] headers;
+			String columnName = "";
 
-			boolean isComment = ( headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty() ) ? true: headers[0].isEmpty() ? true: false;
-			
-			if(isComment) {
+			while((headers = reader.readNext()) != null) {
+
+				boolean isComment = ( headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty() ) ? true: headers[0].isEmpty() ? true: false;
 				
-				continue;
-				
-			} else {
-				
-				columnName = headers[columnIndex];
+				if(isComment) {
+					
+					continue;
+					
+				} else {
+					
+					columnName = headers[columnIndex];
+					
+				}
 				
 			}
-			
+			return columnName;
 		}
-		return columnName;
 	}
 
 	public static int findRawDataColumnIdx(Path fileName, String columnName) throws IOException {
 		if(fileName == null) return -1;
 		BufferedReader buffer = Files.newBufferedReader(fileName);
-		CSVReader reader = new CSVReader(buffer, '\t', 'π');
-		
-		String[] headers;
-	
-		while((headers = reader.readNext()) != null) {
+		try (CSVReader reader = new CSVReader(buffer, '\t', 'π')) {
+			String[] headers;
 
-			boolean isComment = ( headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty() ) ? true: headers[0].isEmpty() ? true: false;
-			
-			if(isComment) {
+			while((headers = reader.readNext()) != null) {
+
+				boolean isComment = ( headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty() ) ? true: headers[0].isEmpty() ? true: false;
 				
-				continue;
-				
-			} else {
-				
-				break;
+				if(isComment) {
+					
+					continue;
+					
+				} else {
+					
+					break;
+					
+				}
 				
 			}
-			
-		}
-		int x = 0;
-		for(String header: headers) {
-			
-			if(header.toLowerCase().equals(columnName.toLowerCase())) {
-				return x;
+			int x = 0;
+			for(String header: headers) {
+				
+				if(header.toLowerCase().equals(columnName.toLowerCase())) {
+					return x;
+				}
+				x++;
 			}
-			x++;
 		}
+		
 		return -1;  // not found
 			
 	}
@@ -168,7 +167,6 @@ public abstract class BDCJob extends Job {
 		
 		String phs = null;
 		
-		String pht = null;
 		
 		if(dataDir.isDirectory()) {
 			
@@ -213,7 +211,6 @@ public abstract class BDCJob extends Job {
 		
 		String phs = null;
 		
-		String pht = null;
 		
 		if(dataDir.isDirectory()) {
 			
@@ -247,44 +244,6 @@ public abstract class BDCJob extends Job {
 			System.err.println(DATA_DIR + " IS NOT A DIRECTORY!");
 		}
 		return null;
-	}
-	private static Document findDictionary(String accession, String version, String phenotype) throws ParserConfigurationException, SAXException, IOException {
-		
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = factory.newDocumentBuilder();
-		
-		if(Files.isDirectory(Paths.get(DICT_DIR))) {
-			
-			File dictFile = null;
-			
-			for(File f: new File(DICT_DIR).listFiles()) {
-				
-				if(f.isDirectory()) continue;
-				
-				String[] fileNameArr = f.getName().split("\\.");
-				
-				if(!fileNameArr[0].equals(accession)) continue;
-				
-				if(!fileNameArr[1].equals(version)) continue;
-				
-				if(!fileNameArr[2].equals(phenotype)) continue;
-				if(!fileNameArr[fileNameArr.length - 2].equalsIgnoreCase("data_dict")) continue;
-				if(!fileNameArr[fileNameArr.length - 1].equalsIgnoreCase("xml")) continue;
-				
-				else {
-					dictFile = f;
-					break;
-				}
-			}
-			
-			if(dictFile == null) return null;
-			
-			return builder.parse(dictFile);
-		
-		} else {
-			System.err.println("DICT_DIR " + DICT_DIR + " IS NOT A DIRECTORY!");
-			throw new IOException();
-		}
 	}	
 	
 	public static String getPht(String dbGapFileName) {
@@ -433,13 +392,6 @@ public abstract class BDCJob extends Job {
 	}
 	
 	protected static Map<String, Map<String, String>> buildValueLookup(Document dataDic) {
-		
-		NodeList dataTable = dataDic.getElementsByTagName("data_table");
-		
-		Node dataNode = dataTable.item(0);
-		
-		NamedNodeMap nodeMap = dataNode.getAttributes();
-		
 		// build an object that will collect the variables
 		
 		NodeList variables = dataDic.getElementsByTagName("variable");
@@ -458,9 +410,6 @@ public abstract class BDCJob extends Job {
 	    		
 	    		String name = "";
 	    		
-	    		String desc = "";
-	    		
-	    		String type = "";
 	    		
 	    		List<Node> valueNodes = new ArrayList<Node>();
 	    		
@@ -470,9 +419,6 @@ public abstract class BDCJob extends Job {
 	        			        		
 	        		if(node2.getNodeName().equalsIgnoreCase("name")) name = node2.getTextContent();
 	        		
-	        		if(node2.getNodeName().equalsIgnoreCase("description")) desc = node2.getTextContent();
-	        		
-	        		//if(node2.getNodeName().equalsIgnoreCase("type")) type = node2.getTextContent();
 	        		
 	        		if(node2.getNodeName().equalsIgnoreCase("value")) valueNodes.add(node2);
 	    		}
@@ -483,7 +429,6 @@ public abstract class BDCJob extends Job {
 	    		
 	    		for(Node vnode: valueNodes) {
 	    			
-	    			Map<String,String> vmap = new HashMap<String,String>(); 
 	    			
 	    			String valueDecoded = vnode.getFirstChild().getNodeValue();
 	    			
@@ -513,56 +458,56 @@ public abstract class BDCJob extends Job {
 	public static int getConsentIdx(String fileName) throws IOException {
 
 		try (BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + fileName))) {
-			CSVReader reader = new CSVReader(buffer, '\t', 'π');
+			try (CSVReader reader = new CSVReader(buffer, '\t', 'π')) {
+				String[] headers;
 
-			String[] headers;
+				while ((headers = reader.readNext()) != null) {
 
-			while ((headers = reader.readNext()) != null) {
+					boolean isComment = (headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty())
+							? true
+							: headers[0].isEmpty() ? true : false;
 
-				boolean isComment = (headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty())
-						? true
-						: headers[0].isEmpty() ? true : false;
+					if (isComment) {
 
-				if (isComment) {
+						continue;
 
-					continue;
+					} else {
 
-				} else {
+						break;
 
-					break;
+					}
 
 				}
 
-			}
-
-			int consentidx = -1;
-			int x = 0;
-			System.out.println("Checking for header matching expected consent name block");
-			for (String header : headers) {
-				if (CONSENT_HEADERS.contains(header.toLowerCase())) {
-					System.out.println("Consent header found = " + header);
-					consentidx = x;
-					break;
-				}
-				x++;
-			}
-			x = 0;
-			if (consentidx == -1) {
-
-				System.out.println("Consent header not found in expected header block.  Searching dynamically for any header containing 'consent'");
+				int consentidx = -1;
+				int x = 0;
+				System.out.println("Checking for header matching expected consent name block");
 				for (String header : headers) {
-
-					if (header.toLowerCase().contains("consent")) {
+					if (CONSENT_HEADERS.contains(header.toLowerCase())) {
 						System.out.println("Consent header found = " + header);
 						consentidx = x;
 						break;
 					}
 					x++;
 				}
+				x = 0;
+				if (consentidx == -1) {
 
+					System.out.println("Consent header not found in expected header block.  Searching dynamically for any header containing 'consent'");
+					for (String header : headers) {
+
+						if (header.toLowerCase().contains("consent")) {
+							System.out.println("Consent header found = " + header);
+							consentidx = x;
+							break;
+						}
+						x++;
+					}
+
+				}
+
+				return consentidx;
 			}
-
-			return consentidx;
 		}
 	}
 
@@ -578,28 +523,28 @@ public abstract class BDCJob extends Job {
 			
 			BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR +"raw/" + subjectFileName));
 			
-			CSVReader reader = new CSVReader(buffer, '\t', 'π');
-			
-			String[] headers;
-		
-			while((headers = reader.readNext()) != null) {
+			try (CSVReader reader = new CSVReader(buffer, '\t', 'π')) {
+				String[] headers;
 
-				boolean isComment = ( headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty() ) ? true: headers[0].isEmpty() ? true: false;
-				
-				if(isComment) {
+				while((headers = reader.readNext()) != null) {
+
+					boolean isComment = ( headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty() ) ? true: headers[0].isEmpty() ? true: false;
 					
-					continue;
-					
-				} else {
-					
-					if(headers.length > cgcidx) {
+					if(isComment) {
 						
-						if(headers[cgcidx].equalsIgnoreCase(consent_group_code)) patientSet.add(headers[patientIdCol]);
+						continue;
+						
+					} else {
+						
+						if(headers.length > cgcidx) {
+							
+							if(headers[cgcidx].equalsIgnoreCase(consent_group_code)) patientSet.add(headers[patientIdCol]);
+							
+						}
 						
 					}
 					
 				}
-				
 			}
 			
 		}
@@ -625,26 +570,26 @@ public abstract class BDCJob extends Job {
 		
 		BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "raw/" + sampleFileName));
 		
-		CSVReader reader = new CSVReader(buffer, '\t', 'π');
-		
-		String[] headers;
-	
-		while((headers = reader.readNext()) != null) {
+		try (CSVReader reader = new CSVReader(buffer, '\t', 'π')) {
+			String[] headers;
 
-			boolean isComment = ( headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty() ) ? true: headers[0].isEmpty() ? true: false;
-			
-			if(isComment) {
+			while((headers = reader.readNext()) != null) {
+
+				boolean isComment = ( headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty() ) ? true: headers[0].isEmpty() ? true: false;
 				
-				continue;
-				
-			} else {
-				
-				if(headers[patientIdCol].equalsIgnoreCase(subjectColumnName)) continue;
-				
-				patientSet.add(headers[patientIdCol]);
+				if(isComment) {
+					
+					continue;
+					
+				} else {
+					
+					if(headers[patientIdCol].equalsIgnoreCase(subjectColumnName)) continue;
+					
+					patientSet.add(headers[patientIdCol]);
+					
+				}
 				
 			}
-			
 		}
 		
 		return patientSet;
@@ -779,15 +724,16 @@ public abstract class BDCJob extends Job {
 
 	public static String[] getHeaders(File data) throws IOException {
 
-		CSVReader reader = new CSVReader(Files.newBufferedReader(Paths.get(data.getAbsolutePath())), '\t');
-
-		String[] line;
-		
-		while((line = reader.readNext()) != null) {
-			if(line[0].toLowerCase().startsWith("dbgap")) {
-				return line;
+		try (CSVReader reader = new CSVReader(Files.newBufferedReader(Paths.get(data.getAbsolutePath())), '\t')) {
+			String[] line;
+			
+			while((line = reader.readNext()) != null) {
+				if(line[0].toLowerCase().startsWith("dbgap")) {
+					return line;
+				}
 			}
 		}
+
 		return null;
 	}
 	public static String[] getDataHeaders(File file) throws IOException {
@@ -932,20 +878,6 @@ public abstract class BDCJob extends Job {
 	}
 
 
-	/**
-	 * Separate job and helpers for specifically getting the genomic inputs file in
-	 * BDC and generating the index file needs
-	 * 
-	 * @return
-	 * @throws IOException
-	 */
-	@SuppressWarnings("unchecked")
-	protected static List<BDCGenomicManagedInput> getGenomicManagedInputs() throws IOException {
-
-		return (List<BDCGenomicManagedInput>) (List<?>) ManagedInputFactory.readGenomicManagedInput("BDCGenomic",
-				GENOMIC_MANAGED_INPUT);
-
-	}
 	
 	
 }

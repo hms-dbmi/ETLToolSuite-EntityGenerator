@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,9 +37,6 @@ public class SetPatientSequence extends BDCJob{
 		
 		public boolean hasJobConfig = false;
 		
-		public boolean hasPatientMapping = false;
-		
-		public boolean hasSubjectMulti = false;
 		
 		public int startingSeqNum = -1;
 		
@@ -204,7 +200,6 @@ public class SetPatientSequence extends BDCJob{
 			ssm.startingSeqNum = getStartingSeqNum(managedInput);
 		}
 		
-		ssm.hasPatientMapping = hasPatientMapping(managedInput);
 		
 		ssm.patientCount = getPatientSet(managedInput);
 		

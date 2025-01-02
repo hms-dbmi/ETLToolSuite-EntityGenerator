@@ -16,8 +16,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.opencsv.CSVReader;
-import com.opencsv.CSVWriter;
-
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 import etl.jobs.mappings.Mapping;
 
@@ -85,69 +83,67 @@ public class GenomicSampIdGlobalVarGenerator extends BDCJob {
 						
 						Map<String,String> patientNumLookup = getPatientMapping(studyId);
 						
-						List<String> headers2 = new ArrayList<String>();
-						
-						CSVReader reader = new CSVReader(buffer, '\t');
+						try (CSVReader reader = new CSVReader(buffer, '\t')) {
+							String[] line;
 
-						String[] line;
+							int x = 0;
+							int sampidIdx = -1;
+							while((line = reader.readNext()) != null) { 
 
-						int x = 0;
-						int sampidIdx = -1;
-						while((line = reader.readNext()) != null) { 
-
-							if(!line[0].toUpperCase().contains("DBGAP")) continue;
-							
-							for(String col: line) {
-								if(SAMPLE_HEADERS.contains(col.toUpperCase())) {
-									sampidIdx = x;
-									break;
-								} else {
-									x++;
+								if(!line[0].toUpperCase().contains("DBGAP")) continue;
+								
+								for(String col: line) {
+									if(SAMPLE_HEADERS.contains(col.toUpperCase())) {
+										sampidIdx = x;
+										break;
+									} else {
+										x++;
+									}
 								}
+								if(line[0].toUpperCase().contains("DBGAP")) break;
+								
 							}
-							if(line[0].toUpperCase().contains("DBGAP")) break;
 							
-						}
-						
-						if(sampidIdx == -1) {
-							System.err.println("No sample column for " + phsOnly);
-							continue;
-						}
-						
-						line = null;
-						
-						Set<String[]> sampleIdsList = new HashSet<>();
-					
+							if(sampidIdx == -1) {
+								System.err.println("No sample column for " + phsOnly);
+								continue;
+							}
+							
+							line = null;
+							
+							Set<String[]> sampleIdsList = new HashSet<>();
 
-						while((line = reader.readNext()) != null) { 
-							
-							if(patientNumLookup.containsKey(line[0])) {
+
+							while((line = reader.readNext()) != null) { 
 								
-								if(line[sampidIdx].trim().isEmpty()) continue;
-								// Only loading topmed freezes which are prefixed with NWD values
-								// remove the continue clause below if other genomic data associated with dbgap data is ever consumed.
-								if(!line[sampidIdx].startsWith("NWD")) continue;
-								String[] arr = new String[] { patientNumLookup.get(line[0]), studyId, line[sampidIdx]};
-								patientNums.add(patientNumLookup.get(line[0]));
-								
-								sampleIds.add(line[sampidIdx]);
-								
-								sampleIdsList.add(arr);
+								if(patientNumLookup.containsKey(line[0])) {
+									
+									if(line[sampidIdx].trim().isEmpty()) continue;
+									// Only loading topmed freezes which are prefixed with NWD values
+									// remove the continue clause below if other genomic data associated with dbgap data is ever consumed.
+									if(!line[sampidIdx].startsWith("NWD")) continue;
+									String[] arr = new String[] { patientNumLookup.get(line[0]), studyId, line[sampidIdx]};
+									patientNums.add(patientNumLookup.get(line[0]));
+									
+									sampleIds.add(line[sampidIdx]);
+									
+									sampleIdsList.add(arr);
+									
+								}
 								
 							}
-							
-						}
-						if(!sampleIdsList.isEmpty()) {
-							// add counts to collection to report number of sample ids found for the study
-							sampleIdCountPerStudy.put(phsOnly, sampleIdsList.size());
-							
-							try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + phsOnly + "_SampleIds.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
-							   for(String[] arr: sampleIdsList) {
-								   writer.flush();
-								   writer.write(toCsv(arr));
-							   }
+							if(!sampleIdsList.isEmpty()) {
+								// add counts to collection to report number of sample ids found for the study
+								sampleIdCountPerStudy.put(phsOnly, sampleIdsList.size());
+								
+								try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + phsOnly + "_SampleIds.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+								   for(String[] arr: sampleIdsList) {
+									   writer.flush();
+									   writer.write(toCsv(arr));
+								   }
+								}
+								
 							}
-							
 						}
 
 						Mapping mapping = new Mapping(phsOnly + "_SampleIds.csv:2","µ_genomic_sample_idµ" + phsOnly + "µ", "", "TEXT", "");
@@ -180,14 +176,14 @@ public class GenomicSampIdGlobalVarGenerator extends BDCJob {
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + studyId.toUpperCase() + "_PatientMapping.v2.csv"))){
 			
-			//System.out.println(studyId.toUpperCase() + "_PatientMapping.v2.csv");
-			CSVReader reader = new CSVReader(buffer);
-			
-			String[] arr;
-			
-			while((arr = reader.readNext()) != null) {
-				if(arr.length > 2) {
-					map.put(arr[0], arr[2]);
+			try (//System.out.println(studyId.toUpperCase() + "_PatientMapping.v2.csv");
+			CSVReader reader = new CSVReader(buffer)) {
+				String[] arr;
+				
+				while((arr = reader.readNext()) != null) {
+					if(arr.length > 2) {
+						map.put(arr[0], arr[2]);
+					}
 				}
 			}
 		}

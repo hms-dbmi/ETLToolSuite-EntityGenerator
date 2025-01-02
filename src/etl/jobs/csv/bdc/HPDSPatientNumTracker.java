@@ -214,14 +214,14 @@ public class HPDSPatientNumTracker extends BDCJob {
 			});
 			for(File file: files) {
 				try(BufferedReader buffer = Files.newBufferedReader(Paths.get(file.getAbsolutePath()))) {
-					CSVReader reader = new CSVReader(buffer);
-					
-					String[] line;
-					line = reader.readNext();
-					if(line == null) continue;
-					while((line = reader.readNext()) != null) {
-						if(line.length -1 >= PATIENT_COL) {
-							if(!line[0].trim().isEmpty() ) patientSet.add(line[PATIENT_COL]);
+					try (CSVReader reader = new CSVReader(buffer)) {
+						String[] line;
+						line = reader.readNext();
+						if(line == null) continue;
+						while((line = reader.readNext()) != null) {
+							if(line.length -1 >= PATIENT_COL) {
+								if(!line[0].trim().isEmpty() ) patientSet.add(line[PATIENT_COL]);
+							}
 						}
 					}
 					
@@ -272,17 +272,20 @@ public class HPDSPatientNumTracker extends BDCJob {
 			
 			for(File file: files) {
 				try(BufferedReader buffer = Files.newBufferedReader(Paths.get(file.getAbsolutePath()))) {
-					CSVReader reader = new CSVReader(buffer);
-					
-					String[] line;
-					
-					while((line = reader.readNext()) != null) {
-						if(line.length < 3) continue;
-						if(!NumberUtils.isCreatable(line[2])) continue;
-						if(!PATIENT_NUMS.add(Integer.parseInt(line[2]))) {
-							System.err.println("Duplicate patient num in data set found " + line[0] + "," + line[1] + "," + line[2]);
-							throw new IOException("INVALID PATIENT MAPPINGS.  FIX DUPLICATE PATIENT NUMS");
+					try (CSVReader reader = new CSVReader(buffer)) {
+						String[] line;
+						
+						while((line = reader.readNext()) != null) {
+							if(line.length < 3) continue;
+							if(!NumberUtils.isCreatable(line[2])) continue;
+							if(!PATIENT_NUMS.add(Integer.parseInt(line[2]))) {
+								System.err.println("Duplicate patient num in data set found " + line[0] + "," + line[1] + "," + line[2]);
+								throw new IOException("INVALID PATIENT MAPPINGS.  FIX DUPLICATE PATIENT NUMS");
+							}
 						}
+					} catch (NumberFormatException e) {
+						
+						e.printStackTrace();
 					}
 					
 				}

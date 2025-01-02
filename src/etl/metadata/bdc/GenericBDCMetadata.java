@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import etl.etlinputs.managedinputs.ManagedInput;
@@ -52,10 +50,6 @@ public class GenericBDCMetadata extends BDCMetadata {
 		bdcm.abbreviated_name = managedInput.getStudyAbvName();
 	
 		bdcm.full_study_name = managedInput.getStudyFullName();
-
-		bdcm.study_focus = managedInput.getStudyFocus();
-
-		bdcm.study_design = managedInput.getStudyDesign();
 		
 		bdcm.consent_group_code = GENERIC_CONSENT_CODE;
 	

@@ -9,10 +9,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -79,12 +77,12 @@ public class UpdateCountsInJsonMetadata extends BDCJob {
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + dataFile))) {
 			
-			CSVReader reader = new CSVReader(buffer);
-			
-			//reader.readNext();
-			String[] line;
-			while((line = reader.readNext()) != null) {
-				counts.put(line[0], line[1]);
+			try (CSVReader reader = new CSVReader(buffer)) {
+				//reader.readNext();
+				String[] line;
+				while((line = reader.readNext()) != null) {
+					counts.put(line[0], line[1]);
+				}
 			}
 		}
 		
@@ -155,6 +153,7 @@ public class UpdateCountsInJsonMetadata extends BDCJob {
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + dataFile))) {
 			
 			
+			@SuppressWarnings("resource")
 			List<String[]> list = new CSVReader(buffer).readAll();
 			
 			Map<String,String> counts = new HashMap<>();

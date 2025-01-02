@@ -1,19 +1,16 @@
 package etl.jobs.csv;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.opencsv.CSVReader;
 
 import etl.etlinputs.managedinputs.ManagedInput;
 import etl.etlinputs.managedinputs.ManagedInputFactory;
@@ -59,10 +56,10 @@ public class JsonMetadataGenerator extends Job {
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 	

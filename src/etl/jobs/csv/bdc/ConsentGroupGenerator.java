@@ -9,12 +9,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.logging.log4j.core.parser.ParseException;
@@ -22,9 +20,7 @@ import org.apache.logging.log4j.core.parser.ParseException;
 import com.opencsv.CSVReader;
 
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
-import etl.jobs.Job;
 import etl.jobs.jobproperties.JobProperties;
-import etl.jobs.mappings.Mapping;
 
 
 /**
@@ -65,12 +61,12 @@ public class ConsentGroupGenerator extends BDCJob {
 	private static Set<String> HARMONIZED_HPDS_IDS = new HashSet<String>();
 	static {
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "HRMN_allConcepts.csv"))) {
-			CSVReader reader = new CSVReader(buffer);
-			
-			String[] line;
-			
-			while((line = reader.readNext()) != null) {
-				HARMONIZED_HPDS_IDS.add(line[0]);
+			try (CSVReader reader = new CSVReader(buffer)) {
+				String[] line;
+				
+				while((line = reader.readNext()) != null) {
+					HARMONIZED_HPDS_IDS.add(line[0]);
+				}
 			}
 		} catch (IOException e) {
 			System.err.println("Missing HRMN_allConcepts.csv file.");
@@ -99,7 +95,7 @@ public class ConsentGroupGenerator extends BDCJob {
 		try {
 			execute();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 
@@ -236,23 +232,6 @@ public class ConsentGroupGenerator extends BDCJob {
 		
 	}
 
-	
-
-	
-	private static Collection<? extends String[]> buildOrchidConsents() throws IOException {
-		List<String[]> rs = new ArrayList<>();
-		
-		
-		List<String[]> list = BDCJob.getPatientMappings("ORCHID");
-		
-		for(String[] x: list) {
-			if(x.length > 2) {
-				rs.add(new String[] {x[2],"phs002299.c1"});
-			}
-		}
-		
-		return rs;
-	}
 
 	private static List<String[]> buildConsents(String studyIdentifier, String studyAbvName, Map<String, Map<String, String>> patientMappings) throws IOException, ParseException {
 		File dataDir = new File(DATA_DIR);
@@ -280,73 +259,73 @@ public class ConsentGroupGenerator extends BDCJob {
 			}
 			
 			try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + fileNames[0]))) {
-				CSVReader reader = new CSVReader(buffer, '\t', 'π');
-				
-				String[] headers;
-				
-				while((headers = reader.readNext()) != null) {
+				try (CSVReader reader = new CSVReader(buffer, '\t', 'π')) {
+					String[] headers;
+					
+					while((headers = reader.readNext()) != null) {
 
-					boolean isComment = ( headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty() ) ? true: headers[0].isEmpty() ? true: false;
-					
-					if(isComment) {
+						boolean isComment = ( headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty() ) ? true: headers[0].isEmpty() ? true: false;
 						
-						continue;
-						
-					} else {
-						
-						break;
+						if(isComment) {
+							
+							continue;
+							
+						} else {
+							
+							break;
+							
+						}
 						
 					}
 					
-				}
-				
-				int consentidx = -1;
-				int x = 0;
-				
-				for(String header: headers) {
-					
-					if(CONSENT_HEADERS.contains(header.toLowerCase())) {
-						consentidx = x;
-						break;
-					}
-					x++;
-					
-				}
-				x = 0;
-				if(consentidx == -1) {
-					System.out.println("looking for consent header");
+					int consentidx = -1;
+					int x = 0;
 					
 					for(String header: headers) {
-						if(header.toLowerCase().contains("consent")) {
+						
+						if(CONSENT_HEADERS.contains(header.toLowerCase())) {
 							consentidx = x;
-							System.out.println("Found consent header " + header);
 							break;
 						}
 						x++;
 						
 					}
-				}
-				if(consentidx != -1) {
-				
-					String[] line;
-					
-					while((line = reader.readNext()) != null) {
+					x = 0;
+					if(consentidx == -1) {
+						System.out.println("looking for consent header");
 						
-						if(line.length < consentidx) continue;
-						if(line[consentidx].isEmpty()) continue;
-						
-						String hpds_id = mappingLookup(line[0], patientMappings.get(studyAbvName));
-						if(hpds_id == null) continue;
-						String consentCode = "c" + line[consentidx];
-						
-						String consentVal = studyIdentifier + "." + consentCode;
-						
-						returnSet.add(new String[] { hpds_id, consentVal });
-						
+						for(String header: headers) {
+							if(header.toLowerCase().contains("consent")) {
+								consentidx = x;
+								System.out.println("Found consent header " + header);
+								break;
+							}
+							x++;
+							
+						}
 					}
+					if(consentidx != -1) {
 					
-				} else {
-					throw new ParseException("Cannot find header for " + fileNames[0], new Throwable().fillInStackTrace());
+						String[] line;
+						
+						while((line = reader.readNext()) != null) {
+							
+							if(line.length < consentidx) continue;
+							if(line[consentidx].isEmpty()) continue;
+							
+							String hpds_id = mappingLookup(line[0], patientMappings.get(studyAbvName));
+							if(hpds_id == null) continue;
+							String consentCode = "c" + line[consentidx];
+							
+							String consentVal = studyIdentifier + "." + consentCode;
+							
+							returnSet.add(new String[] { hpds_id, consentVal });
+							
+						}
+						
+					} else {
+						throw new ParseException("Cannot find header for " + fileNames[0], new Throwable().fillInStackTrace());
+					}
 				}
 			}
 			

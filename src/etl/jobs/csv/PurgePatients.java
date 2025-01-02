@@ -67,13 +67,13 @@ public class PurgePatients extends BDCJob {
 		for(File f: files) {
 			if(f.getName().endsWith("PatientMapping.v2.csv")) {
 				try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + f.getName()))) {
-					CSVReader reader = new CSVReader(buffer);
-					
-					String[] line;
-					
-					while((line = reader.readNext()) != null ) {
-						if(line.length >= 3) {
-							patnums.add(line[2]);
+					try (CSVReader reader = new CSVReader(buffer)) {
+						String[] line;
+						
+						while((line = reader.readNext()) != null ) {
+							if(line.length >= 3) {
+								patnums.add(line[2]);
+							}
 						}
 					}
 				}

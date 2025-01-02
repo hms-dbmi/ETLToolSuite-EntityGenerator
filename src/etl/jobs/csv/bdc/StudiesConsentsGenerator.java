@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,7 +27,6 @@ public class StudiesConsentsGenerator extends BDCJob {
 	// generate a map that contains
 	// <Study Abv name + phsIdentifier, < consent name, Set of patient nums >>
 
-	private static Map<String, Map<String, Set<String>>> patientSets = new HashMap<>();
 	/**
 	 * Contains all the variants of consent columns in lowercase format
 	 */
@@ -50,7 +48,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 		try {
 			execute();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 			System.exit(-1);
 		}
@@ -197,39 +195,39 @@ public class StudiesConsentsGenerator extends BDCJob {
 			}
 
 			try (BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "decoded/" + fileNames[0]))) {
-				CSVReader reader = new CSVReader(buffer);
+				try (CSVReader reader = new CSVReader(buffer)) {
+					int consentidx = getConsentIdx(fileNames[0]);
 
-				int consentidx = getConsentIdx(fileNames[0]);
+					if (consentidx != -1) {
 
-				if (consentidx != -1) {
+						String[] line;
 
-					String[] line;
+						while ((line = reader.readNext()) != null) {
 
-					while ((line = reader.readNext()) != null) {
+							if (line.length < consentidx)
+								continue;
+							if (line[consentidx].isEmpty())
+								continue;
 
-						if (line.length < consentidx)
-							continue;
-						if (line[consentidx].isEmpty())
-							continue;
+							String hpds_id = mappingLookup(line[0], patientMappings.get(studyAbvName));
+							if (hpds_id == null) {
+								System.err.println("No HPDS ID found for " + line[0]);
+							}
+							;
 
-						String hpds_id = mappingLookup(line[0], patientMappings.get(studyAbvName));
-						if (hpds_id == null) {
-							System.err.println("No HPDS ID found for " + line[0]);
+							if (returnSet.containsKey(line[consentidx])) {
+								returnSet.get(line[consentidx]).add(hpds_id);
+							} else {
+								Set<String> set = new HashSet<>();
+								set.add(hpds_id);
+								returnSet.put(line[consentidx], set);
+							}
 						}
-						;
 
-						if (returnSet.containsKey(line[consentidx])) {
-							returnSet.get(line[consentidx]).add(hpds_id);
-						} else {
-							Set<String> set = new HashSet<>();
-							set.add(hpds_id);
-							returnSet.put(line[consentidx], set);
-						}
+					} else {
+						throw new ParseException("Cannot find header for " + fileNames[0],
+								new Throwable().fillInStackTrace());
 					}
-
-				} else {
-					throw new ParseException("Cannot find header for " + fileNames[0],
-							new Throwable().fillInStackTrace());
 				}
 			}
 

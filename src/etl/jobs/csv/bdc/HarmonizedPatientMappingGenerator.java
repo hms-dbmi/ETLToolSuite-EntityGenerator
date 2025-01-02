@@ -160,11 +160,11 @@ public class HarmonizedPatientMappingGenerator extends BDCJob {
 		});
 		for(File f: files) {
 			try(BufferedReader reader = Files.newBufferedReader(f.toPath())) {
-				CSVReader csvreader = new CSVReader(reader);
-				
-				String[] line;
-				while((line = csvreader.readNext()) != null ) {
-					subjids.add(line[0]);
+				try (CSVReader csvreader = new CSVReader(reader)) {
+					String[] line;
+					while((line = csvreader.readNext()) != null ) {
+						subjids.add(line[0]);
+					}
 				}
 			}
 		}

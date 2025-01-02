@@ -12,10 +12,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.xml.sax.SAXException;
-
 import etl.jobs.mappings.Mapping;
 
 public class GenerateConceptMapping extends BDCJob {
@@ -80,7 +76,7 @@ public class GenerateConceptMapping extends BDCJob {
 		}
 		
 		return map ;
-		// TODO Auto-generated method stub
+	
 		
 	}
 

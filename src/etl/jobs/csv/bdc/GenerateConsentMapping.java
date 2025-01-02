@@ -6,12 +6,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
+
 import java.util.HashMap;
-import java.util.HashSet;
+
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
+
 
 import com.opencsv.CSVReader;
 
@@ -40,28 +40,29 @@ public class GenerateConsentMapping extends BDCJob {
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "GLOBAL_allConcepts_merged.csv"))){
 			
-			CSVReader reader = new CSVReader(buffer, ',', '\"', 'µ');
-			String[] line;
-			
-			String currentNode = "";
-			
-			while((line = reader.readNext())!=null) {
-				// validate distinct patient counts in each study
-				if(line[0].equalsIgnoreCase("PATIENT_NUM")) continue;  //skip header
+			try (CSVReader reader = new CSVReader(buffer, ',', '\"', 'µ')) {
+				String[] line;
 				
-				String rootConcept = line[1].split("\",")[0];
-
-				if(!rootConcept.equals(currentNode)) {
-					System.out.println("Working on " + rootConcept);
-					currentNode = rootConcept;
-				}
-				if(rootConcept.equalsIgnoreCase("_consents")) {
-					String consentGroup = line[1].split("\",")[2].split(",")[0];
-					System.out.println("Consent group is " + consentGroup);
-					patientsPerConsentGroup.put(line[0], consentGroup);
+				String currentNode = "";
+				
+				while((line = reader.readNext())!=null) {
+					// validate distinct patient counts in each study
+					if(line[0].equalsIgnoreCase("PATIENT_NUM")) continue;  //skip header
 					
-				}
+					String rootConcept = line[1].split("\",")[0];
 
+					if(!rootConcept.equals(currentNode)) {
+						System.out.println("Working on " + rootConcept);
+						currentNode = rootConcept;
+					}
+					if(rootConcept.equalsIgnoreCase("_consents")) {
+						String consentGroup = line[1].split("\",")[2].split(",")[0];
+						System.out.println("Consent group is " + consentGroup);
+						patientsPerConsentGroup.put(line[0], consentGroup);
+						
+					}
+
+				}
 			}
 							
 		}

@@ -19,7 +19,6 @@ import java.util.TreeMap;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import etl.jobs.mappings.Mapping;
 
@@ -54,8 +53,6 @@ public class HarmonizedMappingGenerator extends BDCJob {
 		File dataDir = new File(DATA_DIR);
 		Set<Mapping> mappings = new HashSet<>();
 		if(dataDir.isDirectory()) {
-			Map<String,String> variableGroup = getVariableSubGroups();
-			
 			for(File f: dataDir.listFiles()) {
 				if(f.getName().endsWith("json")) continue;
 				String fname = f.getName();
@@ -82,34 +79,6 @@ public class HarmonizedMappingGenerator extends BDCJob {
 		}
 	}
 
-	private static Map<String, String> getVariableSubGroups() throws JsonParseException, JsonMappingException, IOException {
-		File dictDir = new File(DICT_DIR);
-		Map<String,String> subGroups = new HashMap<>();
-		if(dictDir.isDirectory()) {
-			for(File f: dictDir.listFiles()) {
-				if(f.getName().endsWith("json")) {
-					ObjectMapper mapper = new ObjectMapper();
-					Map<?, ?> map = mapper.readValue(f, Map.class);
-
-					String subGroupName = map.get("phenotype_concept").toString();
-					String varName = map.get("name").toString();
-					
-					subGroups.put(varName, subGroupName);
-					
-					Map<Object,Object> updateVarName = new HashMap<>();
-					updateVarName.putAll(map);
-					updateVarName.put("var_name", varName);
-					updateVarName.remove("name");
-					
-					mapper.writeValue(Paths.get(WRITE_DIR + f.getName()).toFile(), updateVarName);
-					
-				}
-			}
-		}
-		Arrays.asList(subGroups);
-		return subGroups;
-	}
-
 	private static void processRawData() throws IOException {
 		File processingDir = new File(PROCESSING_FOLDER);
 		
@@ -124,19 +93,14 @@ public class HarmonizedMappingGenerator extends BDCJob {
 					//skip header
 					String[] headers = buffer.readLine().split("\t");
 					
-					int varColumn = 0;
 					for(String h: headers) {
 						if(h.equalsIgnoreCase("variable")) {
 							break;
-						} else {
-							varColumn++;
 						}
 					}
 					String linea;
 					
 					Map<String,List<String[]>> linesToWrite = new HashMap<>();
-					String variableName = null;
-					
 					while((linea = buffer.readLine())!=null ) {
 						String[] line = linea.split("\t");
 						String varName = line[line.length - 2];
@@ -161,9 +125,6 @@ public class HarmonizedMappingGenerator extends BDCJob {
 					}
 					for(Entry<String,List<String[]>> outputData: linesToWrite.entrySet()) {
 						try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(DATA_DIR + f.getName() + "." + outputData.getKey()), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-							
-							String[] headersToWrite = { "unique_subject_key", outputData.getKey()};
-							//ewriter.write(toCsv(headersToWrite));
 							
 							for(String[] record: outputData.getValue()) {
 								writer.write(arrToCsv(record));
@@ -242,7 +203,7 @@ public class HarmonizedMappingGenerator extends BDCJob {
 				}
 				
 			} catch ( Exception e) {
-				// TODO Auto-generated catch block
+				
 				e.printStackTrace();
 			}
 		} else {

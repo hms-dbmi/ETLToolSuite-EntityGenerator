@@ -3,14 +3,9 @@ package etl.jobs.csv.bdc;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
-import etl.jobs.csv.GenerateAllConcepts;
 import etl.jobs.jobproperties.JobProperties;
 import etl.jobs.mappings.PatientMapping;
 

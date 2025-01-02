@@ -16,7 +16,7 @@ public class AllConcepts {
 		this.tvalChar = line[3];
 	}
 	public AllConcepts() {
-		// TODO Auto-generated constructor stub
+		
 	}
 	public Integer getPatientNum() {
 		return patientNum;

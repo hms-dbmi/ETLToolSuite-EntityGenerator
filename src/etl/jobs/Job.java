@@ -387,21 +387,21 @@ public abstract class Job implements Serializable {
 			
 			try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + studyid.toUpperCase() +"_PatientMapping.v2.csv"))){
 				
-				CSVReader reader = new CSVReader(buffer, ',', '\"', '√');
-				
-				String line[];
-				
-				
-				
-				while((line = reader.readNext()) != null) {
-					if(line.length < 3) continue;
-					if(returnPMMap.containsKey(studyid)) {
-						returnPMMap.get(studyid).put(line[0], line[2]);
-					} else {
-						
-						Map<String,String> innermap = new HashMap<>();
-						innermap.put(line[0], line[2]);
-						returnPMMap.put(studyid,innermap);
+				try (CSVReader reader = new CSVReader(buffer, ',', '\"', '√')) {
+					String line[];
+					
+					
+					
+					while((line = reader.readNext()) != null) {
+						if(line.length < 3) continue;
+						if(returnPMMap.containsKey(studyid)) {
+							returnPMMap.get(studyid).put(line[0], line[2]);
+						} else {
+							
+							Map<String,String> innermap = new HashMap<>();
+							innermap.put(line[0], line[2]);
+							returnPMMap.put(studyid,innermap);
+						}
 					}
 				}
 			}
@@ -432,13 +432,13 @@ public abstract class Job implements Serializable {
 			
 			try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + studyid.toUpperCase() +"_PatientMapping.v2.csv"))){
 				
-				CSVReader reader = new CSVReader(buffer, ',', '\"', '√');
-				
-				String line[];
-				
-				while((line = reader.readNext()) != null) {
-					if(line[0].equalsIgnoreCase("SOURCE_ID")) continue;
-					returnPMSet.add(line);
+				try (CSVReader reader = new CSVReader(buffer, ',', '\"', '√')) {
+					String line[];
+					
+					while((line = reader.readNext()) != null) {
+						if(line[0].equalsIgnoreCase("SOURCE_ID")) continue;
+						returnPMSet.add(line);
+					}
 				}
 			}
 		}
@@ -463,13 +463,13 @@ public abstract class Job implements Serializable {
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + studyid.toUpperCase() +"_PatientMapping.v2.csv"))){
 			
-			CSVReader reader = new CSVReader(buffer, ',', '\"', '√');
-			
-			String line[];
-			
-			while((line = reader.readNext()) != null) {
-				if(line[0].equalsIgnoreCase("SOURCE_ID")) continue;
-				returnPMSet.add(line);
+			try (CSVReader reader = new CSVReader(buffer, ',', '\"', '√')) {
+				String line[];
+				
+				while((line = reader.readNext()) != null) {
+					if(line[0].equalsIgnoreCase("SOURCE_ID")) continue;
+					returnPMSet.add(line);
+				}
 			}
 		}
 		

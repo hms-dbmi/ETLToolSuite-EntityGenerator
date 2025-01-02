@@ -55,18 +55,19 @@ public class ValidatePatientMappings extends BDCJob {
 				System.out.println("Validating " + f.getName());
 				try(BufferedReader buffer = Files.newBufferedReader(f.toPath())) {
 					
-					CSVReader reader = new CSVReader(buffer);
-					String[] line;
-					while((line = reader.readNext()) != null) {
-						
-						if(patientNums.contains(line[2])) {
-							System.err.println(f.getName() + " contains patient collision " + line[2]);
-						} else {
-							patientNums.add(line[2]);
+					try (CSVReader reader = new CSVReader(buffer)) {
+						String[] line;
+						while((line = reader.readNext()) != null) {
+							
+							if(patientNums.contains(line[2])) {
+								System.err.println(f.getName() + " contains patient collision " + line[2]);
+							} else {
+								patientNums.add(line[2]);
+							}
+							
+							
+							
 						}
-						
-						
-						
 					}
 					
 				}

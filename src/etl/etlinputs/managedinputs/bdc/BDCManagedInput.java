@@ -1,7 +1,9 @@
 package etl.etlinputs.managedinputs.bdc;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import etl.etlinputs.managedinputs.ManagedInput;
 
@@ -16,12 +18,6 @@ public class BDCManagedInput extends ManagedInput {
 	private String dataType = "";
 	
 	private String isHarmonized = "";
-	
-	private String phsSubjectIdColumn = "";
-	
-	private String studyFocus = "";
-	
-	private String studyDesign = "";
 
 	private String authZ = "";
 
@@ -31,43 +27,60 @@ public class BDCManagedInput extends ManagedInput {
 
 	private String hasMulti = "";
 	
-	private String additionalInformation = "";
 
 
 			
-	public BDCManagedInput(String[] inputCsv) {
+	public BDCManagedInput(Map<String,Integer> headersMap, String[] inputCsv) {
 		super(inputCsv);
-		this.studyAbvName = inputCsv[0];
-		this.studyIdentifier = inputCsv[1];
-		this.studyType = inputCsv[2];
-		this.studyFullName = inputCsv[3];
-		this.dataType = inputCsv[4];
-		this.isHarmonized = inputCsv[5];
-		this.phsSubjectIdColumn = inputCsv[6];
-		this.readyToProcess = inputCsv[7];
-		this.dataProcessed = inputCsv[8];
-		this.studyFocus = inputCsv[9];
-		this.studyDesign = inputCsv[10];
-		this.authZ = inputCsv[11];
-		this.version = inputCsv[12];	
-		this.phase = inputCsv[13];
-		this.hasMulti = inputCsv[14];
-		this.additionalInformation = inputCsv[15];
+		this.studyAbvName = inputCsv[headersMap.get("Study Abbreviated Name")];
+		this.studyIdentifier = inputCsv[headersMap.get("Study Identifier")];
+		this.studyType = inputCsv[headersMap.get("Study Type")];
+		this.studyFullName = inputCsv[headersMap.get("Study Full Name")];
+		this.dataType = inputCsv[headersMap.get("Data Type")];
+		this.isHarmonized = inputCsv[headersMap.get("DCC Harmonized")];
+		this.readyToProcess = inputCsv[headersMap.get("Data is ready to process")];
+		this.dataProcessed = inputCsv[headersMap.get("Data Processed")];
+		this.authZ = "/programs/"+inputCsv[headersMap.get("Gen3 Authz Program Name")]+"/projects/"+inputCsv[headersMap.get("Gen3 Authz Project Name")];
+		if(this.studyType != "PUBLIC"){
+			this.authZ = this.authZ + "_";
+		}
+		this.version = inputCsv[headersMap.get("Version")];	
+		this.phase = inputCsv[headersMap.get("Phase")];
+		this.hasMulti = inputCsv[headersMap.get("Has Multi")];
 	}
 	
 	public static List<ManagedInput> buildAll(List<String[]> managedInputs){
-		return buildAll(managedInputs,true);
-	}
-	
-	public static List<ManagedInput> buildAll(List<String[]> managedInputs, Boolean skipHeader) {
 		List<ManagedInput> inputs = new ArrayList<>();
+		String[] headers = null;
+		Map<String,Integer> headersMap = null;
 		for(String[] input: managedInputs) {
-			if(input[0].equalsIgnoreCase("Study Abbreviated Name")) continue;
+			if(input[0].equalsIgnoreCase("Study Abbreviated Name")) 
+			{
+				headers = input;
+				break;
+			}
+		}
+		if (headers.length == 0){
+			System.err.println("NO MANAGED INPUT HEADER FOUND");
+			return null;
+		}
+		else {
+			headersMap = buildInputsHeaderMap(headers);
+		}
+		for(String[] input: managedInputs) {
 			if(input.length > 7 && input[7].equalsIgnoreCase("no")) continue; 
 			//if(input.length > 8 && input[8].equalsIgnoreCase("no")) continue;
-			inputs.add(new BDCManagedInput(input));
+			inputs.add(new BDCManagedInput(headersMap,input));
 		}
 		return inputs;
+	}
+
+	public static Map<String,Integer> buildInputsHeaderMap(String[] headers){
+		Map<String,Integer> inputsHeaders = new HashMap<String,Integer>();
+		for (int i = 0; i<headers.length; i++){
+			inputsHeaders.put(headers[i],i);
+		}
+		return inputsHeaders;
 	}
 
 	public String getReadyToProcess() {
@@ -105,34 +118,11 @@ public class BDCManagedInput extends ManagedInput {
 	public String getIsHarmonized() {
 		return isHarmonized;
 	}
-
-	public String getStudyFocus() {
-		return studyFocus;
-	}
-
-	public void setStudyFocus(String studyFocus) {
-		this.studyFocus = studyFocus;
-	}
-
-	public String getStudyDesign() {
-		return studyDesign;
-	}
-
-	public void setStudyDesign(String studyDesign) {
-		this.studyDesign = studyDesign;
-	}
-
-	public String getAdditionalInformation() {
-		return additionalInformation;
-	}
 	
 	public String getAuthZ(){
 		return authZ;
 	}
 
-	public void setAdditionalInformation(String additionalInformation) {
-		this.additionalInformation = additionalInformation;
-	}
 
 	public void setStudyIdentifier(String studyIdentifier) {
 		this.studyIdentifier = studyIdentifier;
@@ -152,10 +142,6 @@ public class BDCManagedInput extends ManagedInput {
 
 	public void setIsHarmonized(String isHarmonized) {
 		this.isHarmonized = isHarmonized;
-	}
-
-	public void setPhsSubjectIdColumn(String phsSubjectIdColumn) {
-		this.phsSubjectIdColumn = phsSubjectIdColumn;
 	}
 
 	public void setAuthZ(String authZ) {
@@ -189,8 +175,7 @@ public class BDCManagedInput extends ManagedInput {
 	@Override
 	public String toString() {
 		return "BDCManagedInput [studyIdentifier=" + studyIdentifier + ", studyType=" + studyType + ", studyFullName="
-				+ studyFullName + ", dataType=" + dataType + ", isHarmonized=" + isHarmonized + ", phsSubjectIdColumn="
-				+ phsSubjectIdColumn + ", studyAbvName=" + studyAbvName + "]";
+				+ studyFullName + ", dataType=" + dataType + ", isHarmonized=" + isHarmonized + ", studyAbvName=" + studyAbvName + "]";
 	}
 
 	public static List<String> getPhsAccessions(String studyAbvName, List<BDCManagedInput> managedInputs) {

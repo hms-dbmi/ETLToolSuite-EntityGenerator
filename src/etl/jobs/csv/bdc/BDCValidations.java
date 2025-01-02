@@ -9,16 +9,11 @@ import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import com.opencsv.CSVReader;
-
-import etl.etlinputs.managedinputs.ManagedInput;
-import etl.etlinputs.managedinputs.ManagedInputFactory;
-import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 
 public class BDCValidations extends BDCJob {
 
@@ -40,61 +35,60 @@ public class BDCValidations extends BDCJob {
 	}
 
 	private static void execute() throws IOException {
-		Map<String,Set<String>> patientsPerStudy = new HashMap<>();
 		
 		Map<String,Set<String>> patientsPerConsentGroup = new HashMap<>();
 		
-		Set<String> _studies = new HashSet<>();
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "GLOBAL_allConcepts.csv"))){
 			
-			CSVReader reader = new CSVReader(buffer, ',', '\"', 'µ');
-			String[] line;
-			
-			String currentNode = "";
-			
-			while((line = reader.readNext())!=null) {
-				// validate distinct patient counts in each study
-				if(line[0].equalsIgnoreCase("PATIENT_NUM")) continue;  //skip header
-				if(line[1].split("\\\\").length < 2) {
-					System.out.println(line[1]);
-					continue;
-				}
+			try (CSVReader reader = new CSVReader(buffer, ',', '\"', 'µ')) {
+				String[] line;
 				
-				String rootConcept = line[1].split("\\\\")[1];
-
-				if(!rootConcept.equals(currentNode)) {
-					System.out.println("Working on " + rootConcept);
-					currentNode = rootConcept;
-				}
-/*				
-				if(patientsPerStudy.containsKey(rootConcept)) {
-					
-					patientsPerStudy.get(rootConcept).add(line[0]);
-					
-				} else {
-					
-					patientsPerStudy.put(rootConcept, new HashSet<String>(Arrays.asList(line[0])));
-					
-				}
-*/				
-				// validate patients counts per consent group
-				if(rootConcept.equalsIgnoreCase("_consents")) {
-					
-					if(patientsPerConsentGroup.containsKey(line[3])) {
-						patientsPerConsentGroup.get(line[3]).add(line[0]);
-					} else {
-						patientsPerConsentGroup.put(line[3], new HashSet<String>(Arrays.asList(line[0])));
+				String currentNode = "";
+				
+				while((line = reader.readNext())!=null) {
+					// validate distinct patient counts in each study
+					if(line[0].equalsIgnoreCase("PATIENT_NUM")) continue;  //skip header
+					if(line[1].split("\\\\").length < 2) {
+						System.out.println(line[1]);
+						continue;
 					}
 					
-				}
-/*
-				if(rootConcept.equalsIgnoreCase("_studies")) {
-					
-					_studies.add(line[1].split("\\\\")[2]);
-					
-				}*/
+					String rootConcept = line[1].split("\\\\")[1];
 
+					if(!rootConcept.equals(currentNode)) {
+						System.out.println("Working on " + rootConcept);
+						currentNode = rootConcept;
+					}
+/*				
+					if(patientsPerStudy.containsKey(rootConcept)) {
+						
+						patientsPerStudy.get(rootConcept).add(line[0]);
+						
+					} else {
+						
+						patientsPerStudy.put(rootConcept, new HashSet<String>(Arrays.asList(line[0])));
+						
+					}
+*/				
+					// validate patients counts per consent group
+					if(rootConcept.equalsIgnoreCase("_consents")) {
+						
+						if(patientsPerConsentGroup.containsKey(line[3])) {
+							patientsPerConsentGroup.get(line[3]).add(line[0]);
+						} else {
+							patientsPerConsentGroup.put(line[3], new HashSet<String>(Arrays.asList(line[0])));
+						}
+						
+					}
+/*
+					if(rootConcept.equalsIgnoreCase("_studies")) {
+						
+						_studies.add(line[1].split("\\\\")[2]);
+						
+					}*/
+
+				}
 			}
 							
 		}/*

@@ -234,16 +234,6 @@ public class GenerateAllConcepts extends Job {
 		}
 	}
 
-	private static void writeVariableAnalysis() throws IOException {
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_VariableAnalysis.txt"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
-			for(String line: MAPPINGS_WITH_BAD_DATA_TYPES) {
-				buffer.write(line + '\n');
-			}
-		}
-		
-		
-	}
-
 	private static void writeBadMappings() throws IOException {
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_BadDataTypes.txt"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
 			for(String line: MAPPINGS_WITH_BAD_DATA_TYPES) {
@@ -423,7 +413,7 @@ public class GenerateAllConcepts extends Job {
 			writer.close();
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 

@@ -1,6 +1,6 @@
 package etl.jobs.csv.bdc;
 
-import java.io.BufferedReader;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +17,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -29,12 +27,11 @@ import etl.jobs.Job;
 
 public class DbgapDecodeFiles extends Job {
 
-	public static List<String> SAMPLE_ID = new ArrayList() {{
+	public static List<String> SAMPLE_ID = new ArrayList<String>() {{
 		add("DBGAP_SAMPLE_ID");
 		add("DBGAP SAMPID");
 	}};
-	@SuppressWarnings("unchecked")
-	public static List<String> SUBJECT_ID = new ArrayList() {{
+	public static List<String> SUBJECT_ID = new ArrayList<String>() {{
 		add("dbGaP_Subject_ID".toUpperCase());
 		add("dbGaP SubjID".toUpperCase());
 
@@ -66,10 +63,10 @@ public class DbgapDecodeFiles extends Job {
 			System.err.println(e);
 			
 		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		} catch (SAXException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 	}
@@ -81,7 +78,6 @@ public class DbgapDecodeFiles extends Job {
 		if(Files.isDirectory(Paths.get(DATA_DIR))) {
 
 			File[] dataFiles = new File(DATA_DIR).listFiles();
-			File f = new File(DATA_DIR);
 			
 			setSampleToSubject();
 			
@@ -163,7 +159,7 @@ public class DbgapDecodeFiles extends Job {
 						if(headers.length != line.length) {
 							
 							System.err.println("Malformed row detected - skipping row");
-							System.err.println(data.getName() + " - " + toCsv(line));
+							System.err.println(data.getName() + " - " + line);
 							warnCount++;
 
 						}
@@ -212,7 +208,7 @@ public class DbgapDecodeFiles extends Job {
 				
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			
 			System.err.println("Error writing to " + WRITE_DIR + data.getName());
 			e.printStackTrace();
 			System.exit(-1);
@@ -224,7 +220,6 @@ public class DbgapDecodeFiles extends Job {
 		String[] sampleFiles = BDCJob.getStudySampleMultiFile();
 		
 		for(String samplefile:sampleFiles) {
-			String[] headers = BDCJob.getHeaders(new File(DATA_DIR + samplefile));
 			
 			int sampColId = -1; 
 			int subjColId = -1;
@@ -311,91 +306,10 @@ public class DbgapDecodeFiles extends Job {
 		return null;
 	}
 
-	private static String findCodedDesc(Document dataDic) {
-		
-		NodeList dataTable = dataDic.getElementsByTagName("data_table");
-		
-		NodeList dataNodes = dataTable.item(0).getChildNodes();
 
-		Node node = dataNodes.item(0);
-		
-		String desc = node.getTextContent();
-		
-		return desc;
-		
-	}
-	
-	private static Document readDataDict(String[] fileNameArr, String name) throws ParserConfigurationException, SAXException, IOException {
-
-		if(fileNameArr.length > 3) { 
-		
-			String accession = fileNameArr[0]; 
-		
-			String version = fileNameArr[1];
-		
-			String phenotype = fileNameArr[2];
-					
-			Document doc = findDictionary(accession,version,phenotype);
-		
-			return doc;
-			
-		} else {
-			
-			System.err.println("File: " + name + " invalid dbgap format expecting ( phsXXXXXX.vX.phtXXXXXX )");
-			
-			return null;
-			
-		}
-	}
-	
-	private static Document findDictionary(String accession, String version, String phenotype) throws ParserConfigurationException, SAXException, IOException {
-		
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = factory.newDocumentBuilder();
-		
-		if(Files.isDirectory(Paths.get(DICT_DIR))) {
-			
-			File dictFile = null;
-			
-			for(File f: new File(DICT_DIR).listFiles()) {
-				
-				if(f.isDirectory()) continue;
-				
-				String[] fileNameArr = f.getName().split("\\.");
-				
-				if(!fileNameArr[0].equals(accession)) continue;
-				
-				if(!fileNameArr[1].equals(version)) continue;
-				
-				if(!fileNameArr[2].equals(phenotype)) continue;
-				if(!fileNameArr[fileNameArr.length - 2].equalsIgnoreCase("data_dict")) continue;
-				if(!fileNameArr[fileNameArr.length - 1].equalsIgnoreCase("xml")) continue;
-				
-				else {
-					dictFile = f;
-					break;
-				}
-			}
-			
-			if(dictFile == null) return null;
-			
-			return builder.parse(dictFile);
-		
-		} else {
-			System.err.println("DICT_DIR " + DICT_DIR + " IS NOT A DIRECTORY!");
-			throw new IOException();
-		}
-	}
 	
 	private static void buildHeaderLookup(Document dataDic, Map<String,String> headerLookup, Map<String,String> phvLookup) {
-		
-		NodeList dataTable = dataDic.getElementsByTagName("data_table");
-		
-		Node dataNode = dataTable.item(0);
-		
-		NamedNodeMap nodeMap = dataNode.getAttributes();
-
-		
+				
 		// build an object that will collect the variables
 		
 		NodeList variables = dataDic.getElementsByTagName("variable");
@@ -434,12 +348,7 @@ public class DbgapDecodeFiles extends Job {
 	
 	private static Map<String, Map<String, String>> buildValueLookup(Document dataDic) {
 		
-		NodeList dataTable = dataDic.getElementsByTagName("data_table");
-		
-		Node dataNode = dataTable.item(0);
-		
-		NamedNodeMap nodeMap = dataNode.getAttributes();
-		
+			
 		// build an object that will collect the variables
 		
 		NodeList variables = dataDic.getElementsByTagName("variable");
@@ -458,9 +367,6 @@ public class DbgapDecodeFiles extends Job {
 	    		
 	    		String name = "";
 	    		
-	    		String desc = "";
-	    		
-	    		String type = "";
 	    		
 	    		List<Node> valueNodes = new ArrayList<Node>();
 	    		
@@ -469,10 +375,6 @@ public class DbgapDecodeFiles extends Job {
 	        		Node node2 = variableChildren.item(idx2);
 	        			        		
 	        		if(node2.getNodeName().equalsIgnoreCase("name")) name = node2.getTextContent();
-	        		
-	        		if(node2.getNodeName().equalsIgnoreCase("description")) desc = node2.getTextContent();
-	        		
-	        		//if(node2.getNodeName().equalsIgnoreCase("type")) type = node2.getTextContent();
 	        		
 	        		if(node2.getNodeName().equalsIgnoreCase("value")) valueNodes.add(node2);
 	    		}
@@ -483,7 +385,6 @@ public class DbgapDecodeFiles extends Job {
 	    		
 	    		for(Node vnode: valueNodes) {
 	    			String valueCodeName = findValueCodeName(vnode);
-	    			Map<String,String> vmap = new HashMap<String,String>(); 
 	    			
 	    			String valueDecoded = vnode.getFirstChild().getNodeValue();
 	    			

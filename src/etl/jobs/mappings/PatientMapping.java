@@ -39,7 +39,7 @@ public class PatientMapping {
 	}
 
 	public PatientMapping() {
-		// TODO Auto-generated constructor stub
+		
 	}
 
 	public String getSourceId() {
@@ -74,17 +74,17 @@ public class PatientMapping {
 			
 			try(BufferedReader buffer = Files.newBufferedReader(Paths.get(patientMappingFileURI))) {
 				
-				CSVReader reader = new CSVReader(buffer);
-				
-				String[] line; 
-				
-				while((line = reader.readNext()) != null) {
+				try (CSVReader reader = new CSVReader(buffer)) {
+					String[] line; 
 					
-					if(line[0].equals("SOURCE_ID")) continue; // skip header
-					if(line[0].isEmpty()) continue;
-					if(line[0] == null) continue;
-					pm.add(new PatientMapping(line));
-					
+					while((line = reader.readNext()) != null) {
+						
+						if(line[0].equals("SOURCE_ID")) continue; // skip header
+						if(line[0].isEmpty()) continue;
+						if(line[0] == null) continue;
+						pm.add(new PatientMapping(line));
+						
+					}
 				}
 				
 				

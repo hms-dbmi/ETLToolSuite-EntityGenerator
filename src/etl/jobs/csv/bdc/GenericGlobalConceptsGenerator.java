@@ -20,8 +20,6 @@ public class GenericGlobalConceptsGenerator extends BDCJob {
 
 	private static String STUDY_ACCESSION = "";
 	private static String STUDY_TYPE = "";
-	private static String CONSENT = "";
-	private static String CONSENT_NAME = "";
 	private static String CONSENT_ID = "";
 	
 
@@ -267,7 +265,7 @@ public class GenericGlobalConceptsGenerator extends BDCJob {
 		}	*/
 		for(String arg: args) {
 			if(arg.equalsIgnoreCase("-consentname")) {
-				CONSENT_NAME = checkPassedArgs(arg, args);;
+				checkPassedArgs(arg, args);;
 			}
 			if(arg.equalsIgnoreCase("-consentid")) {
 				CONSENT_ID = checkPassedArgs(arg, args);;
