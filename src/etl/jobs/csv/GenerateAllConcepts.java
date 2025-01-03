@@ -2,7 +2,6 @@ package etl.jobs.csv;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -276,15 +275,15 @@ public class GenerateAllConcepts extends Job {
 								
 				Integer column = new Integer(mapping.getKey().split(":")[1]);
 				
-				if(!Files.exists(Paths.get(DATA_DIR + File.separatorChar + fileName))) {
+				if(!Files.exists(Paths.get(DATA_DIR + fileName))) {
 					
-					System.err.println(DATA_DIR + File.separatorChar + fileName + " does not exist.");
+					System.err.println(DATA_DIR + fileName + " does not exist.");
 					
 					return;
 					
 				} 
 				
-				try(BufferedReader reader = Files.newBufferedReader(Paths.get(DATA_DIR + File.separatorChar + fileName))){
+				try(BufferedReader reader = Files.newBufferedReader(Paths.get(DATA_DIR + fileName))){
 	
 					RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
 							.withSeparator(DATA_SEPARATOR)

@@ -147,16 +147,14 @@
 			<fileset dir="bin" includes="*.xml"></fileset>
     		<zipgroupfileset dir="bin" includes="**/*.jar" />
     	</jar>
-
-		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/RootNodeGenerator.jar">
+	<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/PHSIdGenerator.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.jobs.csv.bdc.RootNodeGenerator"/>
+			<attribute name="Main-Class" value="etl.jobs.csv.bdc.PHSIdGenerator"/>
 			</manifest>
 		    <fileset dir="bin" includes="**/*.class" />
 			<fileset dir="bin" includes="*.xml"></fileset>
-	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
-		</jar>
-
+    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    	</jar>
 		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/DataAnalyzer.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.DataAnalyzer"/>
@@ -192,18 +190,6 @@
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar> 
 
-
-
-
-
-		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/Partitioner.jar">
-			<manifest>
-				<attribute name="Main-Class" value="etl.jobs.csv.Partitioner"/>
-			</manifest>
-	  	    <fileset dir="bin" includes="**/*.class" />
-	  		<fileset dir="bin" includes="*.xml"></fileset>
-	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
-	  	</jar>    
 		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/MergePartitions.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.MergePartitions"/>
