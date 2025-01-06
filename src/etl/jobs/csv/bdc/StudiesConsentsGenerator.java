@@ -15,8 +15,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.logging.log4j.core.parser.ParseException;
-
 import com.opencsv.CSVReader;
 
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
@@ -54,7 +52,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 		}
 	}
 
-	private static void execute() throws IOException, ParseException {
+	private static void execute() throws IOException {
 		// iterate over managed inputs
 		List<BDCManagedInput> managedInputs = getManagedInputs();
 
@@ -165,7 +163,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 	}
 
 	private static Map<String, Set<String>> buildConsents(String studyIdentifier, String studyAbvName,
-			Map<String, Map<String, String>> patientMappings) throws IOException, ParseException {
+			Map<String, Map<String, String>> patientMappings) throws IOException {
 
 		File dataDir = new File(DATA_DIR + "decoded/");
 
@@ -225,7 +223,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 						}
 
 					} else {
-						throw new ParseException("Cannot find header for " + fileNames[0],
+						throw new IOException("Cannot find header for " + fileNames[0],
 								new Throwable().fillInStackTrace());
 					}
 				}

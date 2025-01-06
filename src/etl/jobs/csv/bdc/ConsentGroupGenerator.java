@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.logging.log4j.core.parser.ParseException;
-
 import com.opencsv.CSVReader;
 
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
@@ -78,7 +76,7 @@ public class ConsentGroupGenerator extends BDCJob {
 	static List<String[]> _harmonized_consents = new ArrayList<>();
 	
 	
-	public static void main(String[] args) throws ParseException {
+	public static void main(String[] args) {
 		try {
 			setVariables(args, buildProperties(args));
 			
@@ -101,7 +99,7 @@ public class ConsentGroupGenerator extends BDCJob {
 
 	}
 	
-	private static void execute() throws IOException, ParseException {
+	private static void execute() throws IOException {
 		// read the spread sheet into a List<String[]>
 		// Once GOOGLE API is ready to go replace this method with the google sheet methodology.
 		List<BDCManagedInput> managedInputs = getManagedInputs();
@@ -157,7 +155,7 @@ public class ConsentGroupGenerator extends BDCJob {
 	}
 
 	private static Map<String, List<String[]>> generateConsents(List<BDCManagedInput> managedInputs,
-			Map<String,Map<String,String>> patientMappings) throws IOException, ParseException {
+			Map<String,Map<String,String>> patientMappings) throws IOException {
 		
 		Map<String,List<String[]>> consents = new HashMap<>();
 		
@@ -233,7 +231,7 @@ public class ConsentGroupGenerator extends BDCJob {
 	}
 
 
-	private static List<String[]> buildConsents(String studyIdentifier, String studyAbvName, Map<String, Map<String, String>> patientMappings) throws IOException, ParseException {
+	private static List<String[]> buildConsents(String studyIdentifier, String studyAbvName, Map<String, Map<String, String>> patientMappings) throws IOException {
 		File dataDir = new File(DATA_DIR);
 		
 		List<String[]> returnSet = new ArrayList<>();
@@ -324,7 +322,7 @@ public class ConsentGroupGenerator extends BDCJob {
 						}
 						
 					} else {
-						throw new ParseException("Cannot find header for " + fileNames[0], new Throwable().fillInStackTrace());
+						throw new IOException("Cannot find header for " + fileNames[0], new Throwable().fillInStackTrace());
 					}
 				}
 			}
