@@ -2,7 +2,6 @@ package etl.jobs.csv;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -90,7 +89,7 @@ public class DataAnalyzer extends Job {
 			
 			//for(Mapping m: entry.getValue()) {
 			entry.getValue().parallelStream().forEach(m -> {
-				Path path = Paths.get(DATA_DIR + File.separatorChar + entry.getKey());
+				Path path = Paths.get(DATA_DIR + entry.getKey());
 				
 				if(Files.exists(path)) { 
 
