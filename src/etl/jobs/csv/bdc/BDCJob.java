@@ -102,24 +102,26 @@ public abstract class BDCJob extends Job {
 		try (CSVReader reader = new CSVReader(buffer, '\t', 'π')) {
 			String[] headers;
 			String columnName = "";
+			int row = 0;
 
 			while((headers = reader.readNext()) != null) {
-
-				boolean isComment = ( headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty() ) ? true: headers[0].isEmpty() ? true: false;
+				boolean isComment = headers[0].toString().startsWith("#") || headers[0].toString().trim().isEmpty() || headers[0].isEmpty();
 				
 				if(isComment) {
-					
+					row++;
 					continue;
 					
 				} else {
 					
 					columnName = headers[columnIndex];
-					
+					System.out.println("Column name is: " + columnName + ". Found in file row " + row);
+					return columnName;
 				}
 				
 			}
-			return columnName;
+			
 		}
+		return null;
 	}
 
 	public static int findRawDataColumnIdx(Path fileName, String columnName) throws IOException {
@@ -483,6 +485,7 @@ public abstract class BDCJob extends Job {
 				int x = 0;
 				System.out.println("Checking for header matching expected consent name block");
 				for (String header : headers) {
+					System.out.println("Checking " + header);
 					if (CONSENT_HEADERS.contains(header.toLowerCase())) {
 						System.out.println("Consent header found = " + header);
 						consentidx = x;

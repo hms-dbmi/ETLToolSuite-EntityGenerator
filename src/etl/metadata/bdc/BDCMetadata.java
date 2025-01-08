@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -122,7 +120,6 @@ public class BDCMetadata implements Metadata {
 						bdcm.authZ = bdcm.authZ + "_";
 					}
 					
-					getCounts(bdcm, managedInput, entry.getKey());
 					
 					if(bdcm.raw_clinical_sample_size == -1) {
 						System.out.println(managedInput.getStudyIdentifier() + "." + bdcm.consent_group_code + " has no participants.");
@@ -165,41 +162,7 @@ public class BDCMetadata implements Metadata {
 	}
 
 
-	private void getCounts(BDCMetadataElements bdcm, BDCManagedInput managedInput, String consent_group_code) throws IOException {
-		
-		String subjectFileName =  BDCJob.getStudySubjectMultiFile(managedInput);
-		
-		List<String> subjectFilePatientSet = new ArrayList<>();
-		
-		List<String> sampleFilePatientSet = new ArrayList<>();
-		
-		if(subjectFileName != null && !subjectFileName.isEmpty()) {
-			subjectFilePatientSet = BDCJob.getPatientSetForConsentFromRawData(subjectFileName, managedInput, CONSENT_HEADERS, consent_group_code);
-			//bdcm.clinical_sample_size = subjectFilePatientSet.size();
-			bdcm.raw_clinical_sample_size = subjectFilePatientSet.size();
-		} else {
-			//bdcm.clinical_sample_size = -1;
-
-			bdcm.raw_clinical_sample_size = -1;
-		}
-
-		String sampleFileName = BDCJob.getStudySampleMultiFile(managedInput);
-		
-		if(sampleFileName != null && !sampleFileName.isEmpty()) {
-
-			sampleFilePatientSet = BDCJob.getPatientSetFromSampleFile(subjectFileName,sampleFileName,managedInput);
-		
-		}
-		
-		Set<String> filteredSampleSet = sampleFilePatientSet.stream()
-				.distinct()
-				.filter(subjectFilePatientSet::contains)
-				.collect(Collectors.toSet());
-		
-		bdcm.raw_genetic_sample_size = filteredSampleSet.size();
-		//bdcm.genetic_sample_size = filteredSampleSet.size();
-
-	}
+	
 
 
 	private Map<String, Map<String, String>> getConsentGroups(List<ManagedInput> managedInputs) throws IOException {

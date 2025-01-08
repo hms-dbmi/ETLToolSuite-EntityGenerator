@@ -70,8 +70,12 @@ public class StudiesConsentsGenerator extends BDCJob {
 		Set<String> rootNodePatients = new HashSet<>();
 
 		for (BDCManagedInput input : managedInputs) {
-			if (input.getHasMulti().toLowerCase().equals("no")){
+			if (!input.getHasMulti().toLowerCase().equals("yes")){
 				System.out.println(input.getStudyIdentifier() + " marked as not having subject multi. Skipping.");
+				continue;
+			}
+			if (!input.getReadyToProcess().toLowerCase().equals("yes")){
+				System.out.println(input.getStudyIdentifier() + " marked as not ready for ingest. Skipping.");
 				continue;
 			}
 			String firstLevelName = "µ_studies_consentsµ" + input.getStudyIdentifier() + "µ";
@@ -184,14 +188,20 @@ public class StudiesConsentsGenerator extends BDCJob {
 				}
 			});
 
-			if (fileNames.length != 1) {
-				System.err.println("Expecting one subject.multi file per study aborting! : " +studyIdentifier);
+			if (fileNames.length > 1) {
+				System.err.println("Expecting only one subject.multi file per study and found multiple, aborting : " +studyIdentifier);
 				System.exit(255);
 				//return returnSet;
 				
 
 			}
+			if (fileNames.length == 0) {
+				System.err.println("Expecting subject.multi file, none found, aborting : " +studyIdentifier);
+				System.exit(255);
+				//return returnSet;
+				
 
+			}
 			try (BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "decoded/" + fileNames[0]))) {
 				try (CSVReader reader = new CSVReader(buffer)) {
 					int consentidx = getConsentIdx(fileNames[0]);
@@ -209,7 +219,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 
 							String hpds_id = mappingLookup(line[0], patientMappings.get(studyAbvName));
 							if (hpds_id == null) {
-								System.err.println("No HPDS ID found for " + line[0]);
+								System.out.println("Potential issue - No HPDS ID found in + " + studyIdentifier + " for " + line[0]);
 							}
 							;
 

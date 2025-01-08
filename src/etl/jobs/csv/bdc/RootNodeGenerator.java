@@ -42,7 +42,7 @@ public class RootNodeGenerator extends BDCJob {
 		
 		Map<String, Map<String, String>> patientMappings = BDCJob.getPatientMappings();
 		
-		
+		getPatientSets(managedInputs, patientMappings);
 	}
 
 	private static Map<String, List<String>> getPatientSets(List<BDCManagedInput> managedInputs,
