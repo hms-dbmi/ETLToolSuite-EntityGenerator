@@ -24,6 +24,8 @@ import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 import etl.jobs.jobproperties.JobProperties;
 import etl.jobs.mappings.PatientMapping;
 
+import static java.lang.Integer.valueOf;
+
 public class SetPatientSequence extends BDCJob{
 
 	/**
@@ -241,7 +243,7 @@ public class SetPatientSequence extends BDCJob{
 			if(prop.containsKey("patientnumstartseq")) {
 				
 				if(NumberUtils.isCreatable(prop.get("patientnumstartseq").toString())) {
-					return new Integer(prop.get("patientnumstartseq").toString()); 
+					return valueOf(prop.get("patientnumstartseq").toString());
 				} else {
 					throw new Exception(jobConfig + " has invalid patientnumstartseq");
 				}

@@ -2,6 +2,8 @@ package etl.job.entity;
 
 import java.util.Properties;
 
+import static java.lang.Character.valueOf;
+
 public class ConfigFile {
 	
 	public String 	filename  = "./data/";
@@ -61,7 +63,7 @@ public class ConfigFile {
 	@Override
 	public String toString() {
 		
-		String ddlimit = datadelimiter == '\t' ? "\\t" : new Character(datadelimiter).toString() ;
+		String ddlimit = datadelimiter == '\t' ? "\\t" : valueOf(datadelimiter).toString() ;
 		
 		return "filename=" + filename + "\n" +
 				"mappingfile=" + mappingfile + "\n" +

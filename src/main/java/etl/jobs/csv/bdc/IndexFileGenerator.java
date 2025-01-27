@@ -65,10 +65,7 @@ public class IndexFileGenerator extends BDCJob {
 	private static void buildIndexFiles(BDCManagedInput managedInput, Map<String,String> consentMap) throws IOException {
 		
 		File dataDir = new File(DATA_DIR);
-		
-		List<String> patientNums = new ArrayList<>();
-		List<String> sampleIds = new ArrayList<>();
-		
+
 		Map<String,String> patientNumLookup = getPatientMapping(managedInput.getStudyAbvName());
 
 		List<String> fullIds = new ArrayList<>();
@@ -85,7 +82,9 @@ public class IndexFileGenerator extends BDCJob {
 			String phsNum = managedInput.getStudyIdentifier();
 			String studyAbv = managedInput.getStudyAbvName();
 
-			
+			List<String> patientNums = new ArrayList<>();
+			List<String> sampleIds = new ArrayList<>();
+
 			try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + fullId + "_SampleIds.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
 		
 				if(dataDir.isDirectory()) {

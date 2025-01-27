@@ -409,9 +409,7 @@ public abstract class Job implements Serializable {
 		
 		return returnPMMap;
 	}
-	/**
-	 * 
-	 */
+
 	/**
 	 * Builds Patient mappings into a list of arrays
 	 * uses the managedInputs to control which patientMappings are being generated

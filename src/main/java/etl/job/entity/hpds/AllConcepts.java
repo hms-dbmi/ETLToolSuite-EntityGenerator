@@ -2,6 +2,8 @@ package etl.job.entity.hpds;
 
 import org.apache.commons.lang3.StringUtils;
 
+import static java.lang.Integer.valueOf;
+
 public class AllConcepts {
 	private Integer patientNum;
 	private String conceptPath;
@@ -10,7 +12,7 @@ public class AllConcepts {
 	private String startDate = "0";
 	
 	public AllConcepts(String[] line) {
-		this.patientNum = new Integer(line[0]);
+		this.patientNum = valueOf(line[0]);
 		this.conceptPath = line[1];
 		this.nvalNum = line[2];
 		this.tvalChar = line[3];
@@ -116,9 +118,11 @@ public class AllConcepts {
 		if(StringUtils.isBlank(tvalChar) && StringUtils.isBlank(nvalNum)) return false;
 		return true;
 	}
-	
+
+
 	public char[] toCSV() {
-		
+		// TODO: Remove this custom toCSV method and use OpenCSV's built-in writer for CSV serialization.
+
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append('"');

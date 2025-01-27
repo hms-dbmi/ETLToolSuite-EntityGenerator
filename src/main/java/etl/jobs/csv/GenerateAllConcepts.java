@@ -34,6 +34,8 @@ import etl.jobs.jobproperties.JobProperties;
 import etl.jobs.mappings.Mapping;
 import etl.jobs.mappings.PatientMapping;
 
+import static java.lang.Integer.valueOf;
+
 /**
  * CSV Version to generate allConcepts file
  * 
@@ -83,7 +85,7 @@ public class GenerateAllConcepts extends Job {
 		public VariableAnalysis(Mapping mapping) {
 		
 			this.fileName = mapping.getKey().split(":")[0];
-			this.colIdx = new Integer(mapping.getKey().split(":")[1]);
+			this.colIdx = valueOf(mapping.getKey().split(":")[1]);
 			this.mappingDataType = mapping.getDataType();
 			this.conceptPath = mapping.getRootNode();
 			this.totalFileRecordCount = 0;
@@ -113,7 +115,7 @@ public class GenerateAllConcepts extends Job {
 						for(Entry<String,Integer> pnv: va.possibleNumericVariablesAsText.entrySet()) {
 							String[] lineToWrite = new String[headers.length];
 							lineToWrite[0] = va.fileName;
-							lineToWrite[1] = new Integer(va.colIdx).toString();
+							lineToWrite[1] = valueOf(va.colIdx).toString();
 							lineToWrite[2] = va.conceptPath;
 							lineToWrite[3] = va.mappingDataType;
 							lineToWrite[4] = pnv.getKey();
@@ -129,7 +131,7 @@ public class GenerateAllConcepts extends Job {
 						for(Entry<String,Integer> bnv: va.badNumericalVariables.entrySet()) {
 							String[] lineToWrite = new String[headers.length];
 							lineToWrite[0] = va.fileName;
-							lineToWrite[1] = new Integer(va.colIdx).toString();
+							lineToWrite[1] = valueOf(va.colIdx).toString();
 							lineToWrite[2] = va.conceptPath;
 							lineToWrite[3] = va.mappingDataType;
 							lineToWrite[4] = bnv.getKey();
@@ -157,15 +159,15 @@ public class GenerateAllConcepts extends Job {
 					VariableAnalysis va = VAEntry.getValue();
 					String[] lineToWrite = new String[headers.length];
 					lineToWrite[0] = va.fileName;
-					lineToWrite[1] = new Integer(va.colIdx).toString();
+					lineToWrite[1] = valueOf(va.colIdx).toString();
 					lineToWrite[2] = va.conceptPath;
 					lineToWrite[3] = va.mappingDataType;
-					lineToWrite[4] = new Integer(va.totalFileRecordCount).toString();
-					lineToWrite[5] = new Integer(va.totalVariableCount).toString();
-					lineToWrite[6] = new Integer(va.totalValidVariableCount).toString();
-					lineToWrite[7] = new Integer(va.totalBadNumericCount).toString();
-					lineToWrite[8] = new Integer(va.totalEmptyOrNullValueCount).toString();
-					lineToWrite[9] = new Integer(va.totalPossibleNumericVariablesAsTextCount).toString();
+					lineToWrite[4] = Integer.valueOf(va.totalFileRecordCount).toString();
+					lineToWrite[5] = Integer.valueOf(va.totalVariableCount).toString();
+					lineToWrite[6] = Integer.valueOf(va.totalValidVariableCount).toString();
+					lineToWrite[7] = Integer.valueOf(va.totalBadNumericCount).toString();
+					lineToWrite[8] = Integer.valueOf(va.totalEmptyOrNullValueCount).toString();
+					lineToWrite[9] = Integer.valueOf(va.totalPossibleNumericVariablesAsTextCount).toString();
 					
 					buffer.write(toCsv(lineToWrite));
 				}
@@ -267,13 +269,13 @@ public class GenerateAllConcepts extends Job {
 					optionkey = optionkey.replace(String.valueOf(MAPPING_QUOTED_STRING), "");
 					
 					if(optionkey.equalsIgnoreCase("patientcol")) {
-						PATIENT_COL = Integer.valueOf(option.split("=")[1]);
+						PATIENT_COL = valueOf(option.split("=")[1]);
 					} 
 				}
 	 
 				String fileName = mapping.getKey().split(":")[0];
 								
-				Integer column = new Integer(mapping.getKey().split(":")[1]);
+				Integer column = Integer.valueOf(mapping.getKey().split(":")[1]);
 				
 				if(!Files.exists(Paths.get(DATA_DIR + fileName))) {
 					
@@ -431,7 +433,7 @@ public class GenerateAllConcepts extends Job {
 				allConcept.setPatientNum(sequencePatient(line[PATIENT_COL]));
 			} else {
 				if(NumberUtils.isCreatable(line[PATIENT_COL])) {
-					allConcept.setPatientNum(new Integer(line[PATIENT_COL]));
+					allConcept.setPatientNum(Integer.valueOf(line[PATIENT_COL]));
 				}
 			}
 			
@@ -449,7 +451,7 @@ public class GenerateAllConcepts extends Job {
 					allConcept.setPatientNum(sequencePatient(line[PATIENT_COL]));
 				} else {
 					if(NumberUtils.isCreatable(line[PATIENT_COL])) {
-						allConcept.setPatientNum(new Integer(line[PATIENT_COL]));
+						allConcept.setPatientNum(Integer.valueOf(line[PATIENT_COL]));
 					}
 				}
 								
@@ -550,7 +552,7 @@ public class GenerateAllConcepts extends Job {
 			}
 			if(properties.contains("patientcol")) {
 				
-				PATIENT_COL = new Integer(properties.get("patientcol").toString());
+				PATIENT_COL = Integer.valueOf(properties.get("patientcol").toString());
 				
 			}
 		}
