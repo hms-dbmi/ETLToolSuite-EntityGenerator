@@ -78,7 +78,7 @@ public class GlobalVariableGenerator2 extends BDCJob {
 		for(String[] pm: patientMappings) {
 			if(NumberUtils.isCreatable(pm[2])) {
 				AllConcepts ac = new AllConcepts();
-				ac.setPatientNum(new Integer(pm[2]));
+				ac.setPatientNum(Integer.valueOf(pm[2]));
 				ac.setConceptPath(root);
 				ac.setTvalChar(managedInput.getStudyIdentifier() + ".v1_" + pm[0]);
 				ac.setStartDate("0");
@@ -98,7 +98,7 @@ public class GlobalVariableGenerator2 extends BDCJob {
 		for(String[] pm: patientMappings) {
 			if(NumberUtils.isCreatable(pm[2])) {
 				AllConcepts ac = new AllConcepts();
-				ac.setPatientNum(new Integer(pm[2]));
+				ac.setPatientNum(Integer.valueOf(pm[2]));
 				ac.setConceptPath("µ_consentsµ");
 				ac.setTvalChar(studyConsent);
 				ac.setStartDate("0");
@@ -106,7 +106,7 @@ public class GlobalVariableGenerator2 extends BDCJob {
 			}
 			if(NumberUtils.isCreatable(pm[2])) {
 				AllConcepts ac = new AllConcepts();
-				ac.setPatientNum(new Integer(pm[2]));
+				ac.setPatientNum(Integer.valueOf(pm[2]));
 				ac.setConceptPath("µ_topmed_consentsµ");
 				ac.setTvalChar(studyConsent);
 				ac.setStartDate("0");
@@ -128,7 +128,7 @@ public class GlobalVariableGenerator2 extends BDCJob {
 		for(String[] pm: patientMappings) {
 			if(NumberUtils.isCreatable(pm[2])) {
 				AllConcepts ac = new AllConcepts();
-				ac.setPatientNum(new Integer(pm[2]));
+				ac.setPatientNum(Integer.valueOf(pm[2]));
 				ac.setConceptPath("µ_studies_consentsµ");
 				
 				ac.setTvalChar("TRUE");
@@ -140,7 +140,7 @@ public class GlobalVariableGenerator2 extends BDCJob {
 		for(String[] pm: patientMappings) {
 			if(NumberUtils.isCreatable(pm[2])) {
 				AllConcepts ac = new AllConcepts();
-				ac.setPatientNum(new Integer(pm[2]));
+				ac.setPatientNum(Integer.valueOf(pm[2]));
 				ac.setConceptPath("µ_studies_consentsµ" + studyConsent + "µ");
 				ac.setTvalChar("TRUE");
 				ac.setStartDate("0");
@@ -150,7 +150,7 @@ public class GlobalVariableGenerator2 extends BDCJob {
 		for(String[] pm: patientMappings) {
 			if(NumberUtils.isCreatable(pm[2])) {
 				AllConcepts ac = new AllConcepts();
-				ac.setPatientNum(new Integer(pm[2]));
+				ac.setPatientNum(Integer.valueOf(pm[2]));
 				ac.setConceptPath("µ_studies_consentsµ" + studyConsent + "µ" + consentShortName + "µ");
 				ac.setTvalChar("TRUE");
 				ac.setStartDate("0");
@@ -167,7 +167,7 @@ public class GlobalVariableGenerator2 extends BDCJob {
 		for(String[] pm: patientMappings) {
 			if(NumberUtils.isCreatable(pm[2])) {
 				AllConcepts ac = new AllConcepts();
-				ac.setPatientNum(new Integer(pm[2]));
+				ac.setPatientNum(Integer.valueOf(pm[2]));
 				ac.setConceptPath("µ_studiesµ" + fullname + "µ");
 				ac.setTvalChar("TRUE");
 				ac.setStartDate("0");

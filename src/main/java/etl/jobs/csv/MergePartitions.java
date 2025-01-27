@@ -64,7 +64,7 @@ public class MergePartitions extends Job {
 			
 			for(File f: files) {
 								
-				orderedfilelist.put(new Integer(f.getName().split("\\_")[0]), f.getAbsolutePath());
+				orderedfilelist.put(Integer.valueOf(f.getName().split("\\_")[0]), f.getAbsolutePath());
 				
 			}
 			

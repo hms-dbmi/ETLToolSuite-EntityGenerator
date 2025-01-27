@@ -59,7 +59,7 @@ public class MergeGlobalAllConcepts extends BDCJob {
 			public int compare(String[] o1, String[] o2) {
 				
 				int concept = o1[1].compareTo(o2[1]);
-				int patient = new Integer(o1[0]).compareTo(new Integer(o2[0]));
+				int patient = Integer.valueOf(o1[0]).compareTo(Integer.valueOf(o2[0]));
 				int tval = o1[2].compareTo(o2[2]);
 				int nval = o1[3].compareTo(o2[3]);
 				if(concept != 0) {

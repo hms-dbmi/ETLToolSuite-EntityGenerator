@@ -96,7 +96,7 @@ public class HarmonizedSyncPatients extends Job {
 				
 				AllConcepts ac = new AllConcepts();
 
-				ac.setPatientNum(new Integer(line[0]));
+				ac.setPatientNum(Integer.valueOf(line[0]));
 				ac.setConceptPath(line[1]);
 				ac.setNvalNum(line[2]);
 				ac.setTvalChar(line[3]);
@@ -104,7 +104,7 @@ public class HarmonizedSyncPatients extends Job {
 				String hrmnId = line[0];
 				
 				if(patIdMap.containsKey(hrmnId)) {
-					ac.setPatientNum(new Integer(patIdMap.get(hrmnId)));
+					ac.setPatientNum(Integer.valueOf(patIdMap.get(hrmnId)));
 					records.add(ac);
 				} else {
 					//records.add(ac);

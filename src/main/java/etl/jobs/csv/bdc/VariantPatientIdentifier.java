@@ -67,7 +67,7 @@ public class VariantPatientIdentifier extends BDCJob {
 					
 					if(pe.topmedStudyId.contains(mi.getStudyIdentifier())) {
 						
-						if(hpdsIds.contains(new Integer(pe.patientId))) {
+						if(hpdsIds.contains(Integer.valueOf(pe.patientId))) {
 							idCount.add(pe.patientId);
 						} else {
 							
@@ -81,7 +81,7 @@ public class VariantPatientIdentifier extends BDCJob {
 				} else if(mi.getStudyType().equals("PARENT")) {
 					if(pe.parentStudyId.contains(mi.getStudyIdentifier())) {
 						
-						if(hpdsIds.contains(new Integer(pe.patientId))) {
+						if(hpdsIds.contains(Integer.valueOf(pe.patientId))) {
 							idCount.add(pe.patientId);
 						} else {
 							
@@ -139,7 +139,7 @@ public class VariantPatientIdentifier extends BDCJob {
 			if(a.isEmpty()) continue;
 			if(nwdIds.contains(a)) count++;
 		}
-		return new Integer(count).toString();
+		return Integer.valueOf(count).toString();
 	}
 
 	private static Set<String> getNwdIds(List<PicSureExtract> psExtract) {

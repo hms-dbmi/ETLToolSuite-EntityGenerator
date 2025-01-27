@@ -35,7 +35,7 @@ public class PatientMapping {
 		super();
 		this.sourceId = pmRecord[0];
 		this.sourceName = pmRecord[1];
-		this.patientNum = new Integer(pmRecord[2]);
+		this.patientNum = Integer.valueOf(pmRecord[2]);
 	}
 
 	public PatientMapping() {

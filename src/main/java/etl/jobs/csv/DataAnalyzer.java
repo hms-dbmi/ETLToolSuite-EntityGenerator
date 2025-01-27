@@ -188,7 +188,7 @@ public class DataAnalyzer extends Job {
 	
 	private static Mapping analyzeData(Mapping mapping, Path path) throws IOException {
 		
-		int col = new Integer(mapping.getKey().split(":")[1]);
+		int col = Integer.valueOf(mapping.getKey().split(":")[1]);
 		System.out.println(" analyzing column: " + col + " in file " + path);
 		System.out.println(mapping);
 		

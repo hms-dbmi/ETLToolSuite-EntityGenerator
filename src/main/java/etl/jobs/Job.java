@@ -192,7 +192,7 @@ public abstract class Job implements Serializable {
 			}
 			if(properties.contains("patientcol")) {
 				
-				PATIENT_COL = new Integer(properties.get("patientcol").toString());
+				PATIENT_COL = Integer.valueOf(properties.get("patientcol").toString());
 				
 				
 			}
@@ -207,7 +207,7 @@ public abstract class Job implements Serializable {
 		for(String arg: args) {
 			if(arg.equalsIgnoreCase("patientcol")) {
 				
-				PATIENT_COL = new Integer(checkPassedArgs(arg, args));
+				PATIENT_COL = Integer.valueOf(checkPassedArgs(arg, args));
 				
 			}
 			if(arg.equalsIgnoreCase("-skipheaders")){
@@ -446,7 +446,6 @@ public abstract class Job implements Serializable {
 	/**
 	 * Builds Patient mappings into a list of arrays
 	 * uses the managedInputs to control which patientMappings are being generated
-	 * @param managedInputs
 	 * @return
 	 * @throws IOException
 	 */
@@ -477,9 +476,7 @@ public abstract class Job implements Serializable {
 	/**
 	 * Will look up the hpds id using the and study abv name
 	 * 
-	 * @param sourceId
-	 * @param studyAbvName
-	 * @param map
+
 	 * @return
 	 */
 	
@@ -514,7 +511,6 @@ public abstract class Job implements Serializable {
 	 * Will look up the hpds id using the and study abv name
 	 * 
 	 * @param sourceId
-	 * @param studyAbvName
 	 * @param map
 	 * @return
 	 */

@@ -133,14 +133,14 @@ public class BDCValidations extends BDCJob {
 		}
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "Patient_Count_Per_Study.csv"), StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING)) {
 			for(Entry<String,Set<String>> entry: patientsPerStudy.entrySet()) {
-				writer.write(toCsv(new String[] { entry.getKey(), new Integer(entry.getValue().size()).toString()}));
+				writer.write(toCsv(new String[] { entry.getKey(), Integer.valueOf(entry.getValue().size()).toString()}));
 			}
 			
 		}*/
 		
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "Patient_Count_Per_Consents.csv"), StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING)) {
 			for(Entry<String,Set<String>> entry: patientsPerConsentGroup.entrySet()) {
-				writer.write(toCsv(new String[] { entry.getKey(), new Integer(entry.getValue().size()).toString()}));
+				writer.write(toCsv(new String[] { entry.getKey(), Integer.valueOf(entry.getValue().size()).toString()}));
 			}
 		}
 	}

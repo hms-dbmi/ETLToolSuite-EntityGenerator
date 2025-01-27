@@ -119,12 +119,12 @@ public class UpdateCountsInJsonMetadata extends BDCJob {
 		if(phenoCounts.containsKey(element.study_identifier + "." + element.consent_group_code) || phenoCounts.containsKey(element.study_identifier)) {
 			if(!element.consent_group_code.equalsIgnoreCase("none") && !element.consent_group_code.equalsIgnoreCase("") && element.consent_group_code != null){
 				System.out.println("Updating auth study counts for " + element.study_identifier + "." + element.consent_group_code);
-				element.clinical_sample_size = new Integer(phenoCounts.get(element.study_identifier + "." + element.consent_group_code));
+				element.clinical_sample_size = Integer.valueOf(phenoCounts.get(element.study_identifier + "." + element.consent_group_code));
 				element.clinical_variable_count = element.raw_clinical_variable_count;
 			}
 			else{
 				System.out.println("Updating public study counts for " + element.study_identifier);
-				element.clinical_sample_size = new Integer(phenoCounts.get(element.study_identifier));
+				element.clinical_sample_size = Integer.valueOf(phenoCounts.get(element.study_identifier));
 				element.clinical_variable_count = element.raw_clinical_variable_count;
 			}
 
@@ -138,7 +138,7 @@ public class UpdateCountsInJsonMetadata extends BDCJob {
 	private static void updateGenoCount(BDCMetadataElements element, Map<String, String> genoCounts) {
 		
 		if(genoCounts.containsKey(element.study_identifier + "." + element.consent_group_code)) {
-			element.genetic_sample_size = new Integer(genoCounts.get(element.study_identifier + "." + element.consent_group_code));
+			element.genetic_sample_size = Integer.valueOf(genoCounts.get(element.study_identifier + "." + element.consent_group_code));
 		} else {
 			if(element.consent_group_code.equals("c0")) { 
 				System.out.println("ignoring c0 for genomic counts for " + element.study_identifier + "." + element.consent_group_code);

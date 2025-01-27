@@ -108,7 +108,7 @@ public class HarmonizedPatientMappingGenerator extends BDCJob {
 							
 							pm.setSourceName(managedInput.getStudyAbvName().toUpperCase());
 							
-							pm.setPatientNum(new Integer(patientMapping.get(entry.getKey())));
+							pm.setPatientNum(Integer.valueOf(patientMapping.get(entry.getKey())));
 							
 							if(distinctSubjectIdsInHrmn.contains(pm.getSourceId())) {
 								pms.add(pm);

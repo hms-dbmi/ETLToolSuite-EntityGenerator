@@ -405,7 +405,7 @@ public class Mapping implements Cloneable, Comparable<Mapping>{
 	@Override
 	public int compareTo(Mapping o) {
 		
-		return new Integer(this.getKey().split(":")[1]).compareTo(new Integer(o.getKey().split(":")[1]));
+		return Integer.valueOf(this.getKey().split(":")[1]).compareTo(Integer.valueOf(o.getKey().split(":")[1]));
 	}
 	public int compare(Mapping a, Mapping b) 
     { 
