@@ -8,15 +8,21 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
 
 import etl.jobs.mappings.Mapping;
 
 public class GenericMappingGenerator extends BDCJob {
 	protected static boolean HASDATATABLES = false;
+	protected static String METADATA_FILE;
 	public static void main(String[] args) {
 		try {
 			setVariables(args, buildProperties(args));
@@ -60,6 +66,14 @@ public class GenericMappingGenerator extends BDCJob {
 				return o1.getKey().compareTo(o2.getKey());
 			}
 		});
+		Map<String, String> varMap = new HashMap<>();
+		if(HASDATATABLES){
+			varMap = getPathMappings();
+			if (varMap.isEmpty()){
+				System.err.println("Unable to build concept paths from metadata for " + TRIAL_ID + " - verify your files and try again.");
+				System.exit(255);
+			}
+		}
 		
 		// read data dir
 		File dataDir = new File(DATA_DIR);
@@ -92,10 +106,10 @@ public class GenericMappingGenerator extends BDCJob {
 							
 							mapping.setKey(f.getName() + ":" + x);
 							if (HASDATATABLES){
-								String tablename= f.getName().substring(0, f.getName().lastIndexOf('.')).replace(".", PATH_SEPARATOR);
+
 								mapping.setRootNode(
-									//if datatables enabled, sets the paths to include the filename, with . replaced by path separator,  as an identifier
-										PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + tablename + PATH_SEPARATOR + col + PATH_SEPARATOR);
+									//if datatables enabled, gets the concept path from the metadata json file
+									varMap.get(col));
 							}
 							
 							else{
@@ -119,10 +133,42 @@ public class GenericMappingGenerator extends BDCJob {
 		return mappings;
 	}
 
-	private static void setClassVariables(String[] args) {
+	private static Map<String, String> getPathMappings() throws JsonProcessingException, IOException{
+		File dictionaryFile = new File(METADATA_FILE);
+        ObjectMapper om = new ObjectMapper();
+        JsonNode dictTree = om.readTree(dictionaryFile);
+        Map<String, String> varMap = new HashMap<>();
+        dictTree.get(0).path("form_group").elements().forEachRemaining(
+                formGroup -> {
+                    formGroup.path("form").elements().forEachRemaining(
+                            form -> {
+                                    form.path("variable_group").elements().forEachRemaining(
+                                            varGroup -> {
+                                                varGroup.path("variable").elements().forEachRemaining(
+                                                        var ->
+                                                        {
+                                                            String varId = var.path("variable_id").asText();
+                                                            String conceptPath = var.path("data_hierarchy").asText().replace("\\", PATH_SEPARATOR);
+                                                            varMap.put(varId, conceptPath);
+                                                        }
+                                                );
+                                            }
+                                    );
+                            }
+                    );
+                }
+        );
+		return varMap;
+
+	}
+
+	private static void setClassVariables(String[] args) throws Exception {
 		for(String arg: args) {
 			if(arg.equalsIgnoreCase("-hasDatatables")) {
 				HASDATATABLES= true;
+			}
+			if(arg.equalsIgnoreCase("-metadataFile")) {
+				METADATA_FILE = checkPassedArgs(arg, args);
 			}
 		}
 		

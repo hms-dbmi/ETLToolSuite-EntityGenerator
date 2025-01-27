@@ -187,7 +187,7 @@ public class ConsentGroupGenerator extends BDCJob {
 				}
 			}
 
-			if(managedInput.getIsHarmonized().equalsIgnoreCase("Y") && !HARMONIZE_OMISSION.contains(studyAbvName.toUpperCase())) {
+			if(managedInput.getIsHarmonized().equalsIgnoreCase("Yes") && !HARMONIZE_OMISSION.contains(studyAbvName.toUpperCase())) {
 				
 				addHarmonizedConsents2(studyAbvName,studyConsents,patientMappings);
 				

@@ -161,7 +161,7 @@ public class RemoveConsentZeroPatients extends BDCJob {
 		Set<String> set = new HashSet<>();	
 		for(BDCManagedInput input: managedInputs) {
 			
-			if(input.getIsHarmonized().equalsIgnoreCase("Y")) {
+			if(input.getIsHarmonized().equalsIgnoreCase("Yes")) {
 				if(globalNonConsentZeroPatientNums.containsKey(input.getStudyIdentifier())) {
 					set.addAll(globalNonConsentZeroPatientNums.get(input.getStudyIdentifier()));
 				} else {
