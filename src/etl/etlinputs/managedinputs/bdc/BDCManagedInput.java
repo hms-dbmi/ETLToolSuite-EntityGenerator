@@ -73,6 +73,7 @@ public class BDCManagedInput extends ManagedInput {
 			@SuppressWarnings("resource")
 			List<String[]> records = new CSVReader(buffer).readAll();
 			if (records.get(0)[0].equalsIgnoreCase("Study Abbreviated Name")){
+				headers = records.get(0);
 				headersMap = buildInputsHeaderMap(headers);
 				}
 			}
