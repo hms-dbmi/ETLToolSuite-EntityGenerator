@@ -12,7 +12,7 @@ import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 
 public class ManagedInputFactory {
 
-	public static List<ManagedInput> buildManagedInputs(String type, List<String[]> managedInputs) throws IOException {
+	public static List<ManagedInput> buildManagedInputs(String type, List<String[]> managedInputs) {
 		if("BDC".equalsIgnoreCase(type)) return BDCManagedInput.buildAll(managedInputs);
 	
 		

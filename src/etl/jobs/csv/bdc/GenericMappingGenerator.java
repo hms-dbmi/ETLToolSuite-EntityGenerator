@@ -106,10 +106,10 @@ public class GenericMappingGenerator extends BDCJob {
 							
 							mapping.setKey(f.getName() + ":" + x);
 							if (HASDATATABLES){
-
+								System.out.println("col:" + col + " mapping:" + varMap.get(col));
 								mapping.setRootNode(
 									//if datatables enabled, gets the concept path from the metadata json file
-									varMap.get(col));
+									varMap.get(col.toLowerCase()));
 							}
 							
 							else{
@@ -138,6 +138,8 @@ public class GenericMappingGenerator extends BDCJob {
         ObjectMapper om = new ObjectMapper();
         JsonNode dictTree = om.readTree(dictionaryFile);
         Map<String, String> varMap = new HashMap<>();
+		System.out.println("Getting metadata paths from: " + dictionaryFile.getAbsolutePath());
+		System.out.println("Study id from file is " + dictTree.get(0).get("study_phs_number").asText());
         dictTree.get(0).path("form_group").elements().forEachRemaining(
                 formGroup -> {
                     formGroup.path("form").elements().forEachRemaining(
@@ -147,7 +149,7 @@ public class GenericMappingGenerator extends BDCJob {
                                                 varGroup.path("variable").elements().forEachRemaining(
                                                         var ->
                                                         {
-                                                            String varId = var.path("variable_id").asText();
+                                                            String varId = var.path("variable_id").asText().toLowerCase();
                                                             String conceptPath = var.path("data_hierarchy").asText().replace("\\", PATH_SEPARATOR);
                                                             varMap.put(varId, conceptPath);
                                                         }
@@ -158,6 +160,17 @@ public class GenericMappingGenerator extends BDCJob {
                     );
                 }
         );
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_" + "concept_paths.csv"), StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING)) {
+			varMap.forEach((varId, conceptPath) -> {
+				try {
+					writer.write(varId + ',' + conceptPath + '\n');
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			});
+		}
 		return varMap;
 
 	}

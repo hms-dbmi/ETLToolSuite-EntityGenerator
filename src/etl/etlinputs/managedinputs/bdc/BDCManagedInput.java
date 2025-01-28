@@ -1,11 +1,18 @@
 package etl.etlinputs.managedinputs.bdc;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.opencsv.CSVReader;
+
 import etl.etlinputs.managedinputs.ManagedInput;
+import etl.etlinputs.managedinputs.ManagedInputFactory;
 
 public class BDCManagedInput extends ManagedInput {
 	
@@ -60,9 +67,19 @@ public class BDCManagedInput extends ManagedInput {
 				break;
 			}
 		}
-		if (headers.length == 0){
-			System.err.println("NO MANAGED INPUT HEADER FOUND");
-			return null;
+		if (headers.equals(null) || headers.length == 0){
+			try(BufferedReader buffer = Files.newBufferedReader(Paths.get("data/Managed_Inputs_Headers.csv"))) {
+			
+			@SuppressWarnings("resource")
+			List<String[]> records = new CSVReader(buffer).readAll();
+			if (records.get(0)[0].equalsIgnoreCase("Study Abbreviated Name")){
+				headersMap = buildInputsHeaderMap(headers);
+				}
+			}
+			catch(IOException e) {
+				System.err.println("NO MANAGED INPUT HEADER OR HEADER FILE FOUND");
+				e.printStackTrace();
+			}	
 		}
 		else {
 			headersMap = buildInputsHeaderMap(headers);
