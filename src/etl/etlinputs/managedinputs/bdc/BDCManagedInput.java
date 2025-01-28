@@ -58,7 +58,7 @@ public class BDCManagedInput extends ManagedInput {
 	
 	public static List<ManagedInput> buildAll(List<String[]> managedInputs){
 		List<ManagedInput> inputs = new ArrayList<>();
-		String[] headers = null;
+		String[] headers = {};
 		Map<String,Integer> headersMap = null;
 		for(String[] input: managedInputs) {
 			if(input[0].equalsIgnoreCase("Study Abbreviated Name")) 
@@ -67,8 +67,8 @@ public class BDCManagedInput extends ManagedInput {
 				break;
 			}
 		}
-		if (headers.equals(null) || headers.length == 0){
-			try(BufferedReader buffer = Files.newBufferedReader(Paths.get("data/Managed_Inputs_Headers.csv"))) {
+		if (headers.length == 0){
+			try(BufferedReader buffer = Files.newBufferedReader(Paths.get("./data/Managed_Inputs_Headers.csv"))) {
 			
 			@SuppressWarnings("resource")
 			List<String[]> records = new CSVReader(buffer).readAll();
