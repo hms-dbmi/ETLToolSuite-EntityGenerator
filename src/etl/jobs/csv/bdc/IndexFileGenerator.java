@@ -66,9 +66,6 @@ public class IndexFileGenerator extends BDCJob {
 		
 		File dataDir = new File(DATA_DIR);
 		
-		List<String> patientNums = new ArrayList<>();
-		List<String> sampleIds = new ArrayList<>();
-		
 		Map<String,String> patientNumLookup = getPatientMapping(managedInput.getStudyAbvName());
 
 		List<String> fullIds = new ArrayList<>();
@@ -81,9 +78,12 @@ public class IndexFileGenerator extends BDCJob {
 			}
 		 });
 		 for (int i = 0; i<fullIds.size(); i++){
-			String fullId = fullIds.get(i);
-			String phsNum = managedInput.getStudyIdentifier();
-			String studyAbv = managedInput.getStudyAbvName();
+			 List<String> patientNums = new ArrayList<>();
+			 List<String> sampleIds = new ArrayList<>();
+
+			 String fullId = fullIds.get(i);
+			 String phsNum = managedInput.getStudyIdentifier();
+			 String studyAbv = managedInput.getStudyAbvName();
 
 			
 			try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + fullId + "_SampleIds.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
