@@ -56,18 +56,17 @@ public class BDCManagedInput extends ManagedInput {
 		this.hasMulti = inputCsv[headersMap.get("Has Multi")];
 	}
 	
-	public static List<ManagedInput> buildAll(List<String[]> managedInputs){
-		List<ManagedInput> inputs = new ArrayList<>();
+	public static List<BDCManagedInput> buildAll(List<String[]> managedInputs){
+		List<BDCManagedInput> inputs = new ArrayList<>();
 		String[] headers = {};
 		Map<String,Integer> headersMap = null;
-		for(String[] input: managedInputs) {
-			if(input[0].equalsIgnoreCase("Study Abbreviated Name")) 
-			{
-				headers = input;
-				break;
-			}
+		
+		if(managedInputs.get(0)[0].equalsIgnoreCase("Study Abbreviated Name")) 
+		{
+			headers = managedInputs.get(0);
+			headersMap = buildInputsHeaderMap(headers);
 		}
-		if (headers.length == 0){
+		else {
 			try(BufferedReader buffer = Files.newBufferedReader(Paths.get("./data/Managed_Inputs_Headers.csv"))) {
 			
 			@SuppressWarnings("resource")
@@ -78,19 +77,22 @@ public class BDCManagedInput extends ManagedInput {
 				}
 			}
 			catch(IOException e) {
-				System.err.println("NO MANAGED INPUT HEADER OR HEADER FILE FOUND");
+				System.out.println("NO MANAGED INPUT HEADER OR HEADER FILE FOUND");
 				e.printStackTrace();
 			}	
 		}
-		else {
-			headersMap = buildInputsHeaderMap(headers);
+		try {
+			for(String[] input: managedInputs) {
+				if(input[headersMap.get("Data is ready to process")].equalsIgnoreCase("yes")) {
+					inputs.add(new BDCManagedInput(headersMap,input));
+				}
+			}
+			return inputs;
+		} catch (NullPointerException e) {
+			System.out.println("MANAGED INPUTS NOT PARSED CORRECTLY");
+			e.printStackTrace();
 		}
-		for(String[] input: managedInputs) {
-			if(input.length > 7 && input[7].equalsIgnoreCase("no")) continue; 
-			//if(input.length > 8 && input[8].equalsIgnoreCase("no")) continue;
-			inputs.add(new BDCManagedInput(headersMap,input));
-		}
-		return inputs;
+		return null;
 	}
 
 	public static Map<String,Integer> buildInputsHeaderMap(String[] headers){

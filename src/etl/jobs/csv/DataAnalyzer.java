@@ -47,6 +47,7 @@ public class DataAnalyzer extends Job {
 	}
 
 	private static void execute() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+		//TODO we are iterating over all vars in the set like 5 times. We can absolutely reduce this
 		
 		List<Mapping> mappings = Mapping.generateMappingList(MAPPING_FILE, MAPPING_SKIP_HEADER, MAPPING_DELIMITER, MAPPING_QUOTED_STRING);
 
@@ -94,7 +95,6 @@ public class DataAnalyzer extends Job {
 				if(Files.exists(path)) { 
 
 					try {
-						System.out.println("found path " + path);
 						newMappings.add(analyzeData(m,path));
 						
 					} catch (IOException e) {
@@ -119,7 +119,9 @@ public class DataAnalyzer extends Job {
 		for(Mapping m: validatedMapping) {
 			if(m.getRootNode().equals(currentConcept)) {
 				if(!m.getDataType().equals(currentDataType)) {
-					System.err.println(m + " - data type mismatch detected!");
+					//TODO the type issues are here - we are just warning of type mismatch not doing anything about it
+					//Should add set all mappings that match root node to text on mismatch
+					System.out.println(m + " - data type mismatch detected!");				
 				}
 			} else {
 				currentConcept = m.getRootNode();
@@ -141,7 +143,7 @@ public class DataAnalyzer extends Job {
 					totalNumeric += MAPPING_COUNTS.get(_mapping).numericVals;
 					totalAlpha += MAPPING_COUNTS.get(_mapping).alphaVals;
 				} else {
-					System.err.println("No numeric counts given for - " + mapping.toString());
+					System.out.println("No numeric counts given for - " + mapping.toString());
 				}
 			}
 		};
@@ -156,6 +158,7 @@ public class DataAnalyzer extends Job {
 				
 				BigDecimal percentNumeric = new BigDecimal(totalNumeric).divide(bd, MathContext.DECIMAL128 );
 				System.out.println("Numeric Percent: " + percentNumeric);
+				//TODO why are we setting numeric threshold to 95% when we already are checking for nulls and nas. What margin of error are we preventing
 				BigDecimal numThres = new BigDecimal(NUMERIC_THRESHOLD, MathContext.DECIMAL128 );
 				
 				//percentNumeric.compareTo(numThres);
@@ -189,9 +192,7 @@ public class DataAnalyzer extends Job {
 	private static Mapping analyzeData(Mapping mapping, Path path) throws IOException {
 		
 		int col = new Integer(mapping.getKey().split(":")[1]);
-		System.out.println(" analyzing column: " + col + " in file " + path);
-		System.out.println(mapping);
-		
+				
 		try(BufferedReader buffer = Files.newBufferedReader(path)){
 			
 			RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
@@ -220,12 +221,11 @@ public class DataAnalyzer extends Job {
 					if(val.isEmpty()) {
 						continue;
 					}
-					if(NumberUtils.isCreatable(val) || val == null || val.isEmpty() || val.equalsIgnoreCase("null") || val.equalsIgnoreCase("na")) {
-						System.out.println("column: " + col + " value: " + val + " in file " + path + " numeric++");
+					//TODO - adjust to encompass NAN and - vals as null OR consider skipping as though empty
+					if(NumberUtils.isCreatable(val) || val.equalsIgnoreCase("null") || val.equalsIgnoreCase("na")) {
 						numericVals++;
 					}
 					else {
-						System.out.println("column: " + col + " value: " + val + " in file " + path + " alpha++");
 						alphaVals++;
 					}
 				}
@@ -234,23 +234,9 @@ public class DataAnalyzer extends Job {
 			BigDecimal bd = new BigDecimal(numericVals + alphaVals);
 			
 			if(!bd.equals(new BigDecimal(0))) {
-				/*
-				BigDecimal percentNumeric = new BigDecimal(numericVals).divide(bd, MathContext.DECIMAL128 );
-				System.out.println("Numeric Percent: " + percentNumeric);
-				BigDecimal numThres = new BigDecimal(NUMERIC_THRESHOLD, MathContext.DECIMAL128 );
-				
-				//percentNumeric.compareTo(numThres);
-				
-				if(percentNumeric.compareTo(numThres) >= 0) {
-										
-					mapping.setDataType("NUMERIC");
-					
-				} else {
-					mapping.setDataType("TEXT");
-				}*/
 				mapping.setDataType("NOT_CALCULATED");
 			} else {
-				System.err.println("No values found! - removing mapping");
+				System.out.println("No values found! - removing mapping");
 				mappingsToRemove.add(mapping);
 			}
 			counts.numericVals = numericVals;

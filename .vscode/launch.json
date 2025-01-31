@@ -1,0 +1,285 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "DataAnalyzer",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.DataAnalyzer",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "GenerateAllConcepts",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.GenerateAllConcepts",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "JsonMetadataGenerator",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.JsonMetadataGenerator",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "MergePartitions",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.MergePartitions",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "Partitioner",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.Partitioner",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce",
+            "args":[
+                "-partitiononsize",
+                "100",
+                "-propertiesfile",
+                "./test/job.config",
+                "-mappingskipheaders",
+                "N",
+                "-trialid",
+                "RECOVER_ADULT",
+                "-test"
+            ]
+
+        },
+        {
+            "type": "java",
+            "name": "PurgePatients",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.PurgePatients",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "BDCValidations",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.BDCValidations",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "ConsentGroupGenerator",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.ConsentGroupGenerator",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "DbGapDataMerge",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.DbGapDataMerge",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "DbgapDecodeFiles",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.DbgapDecodeFiles",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "DbgapTreeBuilder3",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.DbgapTreeBuilder3",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "GenerateConceptMapping",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.GenerateConceptMapping",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "GenerateConsentMapping",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.GenerateConsentMapping",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "GenericGlobalConceptsGenerator",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.GenericGlobalConceptsGenerator",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "GenericMappingGenerator",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.GenericMappingGenerator",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "GenomicSampIdGlobalVarGenerator",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.GenomicSampIdGlobalVarGenerator",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "GlobalVariableGenerator",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.GlobalVariableGenerator",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "GlobalVariableGenerator2",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.GlobalVariableGenerator2",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "HPDSPatientNumTracker",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.HPDSPatientNumTracker",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "HarmonizedMappingGenerator",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.HarmonizedMappingGenerator",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "HarmonizedPatientMappingGenerator",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.HarmonizedPatientMappingGenerator",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "HarmonizedSyncPatients",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.HarmonizedSyncPatients",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "HarmonizedSyncPatients2",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.HarmonizedSyncPatients2",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "IndexFileGenerator",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.IndexFileGenerator",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "MergeGlobalAllConcepts",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.MergeGlobalAllConcepts",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "PHSIdGenerator",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.PHSIdGenerator",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "PatientMappingBuilder",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.PatientMappingBuilder",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "RemoveConsentZeroPatients",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.RemoveConsentZeroPatients",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "RootNodeGenerator",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.RootNodeGenerator",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "SetPatientSequence",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.SetPatientSequence",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "StudiesConsentsGenerator",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.StudiesConsentsGenerator",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "UpdateCountsInJsonMetadata",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.UpdateCountsInJsonMetadata",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "UpdateMetadataCounts",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.UpdateMetadataCounts",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "ValidatePatientMappings",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.ValidatePatientMappings",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "VariantPatientIdentifier",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.VariantPatientIdentifier",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "VcfIndexSync",
+            "request": "launch",
+            "mainClass": "etl.jobs.csv.bdc.VcfIndexSync",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        },
+        {
+            "type": "java",
+            "name": "NewDictionaryConverter",
+            "request": "launch",
+            "mainClass": "etl.jobs.newdictionary.NewDictionaryConverter",
+            "projectName": "ETLToolSuite-EntityGenerator_8018b7ce"
+        }
+    ]
+}

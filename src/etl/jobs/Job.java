@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.opencsv.CSVReader;
 
 import etl.etlinputs.managedinputs.ManagedInput;
+import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 import etl.jobs.jobproperties.JobProperties;
 import etl.utils.Utils;
 
@@ -364,15 +365,15 @@ public abstract class Job implements Serializable {
 	 * @return
 	 * @throws IOException
 	 */
-	protected static Map<String,Map<String,String>> getPatientMappings(List<ManagedInput> managedInputs) throws IOException {
+	protected static Map<String,Map<String,String>> getPatientMappings(List<BDCManagedInput> managedInputs) throws IOException {
 		Map<String,Map<String,String>> returnPMMap = new HashMap<String,Map<String,String>>();
 		
 		Set<String> studyIds = new TreeSet<String>();
 		
 		
-		for(ManagedInput managedInput: managedInputs) {
+		for(BDCManagedInput managedInput: managedInputs) {
 			if(!managedInput.getReadyToProcess().toLowerCase().startsWith("y")) continue;
-			
+			if(!managedInput.hasSubjectMultiFile()) continue;
 			String studyid = managedInput.getStudyAbvName();
 			
 			studyIds.add(studyid);

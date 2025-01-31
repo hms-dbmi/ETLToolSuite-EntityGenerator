@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 import etl.etlinputs.managedinputs.ManagedInput;
 import etl.etlinputs.managedinputs.ManagedInputFactory;
+import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 import etl.jobs.Job;
 import etl.jobs.jobproperties.JobProperties;
 import etl.metadata.Metadata;
@@ -71,7 +72,7 @@ public class JsonMetadataGenerator extends Job {
 		
 		ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
 		
-		List<ManagedInput> managedInputs = ManagedInputFactory.readManagedInput(JOB_TYPE,MANAGED_INPUT);
+		List<BDCManagedInput> managedInputs = ManagedInputFactory.readManagedInput(JOB_TYPE,MANAGED_INPUT);
 		
 		// Call a generic builder for any studies that do not have a set data model such as dbgap studies.
 		// Generic metadata can only create one study at a time that has one consent group 

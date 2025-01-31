@@ -225,7 +225,7 @@ public class HarmonizedSyncPatients2 extends BDCJob {
 	
 	private static Object[] getStudyFile(String trialId) throws IOException {
 	
-		List<ManagedInput> managedInputs = ManagedInputFactory.readManagedInput(METADATA_TYPE,MANAGED_INPUT);
+		List<BDCManagedInput> managedInputs = ManagedInputFactory.readManagedInput(METADATA_TYPE,MANAGED_INPUT);
 		
 		for(ManagedInput managedInput: managedInputs) {
 			BDCManagedInput mi = (BDCManagedInput) managedInput;

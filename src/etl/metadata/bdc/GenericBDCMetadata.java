@@ -18,7 +18,7 @@ public class GenericBDCMetadata extends BDCMetadata {
 
 	public static String STUDY_ACCESSION = "";
 	
-	public GenericBDCMetadata(List<ManagedInput> managedInputs, File metadata) throws IOException {
+	public GenericBDCMetadata(List<BDCManagedInput> managedInputs, File metadata) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		
 		BDCMetadata bdcmeta = metadata.exists() ? mapper.readValue(metadata, BDCMetadata.class): new BDCMetadata();
@@ -92,7 +92,7 @@ public class GenericBDCMetadata extends BDCMetadata {
 		
 	}
 
-	private BDCManagedInput findManagedInput(List<ManagedInput> managedInputs) {
+	private BDCManagedInput findManagedInput(List<BDCManagedInput> managedInputs) {
 		for(ManagedInput x: managedInputs) {
 			BDCManagedInput mi = (BDCManagedInput) x;
 			if(mi.getStudyIdentifier().equalsIgnoreCase(STUDY_ACCESSION)) return mi;

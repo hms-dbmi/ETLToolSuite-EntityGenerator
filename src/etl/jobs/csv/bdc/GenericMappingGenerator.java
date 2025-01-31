@@ -82,7 +82,7 @@ public class GenericMappingGenerator extends BDCJob {
 			for(File f: dataDir.listFiles()) {
 				
 				try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + f.getName()))) {
-					
+					if(!f.getName().contains(".csv")) continue;
 					try (CSVReader reader = new CSVReader(buffer)) {
 						String[] headers = reader.readNext();
 						int x = 0;
@@ -106,10 +106,12 @@ public class GenericMappingGenerator extends BDCJob {
 							
 							mapping.setKey(f.getName() + ":" + x);
 							if (HASDATATABLES){
-								System.out.println("col:" + col + " mapping:" + varMap.get(col));
-								mapping.setRootNode(
-									//if datatables enabled, gets the concept path from the metadata json file
-									varMap.get(col.toLowerCase()));
+								//if datatables enabled, gets the concept path from the metadata json file. When no mapping exists for varname, uses default path
+								String path = varMap.get(col.toLowerCase());
+								if (path == null && col.toLowerCase() != "dbgap_subject_id"){
+									path = PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + col + PATH_SEPARATOR;
+								}
+								mapping.setRootNode(path);
 							}
 							
 							else{

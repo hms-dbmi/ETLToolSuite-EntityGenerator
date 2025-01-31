@@ -42,7 +42,7 @@ public class VariantPatientIdentifier extends BDCJob {
 	
 	private static void execute() throws IOException {
 
-		List<ManagedInput> managedInputs = ManagedInputFactory.readManagedInput(METADATA_TYPE,MANAGED_INPUT);
+		List<BDCManagedInput> managedInputs = ManagedInputFactory.readManagedInput(METADATA_TYPE,MANAGED_INPUT);
 
 		// read hail extract 
 		List<HailExtract> extract = readHailDataExract();

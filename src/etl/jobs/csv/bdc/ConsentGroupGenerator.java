@@ -314,7 +314,6 @@ public class ConsentGroupGenerator extends BDCJob {
 							String hpds_id = mappingLookup(line[0], patientMappings.get(studyAbvName));
 							if(hpds_id == null) continue;
 							String consentCode = "c" + line[consentidx];
-							
 							String consentVal = studyIdentifier + "." + consentCode;
 							
 							returnSet.add(new String[] { hpds_id, consentVal });
