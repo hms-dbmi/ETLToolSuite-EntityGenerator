@@ -2,15 +2,22 @@ package etl.jobs.csv.bdc;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.stream.Collectors;
 
 import com.opencsv.CSVReader;
 
@@ -29,15 +36,8 @@ import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 public class RemoveConsentZeroPatients extends BDCJob {
 
 	private static final String GLOBAL_CONSENTS_PATH = "µ_consentsµ";
-	private static final boolean RUN_VALIDATION = false;
 
-	private static List<BDCManagedInput> managedInputs;
-	private static Set<String> topmedNonCzeroPatNums;
-	private static Set<String> harmonizedValidPatientNums;
-	private static Map<String, Set<String>> globalNonConsentZeroPatientNums;
-
-	private static int acPreCount = 0;
-	private static int acPostCount = 0;
+	private static Set<String> consentZeroPatientNums;
 
 	private static int totCZpat = 0;
 	private static final String[] AC_HEADERS = new String[5];
@@ -78,194 +78,99 @@ public class RemoveConsentZeroPatients extends BDCJob {
 
 	private static void execute() throws IOException {
 
-		managedInputs = getManagedInputs();
+		consentZeroPatientNums = readConsents(GLOBAL_CONSENTS_PATH);
 
-		globalNonConsentZeroPatientNums = readConsents(GLOBAL_CONSENTS_PATH);
-
-		System.out.println("count of studies with nonzero consents: " + globalNonConsentZeroPatientNums.size());
 		// build a hash set with only harmonized
-
-		harmonizedValidPatientNums = buildHarmonizedValidPatNums();
-
-		System.out.println("count of valid harmonized participant ids: " + harmonizedValidPatientNums.size());
-
-		topmedNonCzeroPatNums = buildTopmedPatNums();
-		System.out.println("count of valid topmed participant ids: " + topmedNonCzeroPatNums.size());
-
-		purgePatients();
-
-		if (RUN_VALIDATION) {
-			validate();
-		}
-	}
-
-	private static void validate() throws IOException {
-		Set<String> set = new HashSet<>();
-		try (BufferedReader br = Files.newBufferedReader(Paths.get(WRITE_DIR + "allConcepts.csv"))) {
-
-			try (CSVReader csvreader = new CSVReader(br, ',', '\"', 'µ')) {
-				String[] line;
-
-				while ((line = csvreader.readNext()) != null) {
-					set.add(line[0]);
-				}
-			}
-
-		}
-		;
-		acPreCount = set.size();
-
-		set = new HashSet<>();
-
-		try (BufferedReader br = Files.newBufferedReader(Paths.get(PROCESSING_FOLDER + "allConcepts.csv"))) {
-
-			try (CSVReader csvreader = new CSVReader(br, ',', '\"', 'µ')) {
-				String[] line;
-
-				while ((line = csvreader.readNext()) != null) {
-					set.add(line[0]);
-				}
-			}
-
-		}
-		;
-
-		acPostCount = set.size();
-
-		System.out.println("Pre count = " + acPreCount);
-
-		System.out.println("Post count = " + acPostCount);
-
-		System.out.println("Diff count = " + (acPreCount - acPostCount));
-
-		System.out.println("Expected diff = " + totCZpat);
-
-	}
-
-	private static Set<String> buildTopmedPatNums() {
-		Set<String> set = new HashSet<>();
-		for (BDCManagedInput input : managedInputs) {
-
-			if (input.getStudyType().trim().equalsIgnoreCase("TOPMED")) {
-				if (globalNonConsentZeroPatientNums.containsKey(input.getStudyIdentifier())) {
-					set.addAll(globalNonConsentZeroPatientNums.get(input.getStudyIdentifier()));
+		File datadir = new File("./beforeRemoval/");
+		File[] files = datadir.listFiles(new FilenameFilter() {
+			// apply a filter
+			@Override
+			public boolean accept(File dir, String name) {
+				boolean result;
+				if (name.contains("allConcepts")) {
+					result = true;
 				} else {
-					System.err.println("Missing Topmed patients from " + input.getStudyIdentifier());
-
+					result = false;
 				}
-
+				return result;
 			}
 
-		}
-
-		return set;
-	}
-
-	private static Set<String> buildHarmonizedValidPatNums() {
-		Set<String> set = new HashSet<>();
-		for (BDCManagedInput input : managedInputs) {
-
-			if (input.getIsHarmonized().equalsIgnoreCase("Yes")) {
-				if (globalNonConsentZeroPatientNums.containsKey(input.getStudyIdentifier())) {
-					set.addAll(globalNonConsentZeroPatientNums.get(input.getStudyIdentifier()));
-				} else {
-					System.err.println("Missing harmonized patients from " + input.getStudyIdentifier());
-				}
-			}
-
-		}
-
-		return set;
-	}
-
-	private static void purgePatients() throws IOException {
-
-		Map<String, String> phsLookup = new HashMap<>();
-		int purgedCount = 0;
-
-		for (BDCManagedInput input : managedInputs) {
-			// String fullname = input.getStudyFullName() + " ( " +
-			// input.getStudyIdentifier() + " ) ";
-
-			phsLookup.put(input.getStudyIdentifier(), input.getStudyIdentifier());
-		}
-
-		try (BufferedWriter bw = Files.newBufferedWriter(Paths.get(PROCESSING_FOLDER + "allConcepts.csv"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
-			String line[];
-
-			BufferedReader br = Files.newBufferedReader(Paths.get(WRITE_DIR + "allConcepts.csv"));
-			bw.write(BDCJob.toCsv(AC_HEADERS));
-
-			try (CSVReader csvreader = new CSVReader(br, ',', '\"', 'µ')) {
-				List<String[]> allData = csvreader.readAll();
-				/* allData.removeIf(dataline -> {
-					if (dataline[1].split("\\\\").length <= 1) return false;
-					return consentZeroPatientNums.get((dataline[0]);}); */
-				while ((line = csvreader.readNext()) != null) {
-
-					if (line[1].split("\\\\").length <= 1)
-						continue;
-					// lets get rid of those line breaks in the data
-					line[3] = line[3].replaceAll("\n", "");
-					String rootNode = line[1].split("\\\\")[1].trim();
-
-					if (rootNode.equals("_studies")) {
-						rootNode = line[1].split("\\\\")[2].trim();
-					}
-					String phsIdentifier = phsLookup.containsKey(rootNode) ? phsLookup.get(rootNode) : null;
-
-					if (rootNode.equals("_Topmed Study Accession with Subject ID") || rootNode.equals("_Parent Study Accession with Subject ID")) {
-						phsIdentifier = line[3].split("\\.")[0];
-					}
-
-					if (phsIdentifier == null) {
-						if (rootNode.equals("DCC Harmonized data set")) {
-							if (harmonizedValidPatientNums.contains(line[0])) {
-
-								bw.write(toCsv(line));
-							}
-						} else if (rootNode.equals("_VCF Sample Id") || rootNode.equals("_genomic_sample_id")) {
-							if (topmedNonCzeroPatNums.contains(line[0])) {
-
-								bw.write(toCsv(line));
-							}
-						} else if (rootNode.equals("_consents") || rootNode.equals("_harmonized_consent") || rootNode.equals("_parent_consents") || rootNode.equals("_topmed_consents")) {
-							if (line[3].contains("c0"))
-								continue;
-
-							bw.write(toCsv(line));
-
-						} else if (rootNode.equals("_studies_consents")) {
-
-							bw.write(toCsv(line));
-
+		});
+		System.out.println("Available processors: " + (ForkJoinPool.commonPool().getParallelism()));
+		List<CompletableFuture<Void>> purgeRuns = new ArrayList<CompletableFuture<Void>>();
+		for (int i = 0; i < files.length; i++) {
+			final String fileName = files[i].getName();
+			
+			CompletableFuture<Void> purgeRun = CompletableFuture.runAsync(
+					() -> {
+						System.out.println("Thread started: " + fileName + "\n");
+						try {
+							
+							purgePatients(fileName);
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
-					} else if (globalNonConsentZeroPatientNums.containsKey(phsIdentifier.trim())) {
-						if (globalNonConsentZeroPatientNums.get(phsIdentifier.trim()).contains(line[0])) {
+					});
+			purgeRuns.add(purgeRun);
+		}
+		CompletableFuture<Void> allRuns = CompletableFuture.allOf(purgeRuns.toArray(new CompletableFuture<?>[0]));
+		allRuns.join(); // this line waits for all to be completed
+		System.out.println("Done consent 0 removal");
+		
+	}
 
-							bw.write(toCsv(line));
+	private static void purgePatients(String allConceptsFile) throws IOException, InterruptedException {
 
-						}
+		ProcessBuilder processBuilder = new ProcessBuilder();
 
-					} else {
+		processBuilder.command("bash", "-c", "sed 's/µ/\\\\/g' " + ("./beforeRemoval/" + allConceptsFile) + " >> " + PROCESSING_FOLDER + allConceptsFile);
 
-						purgedCount++;
-					}
+		Process process = processBuilder.start();
+		int exitVal = process.waitFor();
+		if (exitVal != 0) {
+			System.out.println(exitVal);
+			System.err.print(("./beforeRemoval/" + allConceptsFile) + " file format unsuccessful" + "\n");
+		}
+		List<String[]> allConceptsData;
+		int presize;
+		int postsize;
+		BufferedReader br = Files.newBufferedReader(Paths.get(PROCESSING_FOLDER + allConceptsFile));
+
+		try (CSVReader csvreader = new CSVReader(br, ',', '\"', 'µ')) {
+			allConceptsData = csvreader.readAll();
+			presize = allConceptsData.size();
+			allConceptsData.removeIf(dataline -> {
+				if (dataline[1].split("\\\\").length <= 1)
+					return false;
+				return consentZeroPatientNums.contains((dataline[0]));
+			});
+			postsize = allConceptsData.size();
+			
+			br.close();
+			
+		}
+		//remove the intermediate file to save space
+		Files.deleteIfExists(Paths.get(PROCESSING_FOLDER + allConceptsFile));
+
+		try (BufferedWriter bw = Files.newBufferedWriter(Paths.get(DATA_DIR + allConceptsFile), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+			allConceptsData.forEach(outputline -> {
+				try {
+					bw.write(BDCJob.toCsv(outputline));
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
-
-				bw.flush();
-				System.out.println("Consent c0 patient data points purged: " + purgedCount);
-			}
+			});
+			bw.flush();
+			bw.close();
+			System.out.print("Thread ended: " + (allConceptsFile) + ". Removed " + (presize-postsize) + " c0 subject related data points\n");
 		}
 	}
-	
 
-	private static Map<String, Set<String>> readConsents(String globalConsentsPath) throws IOException {
+	private static Set<String> readConsents(String globalConsentsPath) throws IOException {
 
-		Map<String, Set<String>> patnums = new HashMap<String, Set<String>>();
 		Set<String> c0 = new HashSet<>();
 		Set<String> cGood = new HashSet<>();
-		try (BufferedReader reader = Files.newBufferedReader(Paths.get(DATA_DIR + "GLOBAL_allConcepts.csv"))) {
+		try (BufferedReader reader = Files.newBufferedReader(Paths.get("./beforeRemoval/" + "GLOBAL_allConcepts.csv"))) {
 			try (CSVReader csvreader = new CSVReader(reader)) {
 				String[] line;
 				while ((line = csvreader.readNext()) != null) {
@@ -273,23 +178,9 @@ public class RemoveConsentZeroPatients extends BDCJob {
 						line[0] = line[0].trim();
 						if (line[3].contains("c0")) {
 							c0.add(line[0].trim());
-							continue;
-						}
-						; // skip c0
-						if (patnums.containsKey(line[3].replaceAll("\\.c[0-9]", "").trim())) {
-							// System.out.println("adding to " + line[3].replaceAll("\\.c[0-9]", ""));
-							patnums.get(line[3].replaceAll("\\.c[0-9]", "")).add(line[0]);
-							cGood.add(line[0]);
-
 						} else {
-							Set<String> set = new HashSet<>();
-							set.add(line[0].trim());
-							// System.out.println("adding to " + line[3].replaceAll("\\.c[0-9]", ""));
-							patnums.put(line[3].replaceAll("\\.c[0-9]", "").trim(), set);
-							cGood.add(line[0]);
-
+							cGood.add(line[0].trim());
 						}
-
 					}
 				}
 			}
@@ -301,7 +192,7 @@ public class RemoveConsentZeroPatients extends BDCJob {
 			totCZpat = c0.size();
 
 			System.out.println("Total consent 0 patients:" + c0.size());
-			return patnums;
+			return c0;
 		}
 	}
 }
