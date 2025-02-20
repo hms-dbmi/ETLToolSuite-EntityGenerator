@@ -159,9 +159,13 @@ public class BDCMetadata implements Metadata {
 			BDCManagedInput managedInput = (BDCManagedInput) _managedInput;
 			
 			if(!managedInput.hasSubjectMultiFile()) {
+				//skip if study doesnt have a subj multi
 				continue;
 			}
-			
+			if(managedInput.getDataProcessed().toLowerCase() == managedInput.getReadyToProcess().toLowerCase()) {
+				//skip if data is already processed (both are "yes"), or if it isnt ready (both are "no")
+				continue;
+			}
 			String subjectMultiFile = BDCJob.getStudySubjectMultiFile(managedInput);
 			
 			if(subjectMultiFile == null || subjectMultiFile.isEmpty()) {

@@ -212,7 +212,7 @@ public class StudiesConsentsGenerator extends BDCJob {
 
 						while ((line = reader.readNext()) != null) {
 
-							if (line.length < consentidx)
+							if (line.length <= consentidx)
 								continue;
 							if (line[consentidx].isEmpty())
 								continue;

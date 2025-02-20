@@ -83,6 +83,7 @@ public class GenericMappingGenerator extends BDCJob {
 				
 				try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + f.getName()))) {
 					if(!f.getName().contains(".csv")) continue;
+					System.out.println("Generating mapping for: " + f.getName());
 					try (CSVReader reader = new CSVReader(buffer)) {
 						String[] headers = reader.readNext();
 						int x = 0;
@@ -110,6 +111,9 @@ public class GenericMappingGenerator extends BDCJob {
 								String path = varMap.get(col.toLowerCase());
 								if (path == null && col.toLowerCase() != "dbgap_subject_id"){
 									path = PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + col + PATH_SEPARATOR;
+								}
+								else {
+									path = path.replaceAll("^\"|\"$", "");
 								}
 								mapping.setRootNode(path);
 							}
