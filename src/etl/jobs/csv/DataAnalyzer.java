@@ -111,9 +111,9 @@ public class DataAnalyzer extends Job {
 	
 	private static List<Mapping> validateDataType(List<Mapping> newMappings) {
 		List<Mapping> validatedMapping = new ArrayList<Mapping>();
-		for(Mapping mapping: newMappings) {
+		newMappings.parallelStream().forEach(mapping -> {
 			validatedMapping.add(findDataType(mapping,newMappings));
-		}
+		});
 		String currentDataType = "";
 		String currentConcept = "";
 		for(Mapping m: validatedMapping) {

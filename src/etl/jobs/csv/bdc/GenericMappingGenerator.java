@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
@@ -23,7 +22,7 @@ import etl.jobs.mappings.Mapping;
 public class GenericMappingGenerator extends BDCJob {
 	protected static boolean HASDATATABLES = false;
 	protected static String METADATA_FILE;
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		try {
 			setVariables(args, buildProperties(args));
 			setClassVariables(args);
@@ -40,7 +39,7 @@ public class GenericMappingGenerator extends BDCJob {
 		}	
 	}
 
-	private static void execute() throws IOException {
+	private static void execute() throws Exception {
 		
 		//ROOT_NODE = "PETAL Repository of Electronic Data COVID-19 Observational Study (RED CORAL) ( phs002363 )";
 		//DATA_DIR = "./TEST/";
@@ -58,7 +57,7 @@ public class GenericMappingGenerator extends BDCJob {
 		
 	}
 
-	private static Set<Mapping> buildMappings() throws IOException {
+	private static Set<Mapping> buildMappings() throws Exception {
 		Set<Mapping> mappings = new TreeSet<Mapping>(new Comparator<Mapping>() {
 
 			@Override
@@ -139,12 +138,15 @@ public class GenericMappingGenerator extends BDCJob {
 		return mappings;
 	}
 
-	private static Map<String, String> getPathMappings() throws JsonProcessingException, IOException{
+	private static Map<String, String> getPathMappings() throws Exception{
 		File dictionaryFile = new File(METADATA_FILE);
         ObjectMapper om = new ObjectMapper();
         JsonNode dictTree = om.readTree(dictionaryFile);
         Map<String, String> varMap = new HashMap<>();
 		System.out.println("Getting metadata paths from: " + dictionaryFile.getAbsolutePath());
+		if(dictTree.get(0).get("study_phs_number") != null){
+			//use original json format
+	
 		System.out.println("Study id from file is " + dictTree.get(0).get("study_phs_number").asText());
         dictTree.get(0).path("form_group").elements().forEachRemaining(
                 formGroup -> {
@@ -166,6 +168,24 @@ public class GenericMappingGenerator extends BDCJob {
                     );
                 }
         );
+	}
+	else if (dictTree.get(0).get("dataset_ref") != null){
+		//use simplified json format
+		dictTree.elements().forEachRemaining(
+			var -> {
+				String varId = var.get("name").asText().toLowerCase();
+				String conceptPath = var.get("concept_path").asText().replace("\\", PATH_SEPARATOR);
+				varMap.put(varId, conceptPath);
+			}
+			
+
+		);
+	}
+	else {
+		throw new Exception("JSON Metadata does not fit either of the expected formats. Please review and try again.");
+	}
+
+
 		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_" + "concept_paths.csv"), StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING)) {
 			varMap.forEach((varId, conceptPath) -> {
 				try {

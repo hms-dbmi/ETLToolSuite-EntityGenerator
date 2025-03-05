@@ -33,8 +33,18 @@ public class BDCManagedInput extends ManagedInput {
 	private String phase = "";
 
 	private String hasMulti = "";
-	
 
+	private String subjectType = "";
+
+	private String bdcPrograms = "";
+
+	private String additionalInfoLink = "";
+
+	private String additionalInfo = "";
+
+	private String studyLink = "";
+
+	private String requestAccessText = "";
 
 			
 	public BDCManagedInput(Map<String,Integer> headersMap, String[] inputCsv) {
@@ -48,12 +58,17 @@ public class BDCManagedInput extends ManagedInput {
 		this.readyToProcess = inputCsv[headersMap.get("Data is ready to process")];
 		this.dataProcessed = inputCsv[headersMap.get("Data Processed")];
 		this.authZ = "/programs/"+inputCsv[headersMap.get("Gen3 Authz Program Name")]+"/projects/"+inputCsv[headersMap.get("Gen3 Authz Project Name")];
-		if(this.studyType != "PUBLIC"){
+		if(!this.studyType.equals("PUBLIC")){
 			this.authZ = this.authZ + "_";
 		}
 		this.version = inputCsv[headersMap.get("Version")];	
 		this.phase = inputCsv[headersMap.get("Phase")];
 		this.hasMulti = inputCsv[headersMap.get("Has Multi")];
+		this.subjectType = inputCsv[headersMap.get("Subject Type(s)")];
+		this.bdcPrograms = inputCsv[headersMap.get("BDC Program(s)")];
+		this.additionalInfoLink = inputCsv[headersMap.get("Additional Information Link (URL)")];
+		this.additionalInfo = inputCsv[headersMap.get("Additional Information Link (Label)")];
+		this.requestAccessText = inputCsv[headersMap.get("Request Access Text")];
 	}
 	
 	public static List<BDCManagedInput> buildAll(List<String[]> managedInputs){
@@ -190,8 +205,52 @@ public class BDCManagedInput extends ManagedInput {
 	public void setHasMulti(String hasMulti) {
 		this.hasMulti = hasMulti;
 	}
+	public String getSubjectType() {
+		return this.subjectType;
+	}
 
+	public void setSubjectType(String subjectType) {
+		this.subjectType = subjectType;
+	}
+	public String getAdditionalInfoLink() {
+		return this.additionalInfoLink;
+	}
 
+	public void setAdditionalInfoLink(String additionalInfoLink) {
+		this.additionalInfoLink = additionalInfoLink;
+	}
+
+	public String getAdditionalInfo() {
+		return this.additionalInfo;
+	}
+
+	public void setAdditionalInfo(String additionalInfo) {
+		this.additionalInfo = additionalInfo;
+	}
+
+	public String getStudyLink() {
+		return this.studyLink;
+	}
+
+	public void setStudyLink(String studyLink) {
+		this.studyLink = studyLink;
+	}
+
+	public String getRequestAccessText() {
+		return this.requestAccessText;
+	}
+
+	public void setRequestAccessText(String requestAccessText) {
+		this.requestAccessText = requestAccessText;
+	}
+
+	public String getBdcPrograms() {
+		return this.bdcPrograms;
+	}
+
+	public void setBdcPrograms(String bdcPrograms) {
+		this.bdcPrograms = bdcPrograms;
+	}
 	@Override
 	public String toString() {
 		return "BDCManagedInput [studyIdentifier=" + studyIdentifier + ", studyType=" + studyType + ", studyFullName="

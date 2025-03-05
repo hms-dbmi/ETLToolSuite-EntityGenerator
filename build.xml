@@ -82,6 +82,22 @@
     				<fileset dir="bin" includes="*.xml"></fileset>
     	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
     	 </jar>
+		 <jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/ConceptInputFileGenerator.jar">
+    				<manifest>
+    				<attribute name="Main-Class" value="etl.jobs.dictionary.ConceptInputFileGenerator"/>
+    				</manifest>
+    			    <fileset dir="bin" includes="**/*.class" />
+    				<fileset dir="bin" includes="*.xml"></fileset>
+    	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    	 </jar>
+		 <jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/DatasetInputFileGenerator.jar">
+    				<manifest>
+    				<attribute name="Main-Class" value="etl.jobs.dictionary.DatasetInputFileGenerator"/>
+    				</manifest>
+    			    <fileset dir="bin" includes="**/*.class" />
+    				<fileset dir="bin" includes="*.xml"></fileset>
+    	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    	 </jar>
 
 <!-- 
 				<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/StudiesConsentsGenerator.jar">
@@ -119,7 +135,7 @@
 		</jar>
 		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/NewDictionaryConverter.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.jobs.newdictionary.NewDictionaryConverter"/>
+				<attribute name="Main-Class" value="etl.jobs.dictionary.NewDictionaryConverter"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
