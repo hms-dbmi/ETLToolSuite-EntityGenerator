@@ -1,5 +1,8 @@
 package etl.etlinputs.managedinputs.bdc;
 
+import com.opencsv.CSVReader;
+import etl.etlinputs.managedinputs.ManagedInput;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,11 +11,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.opencsv.CSVReader;
-
-import etl.etlinputs.managedinputs.ManagedInput;
-import etl.etlinputs.managedinputs.ManagedInputFactory;
 
 public class BDCManagedInput extends ManagedInput {
 	
@@ -69,6 +67,7 @@ public class BDCManagedInput extends ManagedInput {
 		this.additionalInfoLink = inputCsv[headersMap.get("Additional Information Link (URL)")];
 		this.additionalInfo = inputCsv[headersMap.get("Additional Information Link (Label)")];
 		this.requestAccessText = inputCsv[headersMap.get("Request Access Text")];
+		this.studyLink =  inputCsv[headersMap.get("More Info Link")];
 	}
 	
 	public static List<BDCManagedInput> buildAll(List<String[]> managedInputs){
