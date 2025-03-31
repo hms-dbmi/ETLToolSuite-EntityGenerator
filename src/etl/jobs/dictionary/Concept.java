@@ -1,6 +1,7 @@
-package etl.jobs.newdictionary;
+package etl.jobs.dictionary;
 
 import java.util.ArrayList;
+import java.util.regex.PatternSyntaxException;
 
 public class Concept {
     String dataset = "";
@@ -93,9 +94,10 @@ public class Concept {
     }
 
     public String[] getCsvEntry() {
-        String[] entry = { getDataset(), getConceptName(), getDisplayName(), getConceptType(), getConceptPath(),
-                getParentConceptPath(), getValues(), getDescription(), isStigmatized().toString() };
-        return entry;
+            String[] entry = { getDataset(), getConceptName(), getDisplayName(), getConceptType(), getConceptPath(),
+            getParentConceptPath(), getValues(), getDescription(), isStigmatized().toString() };
+            return entry;
+        
     }
 
     public ArrayList<String> getTsvEntry() {
@@ -111,5 +113,6 @@ public class Concept {
         tsvEntry.add(isStigmatized().toString());
         return tsvEntry;
     }
+
 
 }

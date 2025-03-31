@@ -94,7 +94,7 @@ public class BDCValidations extends BDCJob {
 		}/*
 		// validate studies from Managed Inputs 
 		System.out.println("Validating Managed Inputs.");
-		List<ManagedInput> managedInputs = ManagedInputFactory.readManagedInput(METADATA_TYPE,MANAGED_INPUT);
+		List<BDCManagedInput> managedInputs = ManagedInputFactory.readManagedInput(METADATA_TYPE,MANAGED_INPUT);
 		
 		int topmedCount = 0;
 		

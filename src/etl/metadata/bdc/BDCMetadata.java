@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -39,7 +41,7 @@ public class BDCMetadata implements Metadata {
 	}};
 	
 	
-	public BDCMetadata(List<ManagedInput> managedInputs, File metadata) throws IOException {
+	public BDCMetadata(List<BDCManagedInput> managedInputs, File metadata) throws IOException {
 	Map<String,Map<String,String>> consentGroups = getConsentGroups(managedInputs);		
 	
 	ObjectMapper mapper = new ObjectMapper();
@@ -79,7 +81,6 @@ public class BDCMetadata implements Metadata {
 		}
 		if(consentGroups.containsKey(managedInput.getStudyIdentifier())) {
 			
-			int clinicalCount = getClinicalVariableCount(managedInput);
 			System.out.println("Building metadata for " + managedInput.toString());
 			for(Entry<String, String> entry: consentGroups.get(managedInput.getStudyIdentifier()).entrySet()) {
 					
@@ -105,9 +106,6 @@ public class BDCMetadata implements Metadata {
 
 					bdcm.request_access = REQEUST_ACCESS_LINK + bdcm.study_identifier;
 					
-					bdcm.raw_clinical_variable_count = clinicalCount;
-					
-					bdcm.clinical_variable_count = clinicalCount;
 					
 					//builds the authZ value from the relevant components if needed
 					if(managedInput.getAuthZ().endsWith("_")){
@@ -120,13 +118,7 @@ public class BDCMetadata implements Metadata {
 						bdcm.authZ = bdcm.authZ + "_";
 					}
 					
-					
-					if(bdcm.raw_clinical_sample_size == -1) {
-						System.out.println(managedInput.getStudyIdentifier() + "." + bdcm.consent_group_code + " has no participants.");
-						continue;
-						
-					}
-					
+										
 					bdcm.data_type = managedInput.getDataType();
 				
 					bdcm.study_version = managedInput.getVersion();
@@ -153,19 +145,12 @@ public class BDCMetadata implements Metadata {
 	}
 	
 
-	private int getClinicalVariableCount(BDCManagedInput managedInput) throws IOException {
-	
-		
-		Integer count = BDCJob.getVariableCountFromRawData(managedInput);
-
-		return count;
-	}
 
 
 	
 
 
-	private Map<String, Map<String, String>> getConsentGroups(List<ManagedInput> managedInputs) throws IOException {
+	private Map<String, Map<String, String>> getConsentGroups(List<BDCManagedInput> managedInputs) throws IOException {
 		
 		Map<String, Map<String, String>> consentGroups = new HashMap<>();
 		
@@ -174,9 +159,13 @@ public class BDCMetadata implements Metadata {
 			BDCManagedInput managedInput = (BDCManagedInput) _managedInput;
 			
 			if(!managedInput.hasSubjectMultiFile()) {
+				//skip if study doesnt have a subj multi
 				continue;
 			}
-			
+			if(managedInput.getDataProcessed().toLowerCase() == managedInput.getReadyToProcess().toLowerCase()) {
+				//skip if data is already processed (both are "yes"), or if it isnt ready (both are "no")
+				continue;
+			}
 			String subjectMultiFile = BDCJob.getStudySubjectMultiFile(managedInput);
 			
 			if(subjectMultiFile == null || subjectMultiFile.isEmpty()) {

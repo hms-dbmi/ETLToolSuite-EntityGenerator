@@ -1,4 +1,4 @@
-package etl.jobs.newdictionary;
+package etl.jobs.dictionary;
 
 import java.io.File;
 import java.io.FileWriter;

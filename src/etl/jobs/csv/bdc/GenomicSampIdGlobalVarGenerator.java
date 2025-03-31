@@ -105,7 +105,7 @@ public class GenomicSampIdGlobalVarGenerator extends BDCJob {
 							}
 							
 							if(sampidIdx == -1) {
-								System.err.println("No sample column for " + phsOnly);
+								System.out.println("No sample column for " + phsOnly);
 								continue;
 							}
 							

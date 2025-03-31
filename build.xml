@@ -74,8 +74,6 @@
             <src path="resources"/>
             <classpath refid="classpath"/>
         </javac>
-		
-
 		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/GenericMappingGenerator.jar">
     				<manifest>
     				<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenericMappingGenerator"/>
@@ -84,10 +82,60 @@
     				<fileset dir="bin" includes="*.xml"></fileset>
     	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
     	 </jar>
+		 <jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/ConceptInputFileGenerator.jar">
+    				<manifest>
+    				<attribute name="Main-Class" value="etl.jobs.dictionary.ConceptInputFileGenerator"/>
+    				</manifest>
+    			    <fileset dir="bin" includes="**/*.class" />
+    				<fileset dir="bin" includes="*.xml"></fileset>
+    	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    	 </jar>
+		 <jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/DatasetInputFileGenerator.jar">
+    				<manifest>
+    				<attribute name="Main-Class" value="etl.jobs.dictionary.DatasetInputFileGenerator"/>
+    				</manifest>
+    			    <fileset dir="bin" includes="**/*.class" />
+    				<fileset dir="bin" includes="*.xml"></fileset>
+    	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    	 </jar>
 
+<!-- 
+				<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/StudiesConsentsGenerator.jar">
+    				<manifest>
+    				<attribute name="Main-Class" value="etl.jobs.csv.bdc.StudiesConsentsGenerator"/>
+    				</manifest>
+    			    <fileset dir="bin" includes="**/*.class" />
+    				<fileset dir="bin" includes="*.xml"></fileset>
+    		    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+    	</jar>
+		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/RemoveConsentZeroPatients.jar">
+			<manifest>
+			<attribute name="Main-Class" value="etl.jobs.csv.bdc.RemoveConsentZeroPatients"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/DbGapDataMerge.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.bdc.DbGapDataMerge"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+		    <zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
+
+		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/JsonMetadataGenerator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="etl.jobs.csv.JsonMetadataGenerator"/>
+			</manifest>
+		    <fileset dir="bin" includes="**/*.class" />
+			<fileset dir="bin" includes="*.xml"></fileset>
+	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+		</jar>
 		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/NewDictionaryConverter.jar">
 			<manifest>
-				<attribute name="Main-Class" value="etl.jobs.newdictionary.NewDictionaryConverter"/>
+				<attribute name="Main-Class" value="etl.jobs.dictionary.NewDictionaryConverter"/>
 			</manifest>
 	  	    <fileset dir="bin" includes="**/*.class" />
 	  		<fileset dir="bin" includes="*.xml"></fileset>
@@ -96,14 +144,7 @@
 
 		
 
-		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/StudiesConsentsGenerator.jar">
-    				<manifest>
-    				<attribute name="Main-Class" value="etl.jobs.csv.bdc.StudiesConsentsGenerator"/>
-    				</manifest>
-    			    <fileset dir="bin" includes="**/*.class" />
-    				<fileset dir="bin" includes="*.xml"></fileset>
-    		    		<zipgroupfileset dir="bin" includes="**/*.jar" />
-    	</jar>
+
 		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/RootNodeGenerator.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.bdc.RootNodeGenerator"/>
@@ -171,14 +212,7 @@
 	  		<fileset dir="bin" includes="*.xml"></fileset>
 	  	    <zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar>
-		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/JsonMetadataGenerator.jar">
-			<manifest>
-				<attribute name="Main-Class" value="etl.jobs.csv.JsonMetadataGenerator"/>
-			</manifest>
-		    <fileset dir="bin" includes="**/*.class" />
-			<fileset dir="bin" includes="*.xml"></fileset>
-	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
-		</jar>
+
 		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/DbgapTreeBuilder3.jar">
 			<manifest>
 			<attribute name="Main-Class" value="etl.jobs.csv.bdc.DbgapTreeBuilder3"/>
@@ -236,14 +270,7 @@
 		    <zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar>
 
-		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/RemoveConsentZeroPatients.jar">
-			<manifest>
-			<attribute name="Main-Class" value="etl.jobs.csv.bdc.RemoveConsentZeroPatients"/>
-			</manifest>
-		    <fileset dir="bin" includes="**/*.class" />
-			<fileset dir="bin" includes="*.xml"></fileset>
-	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
-		</jar>
+
 		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/VariantPatientIdentifier.jar">
     			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.bdc.VariantPatientIdentifier"/>
@@ -312,14 +339,7 @@
 		    <zipgroupfileset dir="bin" includes="**/*.jar" />
     		</jar> 
 
-		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/DbGapDataMerge.jar">
-			<manifest>
-				<attribute name="Main-Class" value="etl.jobs.csv.bdc.DbGapDataMerge"/>
-			</manifest>
-		    <fileset dir="bin" includes="**/*.class" />
-			<fileset dir="bin" includes="*.xml"></fileset>
-		    <zipgroupfileset dir="bin" includes="**/*.jar" />
-		</jar>
+
 		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/GenerateConceptMapping.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenerateConceptMapping"/>
@@ -336,7 +356,7 @@
 		    <fileset dir="bin" includes="**/*.class" />
 			<fileset dir="bin" includes="*.xml"></fileset>
 	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
-		</jar> 
+		</jar>  -->
 
     	</target>
 </project>

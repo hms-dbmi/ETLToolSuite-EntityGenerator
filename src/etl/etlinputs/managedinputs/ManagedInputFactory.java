@@ -12,7 +12,7 @@ import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 
 public class ManagedInputFactory {
 
-	public static List<ManagedInput> buildManagedInputs(String type, List<String[]> managedInputs) {
+	public static List<BDCManagedInput> buildManagedInputs(String type, List<String[]> managedInputs) {
 		if("BDC".equalsIgnoreCase(type)) return BDCManagedInput.buildAll(managedInputs);
 	
 		
@@ -26,14 +26,17 @@ public class ManagedInputFactory {
 	 * @return
 	 * @throws IOException
 	 */
-	public static List<ManagedInput> readManagedInput(String type, String managedInputFileUrl) throws IOException {
+	public static List<BDCManagedInput> readManagedInput(String type, String managedInputFileUrl) throws IOException {
 		
 		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(managedInputFileUrl))) {
 			
 			@SuppressWarnings("resource")
 			List<String[]> records = new CSVReader(buffer).readAll();
-			
-			return ManagedInputFactory.buildManagedInputs(type, records);
+
+			if("BDC".equalsIgnoreCase(type)) 
+				return ManagedInputFactory.buildManagedInputs(type, records);
+			else 
+				return null;
 			
 		}
 	}

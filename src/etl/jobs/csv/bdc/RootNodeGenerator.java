@@ -54,7 +54,7 @@ public class RootNodeGenerator extends BDCJob {
 			if(managedInput.getReadyToProcess().toLowerCase().startsWith("n")) continue;
 			//if(managedInput.getDataProcessed().toLowerCase().startsWith("y")) continue;
 
-			if(managedInput.isDBGapCompliant() ) {
+			if(managedInput.hasSubjectMultiFile() ) {
 			
 				String rootNode = managedInput.getStudyIdentifier();
 	
