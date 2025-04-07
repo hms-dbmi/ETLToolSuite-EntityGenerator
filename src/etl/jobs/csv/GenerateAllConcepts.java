@@ -1,5 +1,17 @@
 package etl.jobs.csv;
 
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.RFC4180Parser;
+import com.opencsv.RFC4180ParserBuilder;
+import etl.job.entity.hpds.AllConcepts;
+import etl.jobs.Job;
+import etl.jobs.jobproperties.JobProperties;
+import etl.jobs.mappings.Mapping;
+import etl.jobs.mappings.PatientMapping;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -7,32 +19,8 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
-import com.opencsv.RFC4180Parser;
-import com.opencsv.RFC4180ParserBuilder;
-
-import etl.job.entity.hpds.AllConcepts;
-import etl.jobs.Job;
-import etl.jobs.jobproperties.JobProperties;
-import etl.jobs.mappings.Mapping;
-import etl.jobs.mappings.PatientMapping;
 
 /**
  * CSV Version to generate allConcepts file
@@ -430,8 +418,8 @@ public class GenerateAllConcepts extends Job {
 			if(DO_PATIENT_NUM_SEQUENCE) {
 				allConcept.setPatientNum(sequencePatient(line[PATIENT_COL]));
 			} else {
-				if(NumberUtils.isCreatable(line[PATIENT_COL])) {
-					allConcept.setPatientNum(new Integer(line[PATIENT_COL]));
+				if(NumberUtils.isCreatable(line[PATIENT_COL].trim())) {
+					allConcept.setPatientNum(new Integer(line[PATIENT_COL].trim()));
 				}
 			}
 			

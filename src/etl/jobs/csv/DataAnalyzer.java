@@ -1,5 +1,16 @@
 package etl.jobs.csv;
 
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.RFC4180Parser;
+import com.opencsv.RFC4180ParserBuilder;
+import com.opencsv.exceptions.CsvDataTypeMismatchException;
+import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
+import etl.jobs.Job;
+import etl.jobs.mappings.Mapping;
+import etl.utils.Utils;
+import org.apache.commons.lang3.math.NumberUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -9,24 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.math.NumberUtils;
-
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
-import com.opencsv.RFC4180Parser;
-import com.opencsv.RFC4180ParserBuilder;
-import com.opencsv.exceptions.CsvDataTypeMismatchException;
-import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
-
-import etl.jobs.Job;
-import etl.jobs.mappings.Mapping;
-import etl.utils.Utils;
+import java.util.*;
 
 public class DataAnalyzer extends Job {
 
@@ -216,7 +210,7 @@ public class DataAnalyzer extends Job {
 			while((newLine = csvreader.readNext()) != null){
 
 				if(col <= newLine.length - 1) {
-					String val = newLine[col];
+					String val = newLine[col].trim();
 					
 					if(val.isEmpty()) {
 						continue;
