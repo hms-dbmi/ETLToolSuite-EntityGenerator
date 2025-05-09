@@ -1,24 +1,15 @@
 package etl.jobs.csv.bdc;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import com.opencsv.CSVReader;
+import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
+import etl.jobs.mappings.PatientMapping;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-
-import com.opencsv.CSVReader;
-
-import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
-import etl.jobs.mappings.PatientMapping;
 
 public class HarmonizedPatientMappingGenerator extends BDCJob {
 	
@@ -34,7 +25,11 @@ public class HarmonizedPatientMappingGenerator extends BDCJob {
 		STUDY_ID_SYNONYM.put("HCHSSOL", "HCHS_SOL");
 
 		STUDY_ID_SYNONYM.put("COPDGENE", "COPDGene");
-		
+		STUDY_ID_SYNONYM.put("MGHAF", "MGH_AF");
+        STUDY_ID_SYNONYM.put("PARTNERS", "Partners");
+        STUDY_ID_SYNONYM.put("VUAF", "VU_AF");
+        STUDY_ID_SYNONYM.put("GENESTAR", "GeneSTAR");
+        STUDY_ID_SYNONYM.put("AACAC", "DHS");
 
 		
 		SUBJECT_ID_COL_OVERRIDE.put("JHS", "SOURCE_SUBJECT_ID2");
