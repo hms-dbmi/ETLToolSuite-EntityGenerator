@@ -114,7 +114,14 @@
     			<fileset dir="bin" includes="*.xml"></fileset>
     		    <zipgroupfileset dir="bin" includes="**/*.jar" />
     		</jar>
-
+        <jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/ConsentGroupGenerator.jar">
+      			<manifest>
+      				<attribute name="Main-Class" value="etl.jobs.csv.bdc.ConsentGroupGenerator"/>
+      			</manifest>
+      		    <fileset dir="bin" includes="**/*.class" />
+      			<fileset dir="bin" includes="*.xml"></fileset>
+      	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
+      		</jar>
 <!-- 
 				<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/StudiesConsentsGenerator.jar">
     				<manifest>
@@ -178,14 +185,7 @@
     		<zipgroupfileset dir="bin" includes="**/*.jar" />
     	</jar>
 
-		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/ConsentGroupGenerator.jar">
-			<manifest>
-				<attribute name="Main-Class" value="etl.jobs.csv.bdc.ConsentGroupGenerator"/>
-			</manifest>
-		    <fileset dir="bin" includes="**/*.class" />
-			<fileset dir="bin" includes="*.xml"></fileset>
-	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
-		</jar>
+
 		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/GenomicSampIdGlobalVarGenerator.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.csv.bdc.GenomicSampIdGlobalVarGenerator"/>
