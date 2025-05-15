@@ -1,24 +1,14 @@
 package etl.jobs.csv.bdc;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import com.opencsv.CSVReader;
+import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
+import etl.jobs.jobproperties.JobProperties;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import com.opencsv.CSVReader;
-
-import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
-import etl.jobs.jobproperties.JobProperties;
+import java.util.*;
 
 
 /**
@@ -105,26 +95,9 @@ public class ConsentGroupGenerator extends BDCJob {
 		List<BDCManagedInput> managedInputs = getManagedInputs();
 
 		Map<String,Map<String,String>> patientMappings = getPatientMappings();
-		
-		
-		// use the hpds id to reverse look up from consents that are generated
-		// the value will store the study abv name of the id to validate.
-		List<String[]> hrmnPM = BDCJob.getPatientMappings("HRMN");
-		
-		for(String[] hc: hrmnPM) {
-			
-			if(patientMappings.containsKey("HRMN")) {
-				patientMappings.get("HRMN").put(hc[2], hc[1]);
 
-			} else {
-				Map<String,String> innerMap = new HashMap<>();
-				innerMap.put(hc[2], hc[1]);
-				
-				patientMappings.put("HRMN", innerMap);
-			}
-			
-		}
-		//System.out.println("Building Parent Consents");
+
+
 		
 		Map<String,List<String[]>> consents = generateConsents(managedInputs, patientMappings);
 				
@@ -188,46 +161,13 @@ public class ConsentGroupGenerator extends BDCJob {
 			}
 
 			if(managedInput.getIsHarmonized().equalsIgnoreCase("Yes") && !HARMONIZE_OMISSION.contains(studyAbvName.toUpperCase())) {
-				
-				addHarmonizedConsents2(studyAbvName,studyConsents,patientMappings);
-				
+                System.out.println("Adding harmonized consents for " + studyAbvName);
+			    _harmonized_consents.addAll(studyConsents);
+                System.out.println("Harmonized list is now " + _harmonized_consents.size() + " elements long");
 			}
 		}
 	}
 		return consents;
-	}
-
-	private static void addHarmonizedConsents2(String studyAbvName, List<String[]> buildConsents,
-			Map<String, Map<String, String>> patientMappings) {
-		
-		if(patientMappings.containsKey("HRMN")) {
-			
-			Map<String,String> hrmnPatientMappings = patientMappings.get("HRMN");
-			
-			for(String[] currentConsent: buildConsents) {
-				
-				if(hrmnPatientMappings.containsKey(currentConsent[0])) {
-					
-					if(hrmnPatientMappings.get(currentConsent[0]).equalsIgnoreCase(studyAbvName)) {
-						
-						_harmonized_consents.add(currentConsent);
-						
-					} else {
-						
-						System.err.println("HPDS source ids do not match between Harmonized and Study - " + studyAbvName + ":" + currentConsent[0] );
-						
-					}
-					
-				}
-				
-			}
-				
-		} else {
-			
-			System.err.println("MISSING HRMN PATIENT MAPPING!");
-		
-		}
-		
 	}
 
 

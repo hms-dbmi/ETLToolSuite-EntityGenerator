@@ -1,26 +1,19 @@
 package etl.jobs;
 
+import com.opencsv.CSVReader;
+import etl.etlinputs.managedinputs.ManagedInput;
+import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
+import etl.jobs.jobproperties.JobProperties;
+import etl.utils.Utils;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeSet;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.opencsv.CSVReader;
-
-import etl.etlinputs.managedinputs.ManagedInput;
-import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
-import etl.jobs.jobproperties.JobProperties;
-import etl.utils.Utils;
 
 public abstract class Job implements Serializable {
 	
@@ -410,6 +403,8 @@ public abstract class Job implements Serializable {
 		
 		return returnPMMap;
 	}
+
+
 	/**
 	 * 
 	 */

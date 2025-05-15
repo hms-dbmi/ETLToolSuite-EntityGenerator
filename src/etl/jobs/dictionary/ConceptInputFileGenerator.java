@@ -1,32 +1,20 @@
 package etl.jobs.dictionary;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReaderBuilder;
-
 import etl.jobs.csv.bdc.BDCJob;
 import etl.jobs.jobproperties.JobProperties;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ConceptInputFileGenerator extends BDCJob {
     private static String SUBSET_DIR;
@@ -36,10 +24,9 @@ public class ConceptInputFileGenerator extends BDCJob {
     public static void main(String[] args) {
         try {
 
-           setLocalVariables(args, buildProperties(args));
+            setLocalVariables(args, buildProperties(args));
 
-           //SUBSET_DIR = "src/etl/jobs/dictionary/";
-           //TARGET_REF = "phs003824";
+
 
 
         } catch (Exception e) {
@@ -92,7 +79,7 @@ public class ConceptInputFileGenerator extends BDCJob {
             }
         });
         try (BufferedReader buffer = Files.newBufferedReader(Paths.get(columnMetaFile))) {
-            CSVParser csvParser =  new CSVParserBuilder().withEscapeChar('φ').build();
+            CSVParser csvParser =  new CSVParserBuilder().withEscapeChar('φ').withQuoteChar('"').build();
             List<String[]> records = new CSVReaderBuilder(buffer).withCSVParser(csvParser).build().readAll();
             Set<String> parentConceptPaths = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
             
@@ -207,12 +194,13 @@ public class ConceptInputFileGenerator extends BDCJob {
 
     private static void setLocalVariables(String[] args, JobProperties buildProperties) throws Exception {
         for (String arg : args) {
-            if (arg.equalsIgnoreCase("--subsetDir")) {
-                SUBSET_DIR = checkPassedArgs(arg, args);
-            }
             if (arg.equalsIgnoreCase("--ref")) {
                 TARGET_REF = checkPassedArgs(arg, args);
             }
+            else if (arg.equalsIgnoreCase("--subsetDir")) {
+                SUBSET_DIR = checkPassedArgs(arg, args);
+            }
+
 
         }
     }
