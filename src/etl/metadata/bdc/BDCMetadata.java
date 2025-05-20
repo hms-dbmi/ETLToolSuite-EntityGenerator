@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -124,20 +125,19 @@ public class BDCMetadata implements Metadata {
 				
 					bdcm.is_harmonized = managedInput.getIsHarmonized();
 
-				    this.bio_data_catalyst.stream()
+				Optional<BDCMetadataElements> existingElement = this.bio_data_catalyst.stream()
 						.filter(oldBdcm -> oldBdcm.equals(bdcm))
-						.findFirst()
-						.ifPresentOrElse(
-								old -> {
-									bdcm.studyMetaDataVersion = old.studyMetaDataVersion + 1;
-									this.bio_data_catalyst.remove(old);
-									this.bio_data_catalyst.add(bdcm);
-								},
-								() -> {
-									bdcm.studyMetaDataVersion = 1;
-									this.bio_data_catalyst.add(bdcm);
-								}
-						);
+						.findFirst();
+
+				if (existingElement.isPresent()) {
+					BDCMetadataElements old = existingElement.get();
+					bdcm.studyMetaDataVersion = old.studyMetaDataVersion + 1;
+					this.bio_data_catalyst.remove(old);
+					this.bio_data_catalyst.add(bdcm);
+				} else {
+					bdcm.studyMetaDataVersion = 1;
+					this.bio_data_catalyst.add(bdcm);
+				}
 			}
 			} else {
 				System.err.println("NO CONSENT GROUPS FOUND FOR " + managedInput.getStudyIdentifier() + ": " + managedInput.getStudyAbvName());
