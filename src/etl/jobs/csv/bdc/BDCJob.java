@@ -1,5 +1,17 @@
 package etl.jobs.csv.bdc;
 
+import com.opencsv.CSVReader;
+import etl.etlinputs.managedinputs.ManagedInputFactory;
+import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
+import etl.jobs.Job;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -9,27 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-import com.opencsv.CSVReader;
-
-import etl.etlinputs.managedinputs.ManagedInputFactory;
-import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
-import etl.jobs.Job;
+import java.util.*;
 
 public abstract class BDCJob extends Job {
 	public static Set<String> NON_DBGAP_STUDY = new HashSet<String>(){{
@@ -717,7 +709,7 @@ public abstract class BDCJob extends Job {
 
 		String[] line;
 		
-		while((line = reader.readNext()) != null) {
+		while((line = reader.readNext()) != null ) {
 			if(line[0].toLowerCase().startsWith("dbgap")) {
 				return line;
 			}

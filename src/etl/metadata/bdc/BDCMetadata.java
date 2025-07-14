@@ -1,5 +1,12 @@
 package etl.metadata.bdc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import etl.etlinputs.managedinputs.ManagedInput;
+import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
+import etl.jobs.csv.bdc.BDCJob;
+import etl.jobs.csv.bdc.DataDictionaryReader;
+import etl.metadata.Metadata;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -7,16 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import etl.etlinputs.managedinputs.ManagedInput;
-import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
-import etl.jobs.csv.bdc.BDCJob;
-import etl.jobs.csv.bdc.DataDictionaryReader;
-import etl.metadata.Metadata;
 
 public class BDCMetadata implements Metadata {
 
@@ -174,7 +171,7 @@ public class BDCMetadata implements Metadata {
 			}
 			
 			File subjectDataDict = BDCJob.FindDictionaryFile(subjectMultiFile, BDCJob.DATA_DIR + "raw/" );
-			
+
 			Map<String, Map<String, String>> valueLookup = DataDictionaryReader.buildValueLookup(subjectDataDict);
 
 			// Does a key contain a valid consent

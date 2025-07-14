@@ -1,8 +1,9 @@
 package etl.jobs.csv.bdc;
-
+/* a one-time job to adjust column alignments (malformed rows) for high-priority parent studies */
 
 import com.opencsv.CSVReader;
 import etl.jobs.Job;
+import org.apache.commons.lang3.ArrayUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -22,7 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DbgapDecodeFiles extends Job {
+public class ParentColumnAlignmentFix extends Job {
 
     public static List<String> SAMPLE_ID = new ArrayList<String>() {{
         add("DBGAP_SAMPLE_ID");
@@ -123,6 +124,7 @@ public class DbgapDecodeFiles extends Job {
         Map<String, String> phvLookup = new HashMap<>();
         Map<String, Map<String, String>> valueLookup = null;
         try {
+            System.out.println("Building value lookup: " + dictionaryFile.getName());
             valueLookup = (dataDic == null) ? null : buildValueLookup(dataDic);
         } catch (NullPointerException e) {
             System.err.println("Null pointer exception! Make sure all values for encoded variables are present in the xml");
@@ -142,7 +144,8 @@ public class DbgapDecodeFiles extends Job {
             String[] line;
 
             String[] headers = BDCJob.getHeaders(reader);
-
+            int lineCount = 0;
+            int tabCount = 0;
             if (headers != null) {
                 boolean isSampleId = SAMPLE_ID.contains(headers[0].toUpperCase());
 
@@ -151,13 +154,14 @@ public class DbgapDecodeFiles extends Job {
                 String[] lineToWrite = new String[headers.length];
 
                 if (hasDbgapSubjId || isSampleId) {
+
                     while ((line = reader.readNext()) != null) {
                         if (headers.length != line.length) {
-
-                            System.err.println("Malformed row detected - skipping row");
-                            System.err.println(data.getName() + " - " + line);
-                            warnCount++;
-
+                            lineCount++;
+                            while (line.length < headers.length) {
+                                tabCount++;
+                                line = ArrayUtils.add(line, "");
+                            }
                         }
                         int colidx = 0;
                         for (String cell : line) {
@@ -208,6 +212,8 @@ public class DbgapDecodeFiles extends Job {
 
 
             }
+            System.out.println("Lines adjusted: " + lineCount);
+            System.out.println("Tabs added: " + tabCount);
         } catch (IOException e) {
 
             System.err.println("Error writing to " + WRITE_DIR + data.getName());
