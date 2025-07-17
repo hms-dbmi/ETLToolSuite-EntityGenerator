@@ -156,7 +156,7 @@ public abstract class BDCJob extends Job {
 		}
 		
 		return -1;  // not found
-			
+
 	}
 	
 	public static File FindDictionaryFile(String fileName) {
@@ -166,13 +166,9 @@ public abstract class BDCJob extends Job {
 		}
 		
 		File dataDir = new File(DATA_DIR);
-		
 		String phs = null;
-		
-		
+
 		if(dataDir.isDirectory()) {
-			
-		
 			String[] fileNameArr = fileName.split("\\.");
 			
 			phs = fileNameArr[0];
@@ -191,8 +187,8 @@ public abstract class BDCJob extends Job {
 					return false;
 				}
 			});
-			
-			if(dataDicts.length < 1) {
+
+			if(dataDicts != null && dataDicts.length < 1) {
 				System.err.println("Data Dictionary missing for " + fileName);
 				return null;
 			} else {
@@ -203,50 +199,44 @@ public abstract class BDCJob extends Job {
 		}
 		return null;
 	}
+
 	public static File FindDictionaryFile(String fileName, String dataDirectory) {
-		if(!fileName.startsWith("phs")) {
-			System.err.println("Bad Filename - Expecting a valid accessions phsxxxxxx for: " + fileName);
-		
+		if (!fileName.startsWith("phs")) {
+			System.err.println("Bad Filename - Expecting a valid accession like phsxxxxxx: " + fileName);
+			return null;
 		}
-		
+
 		File dataDir = new File(dataDirectory);
-		
-		String phs = null;
-		
-		
-		if(dataDir.isDirectory()) {
-			
-		
-			String[] fileNameArr = fileName.split("\\.");
-			
-			phs = fileNameArr[0];
-			
-			final String finalPhs = phs;
-			
-			final String finalPht = getPht(fileName);
-			
-			File[] dataDicts = dataDir.listFiles(new FilenameFilter() {
-				
-				@Override
-				public boolean accept(File dir, String name) {
-					if(name.contains(finalPhs) && name.contains(finalPht) && name.toLowerCase().contains("data_dict")) {
-						return true;
-					}
-					return false;
-				}
-			});
-			
-			if(dataDicts.length < 1) {
-				System.err.println("Data Dictionary missing for " + fileName);
-				return null;
-			} else {
-				return dataDicts[0];
-			}
-		} else {
-			System.err.println(DATA_DIR + " IS NOT A DIRECTORY!");
+		if (!dataDir.isDirectory()) {
+			System.err.println(dataDirectory + " is not a directory!");
+			return null;
 		}
+
+		String[] parts = fileName.split("\\.");
+		if (parts.length == 0) return null;
+
+		String phs = parts[0];
+		String pht = getPht(fileName);
+
+		return findDataDict(dataDir, phs, pht);
+	}
+
+	private static File findDataDict(File dir, String phs, String pht) {
+		File[] matches = dir.listFiles((f, name) ->
+				name.contains(phs) && name.contains(pht) && name.toLowerCase().contains("data_dict"));
+
+		if (matches != null && matches.length > 0) return matches[0];
+
+		File[] subDirs = dir.listFiles(File::isDirectory);
+		if (subDirs != null) {
+			for (File subDir : subDirs) {
+				File found = findDataDict(subDir, phs, pht);
+				if (found != null) return found;
+			}
+		}
+
 		return null;
-	}	
+	}
 	
 	public static String getPht(String dbGapFileName) {
 		String[] fileNameArr = dbGapFileName.split("\\.");
