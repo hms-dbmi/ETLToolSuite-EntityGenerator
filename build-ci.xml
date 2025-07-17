@@ -125,6 +125,14 @@
 			<fileset dir="bin" includes="*.xml"></fileset>
 			<zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar>
+        <jar destfile="${jar.output.dir}/JsonMetadataGenerator.jar">
+            <manifest>
+                <attribute name="Main-Class" value="etl.jobs.csv.JsonMetadataGenerator"/>
+            </manifest>
+            <fileset dir="bin" includes="**/*.class" />
+            <fileset dir="bin" includes="*.xml"></fileset>
+            <zipgroupfileset dir="bin" includes="**/*.jar" />
+        </jar>
 <!-- 
 				<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/StudiesConsentsGenerator.jar">
     				<manifest>
@@ -150,15 +158,8 @@
 			<fileset dir="bin" includes="*.xml"></fileset>
 		    <zipgroupfileset dir="bin" includes="**/*.jar" />
 		</jar>
-
-		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/JsonMetadataGenerator.jar">
-			<manifest>
-				<attribute name="Main-Class" value="etl.jobs.csv.JsonMetadataGenerator"/>
-			</manifest>
-		    <fileset dir="bin" includes="**/*.class" />
-			<fileset dir="bin" includes="*.xml"></fileset>
-	    		<zipgroupfileset dir="bin" includes="**/*.jar" />
-		</jar>
+-->
+<!--
 		<jar destfile="${basedir}/../ETL-MissionControl-dbgap-submodule/jars/NewDictionaryConverter.jar">
 			<manifest>
 				<attribute name="Main-Class" value="etl.jobs.dictionary.NewDictionaryConverter"/>
