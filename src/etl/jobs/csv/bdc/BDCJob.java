@@ -213,7 +213,7 @@ public abstract class BDCJob extends Job {
 		if (parts.length == 0) return null;
 
 		String phs = parts[0];
-		String pht = getPht(fileName); // assumed existing logic
+		String pht = getPht(fileName);
 
 		return findDataDict(dataDir, phs, pht);
 	}
