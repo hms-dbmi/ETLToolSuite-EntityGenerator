@@ -120,22 +120,18 @@ public abstract class Job implements Serializable {
 			RESOURCE_DIR = properties.contains("resourcedir") ? properties.getProperty("resourcedir").toString() : RESOURCE_DIR;
 
 			if(properties.contains("segmentfacts")) {
-				if(new String(StringUtils.substring(properties.getProperty("segmentfacts"),0,1)).equalsIgnoreCase("Y")){
+				if(StringUtils.substring(properties.getProperty("segmentfacts"), 0, 1).equalsIgnoreCase("Y")){
 					IS_SEGMENTED = false;
 				}
 			}
 			
 			if(properties.contains("skipdataheader")) {
-				if(new String(StringUtils.substring(properties.getProperty("skipdataheader"),0,1)).equalsIgnoreCase("N")){
-					SKIP_HEADERS = false;
-				} else {
-					SKIP_HEADERS = true;
-				}
+                SKIP_HEADERS = !StringUtils.substring(properties.getProperty("skipdataheader"), 0, 1).equalsIgnoreCase("N");
 			}
 			///////////////////////
 			// Mapping Variables //
 			if(properties.contains("skipmapperheader")) {
-				if(new String(StringUtils.substring(properties.getProperty("skipmapperheader"),0,1)).equalsIgnoreCase("N")){
+				if(StringUtils.substring(properties.getProperty("skipmapperheader"), 0, 1).equalsIgnoreCase("N")){
 					MAPPING_SKIP_HEADER = false;
 				}
 			}
@@ -302,17 +298,26 @@ public abstract class Job implements Serializable {
 
 	public static JobProperties buildProperties(String[] args) throws Exception {
 		String propPath = "";
+		boolean foundPropertiesFileProperty = false;
 		for(String arg: args) {
 			if(arg.equalsIgnoreCase("-propertiesfile")){
 				Utils.checkPassedArgs(arg, args);
 				CONFIG_FILENAME = Paths.get(Utils.checkPassedArgs(arg, args)).getFileName().toString();
 				propPath = Utils.checkPassedArgs(arg, args);
+				foundPropertiesFileProperty = true;
 			}
 		}
+
+		if (!foundPropertiesFileProperty) {
+			System.out.println("Properties file not specified. Using default properties file: " + CONFIG_FILENAME);
+		}
+
 		if(propPath.isEmpty()) {
+			System.err.println("No properties file specified.  Please use -propertiesfile <path> to specify a properties file.");
 			return null;
 		}
 		if(!Files.exists(Paths.get(propPath))){
+			System.err.println("Properties file " + propPath + " does not exist.  Please check the path and try again.");
 			return null;
 		};
 		return JobProperties.class.newInstance().buildProperties(propPath);

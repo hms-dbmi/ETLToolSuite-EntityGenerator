@@ -448,7 +448,13 @@ public class GenerateAllConcepts extends Job {
 
                 return allConcept;
 
-            } else if (line[column].equalsIgnoreCase("null") || line[column].equalsIgnoreCase("na") || line[column].equalsIgnoreCase("n/a")) {
+            } else if (line[column].equalsIgnoreCase("null")
+                       || line[column].equalsIgnoreCase("na")
+                       || line[column].equalsIgnoreCase("n/a")
+                       || line[column].equalsIgnoreCase("nan")
+                       || line[column].equalsIgnoreCase("nil")
+                       || line[column].equalsIgnoreCase("nill") // Any additions to this list must be included in the DataAnalyzer.analyzeData method
+            ) {
                 allConcept.setNvalNum("");
             } else {
 

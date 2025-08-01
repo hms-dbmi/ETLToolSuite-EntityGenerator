@@ -89,7 +89,7 @@ public class DataAnalyzer extends Job {
 
         mappingsMap.forEach((key, value) -> {
             Path path = Paths.get(DATA_DIR + key);
-            List<String[]> allRecs = new ArrayList<>();
+            List<String[]> allRecs;
             try {
                 BufferedReader buffer = Files.newBufferedReader(path);
                 RFC4180ParserBuilder parserbuilder = new RFC4180ParserBuilder()
@@ -154,9 +154,16 @@ public class DataAnalyzer extends Job {
 
 
     private static Mapping analyzeData(Mapping mapping, List<String> vals) throws IOException {
-
-
-        Optional<String> nonnullText = vals.stream().filter(val -> !(val == null) && !val.isEmpty() && !val.equalsIgnoreCase("null") && !val.equalsIgnoreCase("na") && !val.equalsIgnoreCase("n/a") && !NumberUtils.isCreatable(val)).findFirst();
+        Optional<String> nonnullText = vals.stream()
+                .filter(val -> !(val == null)
+                               && !val.isEmpty()
+                               && !val.equalsIgnoreCase("null")
+                               && !val.equalsIgnoreCase("na")
+                               && !val.equalsIgnoreCase("n/a")
+                               && !val.equalsIgnoreCase("nan")
+                               && !val.equalsIgnoreCase("nil")
+                               && !val.equalsIgnoreCase("nill") // Any additions to this list must be included in the GenerateAllConcepts.generateAllConcepts method
+                               && !NumberUtils.isCreatable(val)).findFirst();
         if (nonnullText.isPresent()) {
             mapping.setDataType("TEXT");
             return mapping;
