@@ -29,7 +29,7 @@ public class JobProperties extends Properties{
 		List<String> requiredfields = new ArrayList<String>();
 		
 		List<String> availableKeys = new ArrayList<String>();
-		
+
 		if(Files.exists(Paths.get(propertiesFile))) {
 
 			this.load(new InputStreamReader(new FileInputStream(propertiesFile), Charset.forName("UTF-8")));
@@ -40,7 +40,7 @@ public class JobProperties extends Properties{
 				availableKeys.add(key.toString());
 				
 			}
-			
+
 		}
 		
 		if(availableKeys.containsAll(requiredfields)) {
