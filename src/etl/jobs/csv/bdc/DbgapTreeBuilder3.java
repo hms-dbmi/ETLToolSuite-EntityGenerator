@@ -46,8 +46,7 @@ public class DbgapTreeBuilder3 extends BDCJob {
 	 */
 	private static final long serialVersionUID = -445541832610664833L;
 
-	
-	private static boolean PROCESS_MISSING_DICTIONARY = false;
+    private static boolean PROCESS_MISSING_DICTIONARY = false;
 
 	private static Map<String, List<String>> missingHeaders;
 
@@ -126,7 +125,6 @@ public class DbgapTreeBuilder3 extends BDCJob {
 		File dir = new File(DATA_DIR);
 		
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_mapping2.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-		
 			if(dir.isDirectory()) {
 				
 				for(File file: dir.listFiles()) {
@@ -244,17 +242,23 @@ public class DbgapTreeBuilder3 extends BDCJob {
 					mapping.setRootNode(conceptPathSB.toString());
 					
 					mapping.setDataType(findDataType(dictionary));
-					
-					if(mapping.getDataType() == null || mapping.getDataType().isEmpty()) {
+
+					if(mapping.getDataType() == null) {
+                        System.err.println("Missing data type for " + header);
 						System.err.println("Data Type invalid or missing in data dictionary: " + 
 								"TRIAL_ID=" + TRIAL_ID + 
 								",pht=" + pht +
 								",phv=" + header);
 						VARIABLES_MISSING_DATA_TYPE.add(phs + "," + pht + "," + header);
-						mapping.setDataType("TEXT");
-					}
-					
-				} 
+					} else if (mapping.getDataType().isEmpty()) {
+                        System.err.println("Data Type empty in data dictionary: " +
+                                "TRIAL_ID=" + TRIAL_ID +
+                                ",pht=" + pht +
+                                ",phv=" + header
+                        + ", setting to TEXT");
+                        mapping.setDataType("TEXT");
+                    }
+				}
 			} else {
 				System.err.println("Header missing in data dictionary: " + 
 						"TRIAL_ID=" + TRIAL_ID + 
@@ -439,24 +443,30 @@ public class DbgapTreeBuilder3 extends BDCJob {
 				for(int y = 0 ; y < dataNodes.getLength() ; y++ ) {
 					n = dataNodes.item(y);
 					if(n.getNodeName().equals("type")) {
-
 						type = n.getTextContent();
-						
-						if(type == null) {
-							return type;
+
+                        // If the type is empty, but the variable is present, we assume it's a text type.
+						if(type == null || type.isEmpty()) {
+							return "TEXT";
 						}
-						
+
 						type = type.replace("\"", "'");
-						
 						type = type.replace("\\", "");
 						if(NUMERIC_DATA_TYPES.contains(type.toLowerCase())) return type = "NUMERIC";
 						else if(TEXT_DATA_TYPES.contains(type.toLowerCase())) return type = "TEXT"; 
-						else return type = null;
+						else {
+                            System.err.println("Type not recognized: " + type + " for variable " + n.getParentNode().getAttributes().getNamedItem("id").getNodeValue() + " in data dictionary for " + TRIAL_ID);
+                            return type = null; // return null if the type is not recognized and wasn't null
+                        }
 					}
 				}
-			}
+
+                System.out.println("Skipping node " + n.getNodeName() + " in data dictionary for " + TRIAL_ID + " as it is not a type node.");
+			} else {
+                System.out.println("Skipping node " + n.getNodeName() + " in data dictionary for " + TRIAL_ID + " as it is not a variable node.");
+            }
 		}
-		
+
 		return type;
 	}
 
