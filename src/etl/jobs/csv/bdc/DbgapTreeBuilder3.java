@@ -244,7 +244,7 @@ public class DbgapTreeBuilder3 extends BDCJob {
 					
 					mapping.setDataType(findDataType(dictionary));
 					
-					if(mapping.getDataType() == null ) {
+					if(mapping.getDataType() == null) {
 						System.err.println("Data Type invalid or missing in data dictionary: " + 
 								"TRIAL_ID=" + TRIAL_ID + 
 								",pht=" + pht +
@@ -443,19 +443,18 @@ public class DbgapTreeBuilder3 extends BDCJob {
 				for(int y = 0 ; y < dataNodes.getLength() ; y++ ) {
 					n = dataNodes.item(y);
 					if(n.getNodeName().equals("type")) {
-
 						type = n.getTextContent();
-						
+
+                        // If the type is empty, but the variable is present, we assume it's a text type.
 						if(type == null) {
-							return type;
+							return "TEXT";
 						}
-						
+
 						type = type.replace("\"", "'");
-						
 						type = type.replace("\\", "");
 						if(NUMERIC_DATA_TYPES.contains(type.toLowerCase())) return type = "NUMERIC";
 						else if(TEXT_DATA_TYPES.contains(type.toLowerCase())) return type = "TEXT"; 
-						else return type = null;
+						else return type = null; // return null if the type is not recognized and wasn't null
 					}
 				}
 			}
