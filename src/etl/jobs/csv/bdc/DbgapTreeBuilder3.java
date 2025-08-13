@@ -126,7 +126,6 @@ public class DbgapTreeBuilder3 extends BDCJob {
 		File dir = new File(DATA_DIR);
 		
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_mapping2.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-		
 			if(dir.isDirectory()) {
 				
 				for(File file: dir.listFiles()) {
@@ -245,16 +244,21 @@ public class DbgapTreeBuilder3 extends BDCJob {
 					
 					mapping.setDataType(findDataType(dictionary));
 					
-					if(mapping.getDataType() == null || mapping.getDataType().isEmpty()) {
+					if(mapping.getDataType() == null ) {
 						System.err.println("Data Type invalid or missing in data dictionary: " + 
 								"TRIAL_ID=" + TRIAL_ID + 
 								",pht=" + pht +
 								",phv=" + header);
 						VARIABLES_MISSING_DATA_TYPE.add(phs + "," + pht + "," + header);
-						mapping.setDataType("TEXT");
-					}
-					
-				} 
+					} else if (mapping.getDataType().isEmpty()) {
+                        System.err.println("Data Type empty in data dictionary: " +
+                                "TRIAL_ID=" + TRIAL_ID +
+                                ",pht=" + pht +
+                                ",phv=" + header
+                        + ", setting to TEXT");
+                        mapping.setDataType("TEXT");
+                    }
+				}
 			} else {
 				System.err.println("Header missing in data dictionary: " + 
 						"TRIAL_ID=" + TRIAL_ID + 
