@@ -18,8 +18,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -47,8 +45,6 @@ public class DbgapTreeBuilder3 extends BDCJob {
 	 * 
 	 */
 	private static final long serialVersionUID = -445541832610664833L;
-    private static final Log log = LogFactory.getLog(DbgapTreeBuilder3.class);
-
 
     private static boolean PROCESS_MISSING_DICTIONARY = false;
 
@@ -450,7 +446,7 @@ public class DbgapTreeBuilder3 extends BDCJob {
 						type = n.getTextContent();
 
                         // If the type is empty, but the variable is present, we assume it's a text type.
-						if(type == null) {
+						if(type == null || type.isEmpty()) {
 							return "TEXT";
 						}
 
@@ -458,7 +454,10 @@ public class DbgapTreeBuilder3 extends BDCJob {
 						type = type.replace("\\", "");
 						if(NUMERIC_DATA_TYPES.contains(type.toLowerCase())) return type = "NUMERIC";
 						else if(TEXT_DATA_TYPES.contains(type.toLowerCase())) return type = "TEXT"; 
-						else return type = null; // return null if the type is not recognized and wasn't null
+						else {
+                            System.err.println("Type not recognized: " + type + " for variable " + n.getParentNode().getAttributes().getNamedItem("id").getNodeValue() + " in data dictionary for " + TRIAL_ID);
+                            return type = null; // return null if the type is not recognized and wasn't null
+                        }
 					}
 				}
 
