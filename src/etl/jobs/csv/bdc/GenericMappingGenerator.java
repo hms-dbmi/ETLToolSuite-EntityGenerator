@@ -81,7 +81,7 @@ public class GenericMappingGenerator extends BDCJob {
 			for(File f: dataDir.listFiles()) {
 				
 				try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + f.getName()))) {
-					if(!f.getName().contains(".csv")) continue;
+					if(!f.getName().contains(".csv") || !f.getName().contains("pht")) continue;
 					System.out.println("Generating mapping for: " + f.getName());
 					try (CSVReader reader = new CSVReader(buffer)) {
 						String[] headers = reader.readNext();
