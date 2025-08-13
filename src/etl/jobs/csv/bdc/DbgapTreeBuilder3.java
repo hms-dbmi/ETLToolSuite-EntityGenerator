@@ -130,7 +130,7 @@ public class DbgapTreeBuilder3 extends BDCJob {
 				for(File file: dir.listFiles()) {
 					
 					if(!file.getName().toLowerCase().startsWith(TRIAL_ID.toLowerCase())) continue;
-					if(!file.getName().endsWith("txt")) continue;
+					if(!file.getName().endsWith("txt") || !file.getName().contains("pht")) continue;
 					//if(file.getName().toUpperCase().contains("MULTI")) continue;
 	
 					String pht = getPht(file);
