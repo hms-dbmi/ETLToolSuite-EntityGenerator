@@ -248,6 +248,7 @@ public class DbgapTreeBuilder3 extends BDCJob {
 					mapping.setDataType(findDataType(dictionary));
 
 					if(mapping.getDataType() == null) {
+                        System.err.println("Missing data type for " + header);
 						System.err.println("Data Type invalid or missing in data dictionary: " + 
 								"TRIAL_ID=" + TRIAL_ID + 
 								",pht=" + pht +
@@ -466,7 +467,7 @@ public class DbgapTreeBuilder3 extends BDCJob {
                 System.out.println("Skipping node " + n.getNodeName() + " in data dictionary for " + TRIAL_ID + " as it is not a variable node.");
             }
 		}
-		
+
 		return type;
 	}
 
