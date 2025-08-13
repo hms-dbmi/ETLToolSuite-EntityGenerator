@@ -18,6 +18,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -45,9 +47,10 @@ public class DbgapTreeBuilder3 extends BDCJob {
 	 * 
 	 */
 	private static final long serialVersionUID = -445541832610664833L;
+    private static final Log log = LogFactory.getLog(DbgapTreeBuilder3.class);
 
-	
-	private static boolean PROCESS_MISSING_DICTIONARY = false;
+
+    private static boolean PROCESS_MISSING_DICTIONARY = false;
 
 	private static Map<String, List<String>> missingHeaders;
 
@@ -243,7 +246,7 @@ public class DbgapTreeBuilder3 extends BDCJob {
 					mapping.setRootNode(conceptPathSB.toString());
 					
 					mapping.setDataType(findDataType(dictionary));
-					
+
 					if(mapping.getDataType() == null) {
 						System.err.println("Data Type invalid or missing in data dictionary: " + 
 								"TRIAL_ID=" + TRIAL_ID + 
@@ -457,7 +460,11 @@ public class DbgapTreeBuilder3 extends BDCJob {
 						else return type = null; // return null if the type is not recognized and wasn't null
 					}
 				}
-			}
+
+                System.out.println("Skipping node " + n.getNodeName() + " in data dictionary for " + TRIAL_ID + " as it is not a type node.");
+			} else {
+                System.out.println("Skipping node " + n.getNodeName() + " in data dictionary for " + TRIAL_ID + " as it is not a variable node.");
+            }
 		}
 		
 		return type;
