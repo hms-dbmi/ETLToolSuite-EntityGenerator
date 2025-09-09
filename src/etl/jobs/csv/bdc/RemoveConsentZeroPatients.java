@@ -3,9 +3,9 @@ package etl.jobs.csv.bdc;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
@@ -15,184 +15,271 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
 
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 
 /**
- * 
- * Purge any c0 patients from each studies allConcepts ( this will remove them
- * from global vars as well ).
- * remove any patient records whose study is not loaded from HRMN_allConcepts
- * and harmonized_consents
- * 
+ *
+ * Purge patient data from specific studies where they have consent zero (c0).
+ * This preserves patient data in studies where they have valid consent.
+ *
+ * Business rule: If an individual has a consent zero in a study they should not be
+ * searchable/discoverable/accessible within that study. Other studies they with
+ * non-consent zero should not be affected.
+ *
+ * Business Requirement: Backend data should remove records that pertain to only
+ * the study with consent zero.
+ *
  * @author Tom
  *
  */
 public class RemoveConsentZeroPatients extends BDCJob {
 
-	private static final String GLOBAL_CONSENTS_PATH = "µ_consentsµ";
+    private static final String GLOBAL_CONSENTS_PATH = "µ_consentsµ";
+    private static final String BEFORE_REMOVAL_DIR = "./beforeRemoval/";
+    private static final String[] AC_HEADERS = {
+            "PATIENT_NUM", "CONCEPT_PATH", "NVAL_NUM", "TVAL_CHAR", "DATE_TIME"
+    };
 
-	private static Set<String> consentZeroPatientNums;
+    // Map to store patient consent information by study
+    // Key: patientNum, Value: Map of studyId -> consentValue
+    private static Map<String, Map<String, String>> patientConsentsByStudy;
 
-	private static int totCZpat = 0;
-	private static final String[] AC_HEADERS = new String[5];
-	static {
-		AC_HEADERS[0] = "PATIENT_NUM";
-		AC_HEADERS[1] = "CONCEPT_PATH";
-		AC_HEADERS[2] = "NVAL_NUM";
-		AC_HEADERS[3] = "TVAL_CHAR";
-		AC_HEADERS[4] = "DATE_TIME";
-	}
+    // Set of patient-study combinations with consent zero
+    // Key format: "patientNum|phsXXXXXX"
+    private static Set<String> consentZeroPatientStudies;
 
-	public static void main(String[] args) {
+    private static int totCZpat = 0;
 
-		try {
+    public static void main(String[] args) {
+        try {
+            setVariables(args, buildProperties(args));
+        } catch (Exception e) {
+            System.err.println("Error processing variables: " + e.getMessage());
+            e.printStackTrace();
+            return;
+        }
 
-			setVariables(args, buildProperties(args));
+        try {
+            execute();
+        } catch (IOException e) {
+            System.err.println("Execution failed: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
-			// setLocalVariables(args, buildProperties(args));
+    private static void execute() throws IOException {
+        // Read consent data and build patient-study consent mapping
+        readConsentsWithStudyPrecision(GLOBAL_CONSENTS_PATH);
 
-		} catch (Exception e) {
+        Path dataDir = Paths.get(BEFORE_REMOVAL_DIR);
+        File[] files = dataDir.toFile().listFiles(
+                (dir, name) -> name.contains("allConcepts")
+        );
 
-			System.err.println("Error processing variables");
+        if (files == null || files.length == 0) {
+            System.out.println("No allConcepts files found in " + BEFORE_REMOVAL_DIR);
+            return;
+        }
 
-			System.err.println(e);
+        System.out.println("Available processors: " + ForkJoinPool.commonPool().getParallelism());
 
-		}
+        int maxConcurrentThreads = Math.min(files.length, Runtime.getRuntime().availableProcessors());
+        List<CompletableFuture<Void>> purgeRuns = new ArrayList<>(maxConcurrentThreads);
 
-		try {
+        for (File file : files) {
+            final String fileName = file.getName();
 
-			execute();
+            if (purgeRuns.size() >= maxConcurrentThreads) {
+                CompletableFuture.anyOf(purgeRuns.toArray(new CompletableFuture[0])).join();
+                purgeRuns.removeIf(CompletableFuture::isDone);
+            }
 
-		} catch (IOException e) {
+            CompletableFuture<Void> purgeRun = CompletableFuture.runAsync(() -> {
+                System.out.println("Thread started: " + fileName);
+                try {
+                    purgePatientsByStudy(fileName);
+                } catch (Exception e) {
+                    System.err.println("Error processing " + fileName + ": " + e.getMessage());
+                    e.printStackTrace();
+                }
+            });
+            purgeRuns.add(purgeRun);
+        }
 
-			System.err.println(e);
+        CompletableFuture.allOf(purgeRuns.toArray(new CompletableFuture[0])).join();
+        System.out.println("Done consent 0 removal");
+    }
 
-		}
-	}
+    private static void purgePatientsByStudy(String allConceptsFile) throws IOException, InterruptedException {
+        Path inputPath = Paths.get(BEFORE_REMOVAL_DIR + allConceptsFile);
+        Path processingPath = Paths.get(PROCESSING_FOLDER + allConceptsFile);
+        Path outputPath = Paths.get(DATA_DIR + allConceptsFile);
 
-	private static void execute() throws IOException {
+        ProcessBuilder processBuilder = new ProcessBuilder(
+                "bash", "-c",
+                "sed 's/µ/\\\\/g' " + inputPath + " >> " + processingPath
+        );
 
-		consentZeroPatientNums = readConsents(GLOBAL_CONSENTS_PATH);
+        Process process = processBuilder.start();
+        int exitVal = process.waitFor();
 
-		// build a hash set with only harmonized
-		File datadir = new File("./beforeRemoval/");
-		File[] files = datadir.listFiles(new FilenameFilter() {
-			// apply a filter
-			@Override
-			public boolean accept(File dir, String name) {
-				boolean result;
-				if (name.contains("allConcepts")) {
-					result = true;
-				} else {
-					result = false;
-				}
-				return result;
-			}
+        if (exitVal != 0) {
+            System.err.println("File format unsuccessful for " + allConceptsFile + " (exit code: " + exitVal + ")");
+            return;
+        }
 
-		});
-		System.out.println("Available processors: " + (ForkJoinPool.commonPool().getParallelism()));
-		List<CompletableFuture<Void>> purgeRuns = new ArrayList<CompletableFuture<Void>>();
-		for (int i = 0; i < files.length; i++) {
-			final String fileName = files[i].getName();
-			
-			CompletableFuture<Void> purgeRun = CompletableFuture.runAsync(
-					() -> {
-						System.out.println("Thread started: " + fileName + "\n");
-						try {
-							
-							purgePatients(fileName);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					});
-			purgeRuns.add(purgeRun);
-		}
-		CompletableFuture<Void> allRuns = CompletableFuture.allOf(purgeRuns.toArray(new CompletableFuture<?>[0]));
-		allRuns.join(); // this line waits for all to be completed
-		System.out.println("Done consent 0 removal");
-		
-	}
+        AtomicInteger preCount = new AtomicInteger(0);
+        AtomicInteger postCount = new AtomicInteger(0);
 
-	private static void purgePatients(String allConceptsFile) throws IOException, InterruptedException {
+        try (BufferedReader br = Files.newBufferedReader(processingPath);
+             CSVReader csvReader = new CSVReader(br, ',', '\"', 'µ');
+             BufferedWriter bw = Files.newBufferedWriter(outputPath,
+                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+             CSVWriter csvWriter = new CSVWriter(bw)) {
 
-		ProcessBuilder processBuilder = new ProcessBuilder();
+            String[] line;
+            while ((line = csvReader.readNext()) != null) {
+                preCount.incrementAndGet();
 
-		processBuilder.command("bash", "-c", "sed 's/µ/\\\\/g' " + ("./beforeRemoval/" + allConceptsFile) + " >> " + PROCESSING_FOLDER + allConceptsFile);
+                boolean shouldKeep = true;
+                if (line.length > 0 && line[0] != null) {
+                    // Clean the patient number by removing quotes and trimming
+                    String patientNum = line[0].trim().replaceAll("\"", "");
 
-		Process process = processBuilder.start();
-		int exitVal = process.waitFor();
-		if (exitVal != 0) {
-			System.out.println(exitVal);
-			System.err.print(("./beforeRemoval/" + allConceptsFile) + " file format unsuccessful" + "\n");
-		}
-		List<String[]> allConceptsData;
-		int presize;
-		int postsize;
-		BufferedReader br = Files.newBufferedReader(Paths.get(PROCESSING_FOLDER + allConceptsFile));
+                    // Check if this record should be removed based on study-specific consent
+                    if (shouldRemoveRecord(patientNum, line)) {
+                        shouldKeep = false;
+                        System.out.println("Removing c0 patient data for study-specific consent: " + patientNum + " from " + allConceptsFile);
+                    }
+                }
 
-		try (CSVReader csvreader = new CSVReader(br, ',', '\"', 'µ')) {
-			allConceptsData = csvreader.readAll();
-			presize = allConceptsData.size();
-			allConceptsData.removeIf(dataline -> {
-				if (dataline[1].split("\\\\").length <= 1)
-					return false;
-				return consentZeroPatientNums.contains((dataline[0]));
-			});
-			postsize = allConceptsData.size();
-			
-			br.close();
-			
-		}
-		//remove the intermediate file to save space
-		Files.deleteIfExists(Paths.get(PROCESSING_FOLDER + allConceptsFile));
+                if (shouldKeep) {
+                    csvWriter.writeNext(line);
+                    postCount.incrementAndGet();
+                }
+            }
+        }
 
-		try (BufferedWriter bw = Files.newBufferedWriter(Paths.get(DATA_DIR + allConceptsFile), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
-			allConceptsData.forEach(outputline -> {
-				try {
-					bw.write(BDCJob.toCsv(outputline));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			});
-			bw.flush();
-			bw.close();
-			System.out.print("Thread ended: " + (allConceptsFile) + ". Removed " + (presize-postsize) + " c0 subject related data points\n");
-		}
-	}
+        Files.deleteIfExists(processingPath);
 
-	private static Set<String> readConsents(String globalConsentsPath) throws IOException {
+        int removedCount = preCount.get() - postCount.get();
+        System.out.println("Thread ended: " + allConceptsFile + ". Removed " +
+                removedCount + " c0 subject related data points");
+    }
 
-		Set<String> c0 = new HashSet<>();
-		Set<String> cGood = new HashSet<>();
-		try (BufferedReader reader = Files.newBufferedReader(Paths.get("./beforeRemoval/" + "GLOBAL_allConcepts.csv"))) {
-			try (CSVReader csvreader = new CSVReader(reader)) {
-				String[] line;
-				while ((line = csvreader.readNext()) != null) {
-					if (line[1].equals(GLOBAL_CONSENTS_PATH)) {
-						line[0] = line[0].trim();
-						if (line[3].contains("c0")) {
-							c0.add(line[0].trim());
-						} else {
-							cGood.add(line[0].trim());
-						}
-					}
-				}
-			}
+    /**
+     * Determines if a record should be removed based on study-specific consent zero
+     */
+    private static boolean shouldRemoveRecord(String patientNum, String[] line) {
+        if (line.length < 2) return false;
 
-			for (String c : cGood) {
-				if (c0.contains(c))
-					c0.remove(c);
-			}
-			totCZpat = c0.size();
+        // Extract study ID from concept path or text value
+        String studyId = extractStudyId(line);
 
-			System.out.println("Total consent 0 patients:" + c0.size());
-			return c0;
-		}
-	}
+        if (studyId != null) {
+            // Check if this patient has consent zero for this specific study
+            String patientStudyKey = patientNum + "|" + studyId;
+            return consentZeroPatientStudies.contains(patientStudyKey);
+        }
+
+        return false;
+    }
+
+    /**
+     * Extract study ID (phsXXXXXX) from concept path or text value
+     */
+    private static String extractStudyId(String[] line) {
+        // Check concept path (index 1)
+        if (line.length > 1 && line[1] != null) {
+            String studyId = extractPhsId(line[1]);
+            if (studyId != null) return studyId;
+        }
+
+        // Check text value (index 3)
+        if (line.length > 3 && line[3] != null) {
+            String studyId = extractPhsId(line[3]);
+            if (studyId != null) return studyId;
+        }
+
+        return null;
+    }
+
+    /**
+     * Extract phsXXXXXX pattern from a string
+     */
+    private static String extractPhsId(String text) {
+        if (text == null) return null;
+
+        // Look for phs followed by digits pattern
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("phs\\d+");
+        java.util.regex.Matcher matcher = pattern.matcher(text);
+
+        if (matcher.find()) {
+            return matcher.group();
+        }
+
+        return null;
+    }
+
+    private static void readConsentsWithStudyPrecision(String globalConsentsPath) throws IOException {
+        patientConsentsByStudy = new HashMap<>();
+        consentZeroPatientStudies = new HashSet<>();
+
+        Path globalConceptsPath = Paths.get(BEFORE_REMOVAL_DIR + "GLOBAL_allConcepts.csv");
+
+        try (BufferedReader reader = Files.newBufferedReader(globalConceptsPath);
+             CSVReader csvreader = new CSVReader(reader)) {
+
+            String[] line;
+            while ((line = csvreader.readNext()) != null) {
+                if (line.length > 3 && line[1] != null && GLOBAL_CONSENTS_PATH.equals(line[1])) {
+                    // Clean the patient number by removing quotes and trimming
+                    String patientNum = line[0] != null ? line[0].trim().replaceAll("\"", "") : "";
+
+                    if (!patientNum.isEmpty() && line[3] != null) {
+                        // Parse the consent value - format expected: phsXXXXXX.cX
+                        String consentValue = line[3].trim();
+
+                        if (consentValue.contains(".")) {
+                            String[] parts = consentValue.split("\\.");
+                            if (parts.length == 2) {
+                                String studyId = parts[0]; // phsXXXXXX
+                                String consent = parts[1]; // cX
+
+                                // Store in patient consent mapping
+                                patientConsentsByStudy.computeIfAbsent(patientNum, k -> new HashMap<>())
+                                        .put(studyId, consent);
+
+                                // If consent is c0, add to removal set
+                                if ("c0".equals(consent)) {
+                                    String patientStudyKey = patientNum + "|" + studyId;
+                                    consentZeroPatientStudies.add(patientStudyKey);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        totCZpat = consentZeroPatientStudies.size();
+
+        System.out.println("Total consent 0 patient-study combinations: " + consentZeroPatientStudies.size());
+        System.out.println("First 10 c0 patient-study combinations: ");
+        consentZeroPatientStudies.stream().limit(10).forEach(combo -> System.out.println("  " + combo));
+
+        // Additional debugging
+        System.out.println("Sample consent data for debugging:");
+        System.out.println("Patient consent mapping (first 5 patients): ");
+        patientConsentsByStudy.entrySet().stream().limit(5).forEach(entry -> {
+            System.out.println("  Patient " + entry.getKey() + ": " + entry.getValue());
+        });
+    }
 }
