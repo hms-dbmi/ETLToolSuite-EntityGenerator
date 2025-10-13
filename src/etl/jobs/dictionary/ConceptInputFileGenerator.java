@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReaderBuilder;
+import com.opencsv.CSVWriter;
 import etl.jobs.csv.bdc.BDCJob;
 import etl.jobs.jobproperties.JobProperties;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -129,8 +129,8 @@ public class ConceptInputFileGenerator extends BDCJob {
             buffer.close();
         }
         File conceptsOutput = new File(SUBSET_DIR + "/output/concepts.csv");
-        try (PrintWriter pw = new PrintWriter(conceptsOutput)) {
-            pw.println(StringUtils.join(headers, ","));
+        try (CSVWriter csvWriter = new CSVWriter(new FileWriter(conceptsOutput))) {
+            csvWriter.writeNext(headers);
             concepts.stream().sorted( new Comparator<Concept>() {
             @Override
             public int compare(Concept o1, Concept o2) {
@@ -139,7 +139,7 @@ public class ConceptInputFileGenerator extends BDCJob {
                 }
                 return o1.getConceptPath().length() - (o2.getConceptPath().length());
             }
-        }).map(concept -> convertToCSV(concept.getCsvEntry())).forEach(pw::println);
+        }).map(Concept::getCsvEntry).forEach(csvWriter::writeNext);
         } catch (FileNotFoundException e) {
                 System.err.println(SUBSET_DIR + "/output/ file directory not found");
         }
@@ -179,11 +179,11 @@ public class ConceptInputFileGenerator extends BDCJob {
         }
         
         String escapedData = data.replaceAll("\\R", " ");
-        if (escapedData.contains("\\")){
-            
+/*        if (escapedData.contains("\\")) {
+
             escapedData = escapedData.replaceAll("\\\\", "\\\\\\\\");
-            
-        }
+
+        }*/
         if (escapedData.contains(",") || escapedData.contains("\"") || escapedData.contains("'") ) {
             escapedData = escapedData.replace("\"", "\"\"");
             escapedData = "\"" + escapedData + "\"";
