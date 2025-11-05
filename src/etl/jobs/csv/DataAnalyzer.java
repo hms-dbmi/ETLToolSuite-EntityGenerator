@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 
 public class DataAnalyzer extends Job {
-    private static List<Mapping> mappingsToRemove = new ArrayList<Mapping>();
+    private static List<Mapping> mappingsToRemove = Collections.synchronizedList(new ArrayList<Mapping>());
 
     public static void main(String[] args) throws Exception {
         try {
@@ -58,7 +58,7 @@ public class DataAnalyzer extends Job {
     }
 
     private static List<Mapping> analyzeData(List<Mapping> mappings){
-        List<Mapping> newMappings = new ArrayList<Mapping>();
+        List<Mapping> newMappings = Collections.synchronizedList(new ArrayList<Mapping>());
 
         Map<String, List<Mapping>> mappingsMap = new HashMap<String, List<Mapping>>();
         Map<String, File> fileMap = new HashMap<String, File>();
@@ -68,18 +68,11 @@ public class DataAnalyzer extends Job {
             String fileName = m.getKey().split(":")[0];
             Path path = Paths.get(DATA_DIR + fileName);
             if (Files.exists(path)) {
-
-
                 if (mappingsMap.containsKey(fileName)) {
-
                     mappingsMap.get(fileName).add(m);
-
-
                 } else {
                     System.out.println("Adding file " + fileName + "to file list");
                     mappingsMap.put(fileName, new ArrayList<Mapping>(Arrays.asList(m)));
-
-
                 }
             }
 
@@ -115,10 +108,8 @@ public class DataAnalyzer extends Job {
 
             List<String[]> finalAllRecs = allRecs;
             value.forEach(m -> {
-
                 CompletableFuture<Void> analyzerRun = CompletableFuture.runAsync(
                         () -> {
-
                             System.out.println("Starting analysis for " + m.getRootNode());
                             try {
                                 int col = new Integer(m.getKey().split(":")[1]);
@@ -137,11 +128,8 @@ public class DataAnalyzer extends Job {
                                 throw new RuntimeException(e);
                             }
                             System.out.println("Analysis complete for " + m.getRootNode() + ". List now has " + newMappings.size() + " vars.");
-
-
                         });
                 analyzerRuns.add(analyzerRun);
-
             });
         });
         CompletableFuture<Void> allRuns = CompletableFuture.allOf(analyzerRuns.toArray(new CompletableFuture<?>[0]));
@@ -149,7 +137,6 @@ public class DataAnalyzer extends Job {
         System.out.println("Done data analyzer on " + newMappings.size() + " vars");
 
         return newMappings;
-
     }
 
 
