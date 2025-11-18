@@ -11,8 +11,6 @@ import etl.jobs.csv.bdc.BDCJob;
 import etl.jobs.jobproperties.JobProperties;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -78,8 +76,8 @@ public class ConceptInputFileGenerator extends BDCJob {
                 return o1.getConceptPath().length() - (o2.getConceptPath().length());
             }
         });
-        try (BufferedReader buffer = Files.newBufferedReader(Paths.get(columnMetaFile))) {
-            CSVParser csvParser =  new CSVParserBuilder().withEscapeChar('φ').withQuoteChar('"').build();
+        try (BufferedReader buffer = new BufferedReader(new FileReader(columnMetaFile))) {
+            CSVParser csvParser =  new CSVParserBuilder().withSeparator(',').withQuoteChar('"').withEscapeChar(CSVParser.NULL_CHARACTER).build();
             List<String[]> records = new CSVReaderBuilder(buffer).withCSVParser(csvParser).build().readAll();
             Set<String> parentConceptPaths = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
             

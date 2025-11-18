@@ -153,18 +153,18 @@ public class DataAnalyzer extends Job {
                                && !NumberUtils.isCreatable(val)).findFirst();
         if (nonnullText.isPresent()) {
             mapping.setDataType("TEXT");
+            System.out.println(mapping.getRootNode() + " is type TEXT");
             return mapping;
         } else {
             Optional<String> numeric = vals.stream().filter(NumberUtils::isCreatable).findFirst();
             if (numeric.isPresent()) {
                 mapping.setDataType("NUMERIC");
+                System.out.println(mapping.getRootNode() + " is type NUMERIC");
             } else {
                 System.out.println("No non-null values found! Removing mapping " + mapping.getKey() + " " + mapping.getRootNode());
                 mapping.setDataType("TOREMOVE");
                 mappingsToRemove.add(mapping);
             }
-
-
         }
 
 
