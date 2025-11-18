@@ -1,5 +1,10 @@
 package etl.jobs.csv.bdc;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.opencsv.CSVReader;
+import etl.jobs.mappings.Mapping;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -7,17 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.opencsv.CSVReader;
-
-import etl.jobs.mappings.Mapping;
+import java.util.*;
 
 public class GenericMappingGenerator extends BDCJob {
 	protected static boolean HASDATATABLES = false;
@@ -81,13 +76,12 @@ public class GenericMappingGenerator extends BDCJob {
 			for(File f: dataDir.listFiles()) {
 				
 				try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + f.getName()))) {
-					if(!f.getName().contains(".csv") || !f.getName().contains("pht")) continue;
+					if(!f.getName().contains(".csv")) continue;
 					System.out.println("Generating mapping for: " + f.getName());
 					try (CSVReader reader = new CSVReader(buffer)) {
 						String[] headers = reader.readNext();
 						int x = 0;
-						
-						
+
 						if(f.getName().startsWith("._")){
 							continue;
 						}
