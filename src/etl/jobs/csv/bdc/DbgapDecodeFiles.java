@@ -12,15 +12,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.opencsv.*;
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import com.opencsv.CSVParser;
-import com.opencsv.CSVParserBuilder;
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
 
 import etl.jobs.Job;
 
@@ -142,6 +139,9 @@ public class DbgapDecodeFiles extends Job {
             String[] headers = BDCJob.getHeaders(reader);
 
             if (headers != null) {
+                System.out.println("Header row detected: " + Arrays.toString(headers));
+                System.out.println("Header row count: " + headers.length);
+
                 boolean isSampleId = SAMPLE_ID.contains(headers[0].toUpperCase());
                 boolean hasDbgapSubjId = SUBJECT_ID.contains(headers[0].toUpperCase());
                 String[] lineToWrite = new String[headers.length];
@@ -149,10 +149,15 @@ public class DbgapDecodeFiles extends Job {
                 if (hasDbgapSubjId || isSampleId) {
                     while ((line = reader.readNext()) != null) {
                         if (headers.length != line.length) {
-                            System.err.println("Malformed row detected - skipping row inside " + data.getName());
-                            System.err.println("Row data: " + Arrays.toString(line));
-                            warnCount++;
-                            continue; // Skip this row, don't crash
+                            // if the line length is off by one and the final value is blank it is likely there is an extra tab at the end of the file.
+                            // so we will include the line.
+                            if (!(headers.length == (line.length - 1) && StringUtils.isBlank(line[line.length - 1]))) {
+                                System.err.println("Malformed row detected - skipping row inside " + data.getName());
+                                System.err.println("Row data: " + Arrays.toString(line));
+                                System.err.println("Row data count: " + line.length);
+                                warnCount++;
+                                continue; // Skip this row, don't crash
+                            }
                         }
 
                         int colidx = 0;
