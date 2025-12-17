@@ -149,15 +149,11 @@ public class DbgapDecodeFiles extends Job {
                 if (hasDbgapSubjId || isSampleId) {
                     while ((line = reader.readNext()) != null) {
                         if (headers.length != line.length) {
-                            // if the line length is off by one and the final value is blank it is likely there is an extra tab at the end of the file.
-                            // so we will include the line.
-                            if (!(headers.length == (line.length - 1) && StringUtils.isBlank(line[line.length - 1]))) {
                                 System.err.println("Malformed row detected - skipping row inside " + data.getName());
                                 System.err.println("Row data: " + Arrays.toString(line));
                                 System.err.println("Row data count: " + line.length);
                                 warnCount++;
                                 continue; // Skip this row, don't crash
-                            }
                         }
 
                         int colidx = 0;
