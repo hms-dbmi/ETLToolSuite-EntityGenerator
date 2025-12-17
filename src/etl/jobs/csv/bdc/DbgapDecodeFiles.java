@@ -1,428 +1,377 @@
 package etl.jobs.csv.bdc;
 
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.opencsv.*;
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.opencsv.CSVReader;
-
 import etl.jobs.Job;
 
 public class DbgapDecodeFiles extends Job {
 
-	public static List<String> SAMPLE_ID = new ArrayList<String>() {{
-		add("DBGAP_SAMPLE_ID");
-		add("DBGAP SAMPID");
-	}};
-	public static List<String> SUBJECT_ID = new ArrayList<String>() {{
-		add("dbGaP_Subject_ID".toUpperCase());
-		add("dbGaP SubjID".toUpperCase());
+    public static List<String> SAMPLE_ID = new ArrayList<String>() {{
+        add("DBGAP_SAMPLE_ID");
+        add("DBGAP SAMPID");
+    }};
 
-	}};
-	private static Map<String,String> SAMPLE_TO_SUBJECT_ID = new HashMap<>();
-	private static int studyWarnCount = 0;
-	
-	public static void main(String[] args) {
-		try {
-			
-			setVariables(args, buildProperties(args));
-			
-			//setLocalVariables(args, buildProperties(args));
-			
-		} catch (Exception e) {
-			
-			System.err.println("Error processing variables");
-			
-			System.err.println(e);
-			
-		}
-		
-		try {
-			
-			execute();
-			
-		} catch (IOException e) {
-			
-			System.err.println(e);
-			
-		} catch (ParserConfigurationException e) {
-			
-			e.printStackTrace();
-		} catch (SAXException e) {
-			
-			e.printStackTrace();
-		}
-	}
+    public static List<String> SUBJECT_ID = new ArrayList<String>() {{
+        add("dbGaP_Subject_ID".toUpperCase());
+        add("dbGaP SubjID".toUpperCase());
+    }};
 
-	private static void execute() throws ParserConfigurationException, SAXException, IOException {
-		// iterate over all files in data dir.  
-		// look for data files and get the pht value;
-		
-		if(Files.isDirectory(Paths.get(DATA_DIR))) {
+    private static Map<String, String> SAMPLE_TO_SUBJECT_ID = new HashMap<>();
 
-			File[] dataFiles = new File(DATA_DIR).listFiles();
-			
-			setSampleToSubject();
-			
-			for(File data: dataFiles) {
+    // Global counters for exit status
+    private static int studyWarnCount = 0;
+    private static int fileFailureCount = 0;
 
-				String[] fileNameArr = data.getName().split("\\.");
-				//
-				if(!fileNameArr[fileNameArr.length - 1].equalsIgnoreCase("txt")) continue;
-				
-				String pht = getPht(fileNameArr);
-				
-				// if filenames does not contain pht continue to next file.
-				if(pht == null || pht.isEmpty()) continue;
-				
-				// get Data Dictionary
-				File dictionaryFile = getDictFile(pht);
-				
-				studyWarnCount += translateData(data, dictionaryFile);
-			}
-			
-			//Sets job to unstable if any 
-			if (studyWarnCount > 0){
-				System.err.println(studyWarnCount + " warnings for files in study. Review build log to ensure no unexpected errors occurred.");
-								System.exit(255);
-			}
-		}
+    public static void main(String[] args) {
+        try {
+            // Processing variables can throw exceptions now, allowing us to see the error
+            setVariables(args, buildProperties(args));
+            execute();
 
-		
-	}
-	/**
-	 * 
-	 * Take the data and dictionary file 
-	 * stream a writer to a temp file.
-	 * once file is complete overwrite data file with temp file
-	 * 
-	 * @param data
-	 * @param dictionaryFile
-	 */
-	private static int translateData(File data, File dictionaryFile) {
-		int warnCount = 0;
-		
-		Document dataDic = buildDictionary(dictionaryFile);
-	
-		Map<String,String> headerLookup = new HashMap<>();
-		 
-		Map<String,String> phvLookup = new HashMap<>();
-		Map<String, Map<String, String>> valueLookup = null;
-		try{
-		valueLookup = (dataDic == null) ? null: buildValueLookup(dataDic);
-		}
-		catch(NullPointerException e){
-			System.err.println("Null pointer exception! Make sure all values for encoded variables are present in the xml");
-			e.printStackTrace();
-			System.exit(-1);
-		}
-	
-		if(dataDic != null) buildHeaderLookup(dataDic, headerLookup, phvLookup);
-	
-		// Start a writer stream to output translated data file
-		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + data.getName()), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-			
-			// Stream data file and output buffer
-			
-			CSVReader reader = new CSVReader(Files.newBufferedReader(Paths.get(data.getAbsolutePath())), '\t','µ');
-			
-			String[] line;
-			
-			String[] headers = BDCJob.getHeaders(reader);	
-			
-			if(headers != null) {
-				boolean isSampleId = SAMPLE_ID.contains(headers[0].toUpperCase());
-				
-				boolean hasDbgapSubjId = SUBJECT_ID.contains(headers[0].toUpperCase());
-				
-				String[] lineToWrite = new String[headers.length];
-				
-				if(hasDbgapSubjId || isSampleId) {
-					while((line = reader.readNext()) != null) {
-						if(headers.length != line.length) {
-							
-							System.err.println("Malformed row detected - skipping row");
-							System.err.println(data.getName() + " - " + line);
-							warnCount++;
+            // Determine final exit code based on accumulated state
+            if (fileFailureCount > 0) {
+                System.err.println("Job completed with " + fileFailureCount + " critical file failures.");
+                System.exit(1);
+            } else if (studyWarnCount > 0) {
+                System.err.println(studyWarnCount + " warnings detected. Review build log.");
+                System.exit(255);
+            } else {
+                System.exit(0);
+            }
 
-						}
-						int colidx = 0;
-						for(String cell: line) {
-							if(headers.length - 1 < colidx) continue;
-	
-							String header = headers[colidx];
-							
-							if(valueLookup != null && valueLookup.containsKey(header)) {
-								
-								Map<String,String> codedValues = valueLookup.get(header);
-	
-								if(codedValues.containsKey(cell)) {
-									
-									cell = codedValues.get(cell);	
-									
-								}
-								
-							}
-							lineToWrite[colidx] = cell;
+        } catch (Exception e) {
+            System.err.println("Fatal Job Error:");
+            e.printStackTrace();
+            System.exit(-1);
+        }
+    }
 
-							colidx++;
-						}
-						if(isSampleId) {
-							lineToWrite[0] = findSampleToSubjectID(lineToWrite[0]);
-						}
-						if(lineToWrite[0] == null) continue;
-							
-						buffer.write(toCsv(lineToWrite));
-						buffer.flush();
-					}
-				} else {
-					System.err.println("Missing dbgap subject id in file: " + data.getName());
-					
-					buffer.flush();
-					buffer.close();
-					
-					Files.delete(Paths.get(WRITE_DIR + data.getName()));
-					warnCount++;
-				}
-			} else {
-				
-				System.err.println("Missing headers for " + data.getName());
-				warnCount++;
-				
-			}
-		} catch (IOException e) {
-			
-			System.err.println("Error writing to " + WRITE_DIR + data.getName());
-			e.printStackTrace();
-			System.exit(-1);
-		}
-		return warnCount;
-	}
+    private static void execute() throws IOException {
+        if (!Files.isDirectory(Paths.get(DATA_DIR))) {
+            System.err.println("Data directory not found: " + DATA_DIR);
+            return;
+        }
 
-	private static void setSampleToSubject() throws IOException {
-		String[] sampleFiles = BDCJob.getStudySampleMultiFile();
-		
-		for(String samplefile:sampleFiles) {
-			
-			int sampColId = -1; 
-			int subjColId = -1;
-			
-			for(String sampid: SAMPLE_ID) {
-				if(BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), sampid) != -1) {
-					sampColId = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), sampid);
-				}
-			}
-			for(String subjid: SUBJECT_ID) {
-				if(BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), subjid) != -1) {
-					subjColId = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), subjid);
-				}
-			}
-			
-			if(subjColId == -1) continue;
-			
-			if(sampColId == -1) continue;
-			
-			try(CSVReader reader = BDCJob.readRawBDCDataset(Paths.get(DATA_DIR + samplefile), true)){
-				String[] line;
-				while((line = reader.readNext())!= null) {
-					// skill header
-					if(SUBJECT_ID.contains(line[subjColId].toUpperCase())) continue;
-					SAMPLE_TO_SUBJECT_ID.put(line[sampColId], line[subjColId]);
-					
-				}
-			}
-		}
-			
-	}
+        File[] dataFiles = new File(DATA_DIR).listFiles();
+        if (dataFiles == null) return;
 
-	private static String findSampleToSubjectID(String string) {
-		if (SAMPLE_TO_SUBJECT_ID.containsKey(string)) return SAMPLE_TO_SUBJECT_ID.get(string);
-		return null;
-	}
+        // Populate the lookup map before processing individual files
+        setSampleToSubject();
 
-	private static Document buildDictionary(File dictionaryFile) {
-		if(dictionaryFile == null) return null;
-		try {
-	
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			
-			
-			DocumentBuilder builder;
-				builder = factory.newDocumentBuilder();
-					
-			return builder.parse(dictionaryFile);
-			
-		} catch (ParserConfigurationException | SAXException | IOException e) {
-			System.err.println("Error processing dictionary file " + dictionaryFile.getAbsolutePath());
-			System.err.println(e.toString());
-			e.printStackTrace();
-			System.exit(-1);
-		}
-		return null;
-	}
+        for (File data : dataFiles) {
+            // Isolate errors per file so one bad file doesn't kill the whole job
+            try {
+                String[] fileNameArr = data.getName().split("\\.");
+                if (!fileNameArr[fileNameArr.length - 1].equalsIgnoreCase("txt")) {
+                    continue;
+                }
 
-	private static File getDictFile(String pht) {
-		// Looking for data dictionary filename
-		if(Files.isDirectory(Paths.get(DATA_DIR))) {
+                String pht = BDCJob.getPht(fileNameArr);
 
-			File[] dataFiles = new File(DATA_DIR).listFiles();
-			
-			for(File data: dataFiles) {
-				if(!data.getName().contains("data_dict")) continue;
-				String[] fileNameArr = data.getName().split("\\.");
-				// look for xml
-				if(!fileNameArr[fileNameArr.length - 1].equalsIgnoreCase("xml")) continue;
-				// if pht matches return file
-				if(pht.equalsIgnoreCase(getPht(fileNameArr))) return data;
-				
-			}
-		}
-		return null;
-	}
+                if (pht == null || pht.isEmpty()) {
+                    continue;
+                }
 
-	private static String getPht(String[] fileNameArr) {
-		for(String str: fileNameArr) {
-			if(str.contains("pht")) return str;
-			if(str.contains("subjects")) return str;
-			if(str.contains("samples")) return str;
-		}
-		return null;
-	}
+                File dictionaryFile = getDictFile(pht);
 
+                if (dictionaryFile == null) {
+                    System.err.println("Missing Data Dictionary for: " + data.getName() + " (pht: " + pht + ")");
+                    fileFailureCount++;
+                    continue;
+                }
 
-	
-	private static void buildHeaderLookup(Document dataDic, Map<String,String> headerLookup, Map<String,String> phvLookup) {
-				
-		// build an object that will collect the variables
-		
-		NodeList variables = dataDic.getElementsByTagName("variable");
-				
-	    for (int idx = 0; idx < variables.getLength(); idx++) {
-	
-	    		Node node = variables.item(idx);
-	    		
-	    		NodeList variableChildren = node.getChildNodes();
-	    		
-	    		String id = node.getAttributes().getNamedItem("id").getNodeValue().split("\\.")[0];
-	    		
-	    		String name = "";
-	    		
-	    		String desc = "";
-	    		
-	    		for (int idx2 = 0; idx2 < variableChildren.getLength(); idx2++) {
-	
-	        		Node node2 = variableChildren.item(idx2);
-	        		
-	        		if(node2.getNodeName().equalsIgnoreCase("name")) {
-	        			name = node2.getTextContent();
+                studyWarnCount += translateData(data, dictionaryFile);
 
-	        			phvLookup.put(name, id);
-	        		}
-	        		
-	        		if(node2.getNodeName().equalsIgnoreCase("description")) desc = node2.getTextContent().replace('\"', '\'');
-	        		
-	    		}
-	    		
-	    		headerLookup.put(name, desc);
-	    		
-	    }
-		
-	}
-	
-	private static Map<String, Map<String, String>> buildValueLookup(Document dataDic) {
-		
-			
-		// build an object that will collect the variables
-		
-		NodeList variables = dataDic.getElementsByTagName("variable");
-		
-		// Colheader<List<Map<encodedvalue, decodedvalue>>>
-		Map<String, Map<String, String>> valueLookup = new HashMap<String, Map<String, String>>();
-		
-		//valueLookup.put(0,new HashMap<String,String>());
-		//valueLookup.put(1,new HashMap<String,String>());
-		
-	    for (int idx = 0; idx < variables.getLength(); idx++) {
-	
-	    		Node node = variables.item(idx);
-	    		
-	    		NodeList variableChildren = node.getChildNodes();
-	    		
-	    		String name = "";
-	    		
-	    		
-	    		List<Node> valueNodes = new ArrayList<Node>();
-	    		
-	    		for (int idx2 = 0; idx2 < variableChildren.getLength(); idx2++) {
-	
-	        		Node node2 = variableChildren.item(idx2);
-	        			        		
-	        		if(node2.getNodeName().equalsIgnoreCase("name")) name = node2.getTextContent();
-	        		
-	        		if(node2.getNodeName().equalsIgnoreCase("value")) valueNodes.add(node2);
-	    		}
-	    		
-	    		Map<String,String> valueMap = new HashMap<String,String>(); 
-	    		
-	    		//if(!type.equalsIgnoreCase("encoded")) continue;
-	    		
-	    		for(Node vnode: valueNodes) {
-	    			String valueCodeName = findValueCodeName(vnode);
-	    			
-	    			String valueDecoded = vnode.getFirstChild().getNodeValue();
-	    			
-	    			String valueCoded;
-	    			
-	    			if(vnode.getAttributes().getNamedItem(valueCodeName) == null) {
-	    				// ignore variable as it is missing its decoded value
-	    				// dictionary needs to be updated.
-	    				//ignorecols.add(idx);
+            } catch (Exception e) {
+                System.err.println("CRITICAL FAILURE processing file: " + data.getName());
+                e.printStackTrace();
+                fileFailureCount++;
+            }
+        }
+    }
 
-	    				continue;
-	    				
-	    			} else {
-	    				
-	    				valueCoded = vnode.getAttributes().getNamedItem(valueCodeName).getNodeValue();
-	    				
-	    			}
-	    			
-	    			valueMap.put(valueCoded, valueDecoded);
-	    		}
-	    		valueLookup.put(name, valueMap);
-	    }
-	    
-	    return valueLookup;
-	    
-	}
+    /**
+     * Translates data using the dictionary.
+     * Uses CSVReaderBuilder to avoid deprecation warnings.
+     */
+    private static int translateData(File data, File dictionaryFile) throws ParserConfigurationException, SAXException, IOException {
+        int warnCount = 0;
 
-	private static String findValueCodeName(Node vnode) {
-		System.out.println(vnode.getAttributes().toString());
+        // Build dictionary first; if this fails, we throw exception immediately
+        Document dataDic = buildDictionary(dictionaryFile);
 
-		if(vnode.getAttributes().getNamedItem("code") != null) return "code";
-		if(vnode.getAttributes().getNamedItem("value code") != null) return "value code";
-		else 
-		{
-			System.err.println("No value code provided in xml for " + vnode.getTextContent());
-			
-	}
-		return null;
-	}
-	
+        Map<String, String> headerLookup = new HashMap<>();
+        Map<String, String> phvLookup = new HashMap<>();
+        Map<String, Map<String, String>> valueLookup = buildValueLookup(dataDic);
+        buildHeaderLookup(dataDic, headerLookup, phvLookup);
+
+        // Configure the CSV Parser (Tab separator, 'µ' quote char as per original)
+        CSVParser parser = new CSVParserBuilder()
+                .withSeparator('\t')
+                .withQuoteChar('µ')
+                .build();
+
+        // Try-with-resources guarantees streams close even if exceptions occur
+        try (
+                BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + data.getName()), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                CSVReader reader = new CSVReaderBuilder(Files.newBufferedReader(Paths.get(data.getAbsolutePath())))
+                        .withCSVParser(parser)
+                        .build()
+        ) {
+            String[] line;
+            String[] headers = BDCJob.getHeaders(reader);
+
+            if (headers != null) {
+                System.out.println("Header row detected: " + Arrays.toString(headers));
+                System.out.println("Header row count: " + headers.length);
+
+                boolean isSampleId = SAMPLE_ID.contains(headers[0].toUpperCase());
+                boolean hasDbgapSubjId = SUBJECT_ID.contains(headers[0].toUpperCase());
+                String[] lineToWrite = new String[headers.length];
+
+                if (hasDbgapSubjId || isSampleId) {
+                    while ((line = reader.readNext()) != null) {
+                        if (headers.length != line.length) {
+                                System.err.println("Malformed row detected - skipping row inside " + data.getName());
+                                System.err.println("Row data: " + Arrays.toString(line));
+                                System.err.println("Row data count: " + line.length);
+                                warnCount++;
+                                continue; // Skip this row, don't crash
+                        }
+
+                        int colidx = 0;
+                        for (String cell : line) {
+                            if (headers.length - 1 < colidx) continue;
+
+                            String header = headers[colidx];
+                            if (valueLookup.containsKey(header)) {
+                                Map<String, String> codedValues = valueLookup.get(header);
+                                if (codedValues.containsKey(cell)) {
+                                    cell = codedValues.get(cell);
+                                }
+                            }
+
+                            lineToWrite[colidx] = cell;
+                            colidx++;
+                        }
+
+                        if (isSampleId) {
+                            lineToWrite[0] = findSampleToSubjectID(lineToWrite[0]);
+                        }
+
+                        // If mapping failed and returned null, skip writing this line
+                        if (lineToWrite[0] == null) continue;
+
+                        buffer.write(toCsv(lineToWrite));
+                        buffer.flush();
+                    }
+                } else {
+                    System.err.println("Missing dbgap subject id in file: " + data.getName());
+                    // Note: If you want to delete the file on failure, you must do it AFTER this try block closes the writer.
+                    warnCount++;
+                }
+            } else {
+                System.err.println("Missing headers for " + data.getName());
+                warnCount++;
+            }
+        } catch (IOException e) {
+            // Rethrow so execute() can log it as a file failure
+            throw new IOException("IO Error in translateData for file " + data.getName(), e);
+        }
+
+        return warnCount;
+    }
+
+    private static void setSampleToSubject() throws IOException {
+        String[] sampleFiles = BDCJob.getStudySampleMultiFile();
+        if (sampleFiles == null) return;
+
+        for (String samplefile : sampleFiles) {
+            int sampColId = -1;
+            int subjColId = -1;
+
+            // Note: BDCJob seems to handle basic file checks
+            try {
+                // Determine column indices
+                for (String sampid : SAMPLE_ID) {
+                    int idx = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), sampid);
+                    if (idx != -1) sampColId = idx;
+                }
+
+                for (String subjid : SUBJECT_ID) {
+                    int idx = BDCJob.findRawDataColumnIdx(Paths.get(DATA_DIR + samplefile), subjid);
+                    if (idx != -1) subjColId = idx;
+                }
+
+                if (subjColId == -1 || sampColId == -1) {
+                    continue;
+                }
+
+                // Ensure reader is closed
+                try (CSVReader reader = BDCJob.readRawBDCDataset(Paths.get(DATA_DIR + samplefile), true)) {
+                    String[] line;
+                    while ((line = reader.readNext()) != null) {
+                        if (SUBJECT_ID.contains(line[subjColId].toUpperCase())) continue;
+                        SAMPLE_TO_SUBJECT_ID.put(line[sampColId], line[subjColId]);
+                    }
+                }
+            } catch (Exception e) {
+                // Log but continue trying other sample files
+                System.err.println("Error reading sample file: " + samplefile);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static String findSampleToSubjectID(String string) {
+        if (SAMPLE_TO_SUBJECT_ID.containsKey(string)) {
+            return SAMPLE_TO_SUBJECT_ID.get(string);
+        }
+
+        return null;
+    }
+
+    /**
+     * Builds the XML Document. Throws exceptions instead of System.exit.
+     */
+    private static Document buildDictionary(File dictionaryFile) throws ParserConfigurationException, SAXException, IOException {
+        if (dictionaryFile == null) {
+            throw new IOException("Attempted to build dictionary from null file");
+        }
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        return builder.parse(dictionaryFile);
+    }
+
+    private static File getDictFile(String pht) {
+        if (Files.isDirectory(Paths.get(DATA_DIR))) {
+            File[] dataFiles = new File(DATA_DIR).listFiles();
+            if (dataFiles == null) return null;
+
+            for (File data : dataFiles) {
+                if (!data.getName().contains("data_dict")) continue;
+                String[] fileNameArr = data.getName().split("\\.");
+
+                if (!fileNameArr[fileNameArr.length - 1].equalsIgnoreCase("xml")) {
+                    continue;
+                }
+
+                if (pht.equalsIgnoreCase(BDCJob.getPht(fileNameArr))) {
+                    return data;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static void buildHeaderLookup(Document dataDic, Map<String, String> headerLookup, Map<String, String> phvLookup) {
+        if (dataDic == null) return;
+
+        NodeList variables = dataDic.getElementsByTagName("variable");
+        for (int idx = 0; idx < variables.getLength(); idx++) {
+            Node node = variables.item(idx);
+
+            // Safety check for attributes
+            if (node.getAttributes() == null || node.getAttributes().getNamedItem("id") == null) continue;
+
+            NodeList variableChildren = node.getChildNodes();
+            String id = node.getAttributes().getNamedItem("id").getNodeValue().split("\\.")[0];
+
+            String name = "";
+            String desc = "";
+            for (int idx2 = 0; idx2 < variableChildren.getLength(); idx2++) {
+                Node node2 = variableChildren.item(idx2);
+                if (node2.getNodeName().equalsIgnoreCase("name")) {
+                    name = node2.getTextContent();
+                    phvLookup.put(name, id);
+                }
+
+                if (node2.getNodeName().equalsIgnoreCase("description"))
+                    desc = node2.getTextContent().replace('\"', '\'');
+            }
+
+            headerLookup.put(name, desc);
+        }
+    }
+
+    private static Map<String, Map<String, String>> buildValueLookup(Document dataDic) {
+        if (dataDic == null) return new HashMap<>();
+
+        NodeList variables = dataDic.getElementsByTagName("variable");
+        Map<String, Map<String, String>> valueLookup = new HashMap<>();
+
+        for (int idx = 0; idx < variables.getLength(); idx++) {
+            Node node = variables.item(idx);
+            NodeList variableChildren = node.getChildNodes();
+            String name = "";
+
+            List<Node> valueNodes = new ArrayList<Node>();
+            for (int idx2 = 0; idx2 < variableChildren.getLength(); idx2++) {
+                Node node2 = variableChildren.item(idx2);
+                if (node2.getNodeName().equalsIgnoreCase("name")) {
+                    name = node2.getTextContent();
+                }
+
+                if (node2.getNodeName().equalsIgnoreCase("value")) {
+                    valueNodes.add(node2);
+                }
+            }
+
+            Map<String, String> valueMap = new HashMap<>();
+            for (Node vnode : valueNodes) {
+                String valueCodeName = findValueCodeName(vnode);
+
+                // Safety check for empty value nodes
+                if (vnode.getFirstChild() == null) {
+                    continue;
+                }
+
+                String valueDecoded = vnode.getFirstChild().getNodeValue();
+                String valueCoded;
+
+                if (valueCodeName == null || vnode.getAttributes().getNamedItem(valueCodeName) == null) {
+                    continue;
+                } else {
+                    valueCoded = vnode.getAttributes().getNamedItem(valueCodeName).getNodeValue();
+                }
+
+                valueMap.put(valueCoded, valueDecoded);
+            }
+            valueLookup.put(name, valueMap);
+        }
+
+        return valueLookup;
+    }
+
+    private static String findValueCodeName(Node vnode) {
+        if (vnode.getAttributes() == null) return null;
+
+        if (vnode.getAttributes().getNamedItem("code") != null) {
+            return "code";
+        }
+
+        if (vnode.getAttributes().getNamedItem("value code") != null) {
+            return "value code";
+        }
+
+        System.err.println("No value code provided in xml for " + vnode.getTextContent());
+        return null;
+    }
 }
