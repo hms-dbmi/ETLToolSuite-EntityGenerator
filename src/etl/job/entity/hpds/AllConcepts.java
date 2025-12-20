@@ -1,6 +1,10 @@
 package etl.job.entity.hpds;
 
+import com.opencsv.CSVWriter;
 import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.io.StringWriter;
 
 public class AllConcepts {
 	private Integer patientNum;
@@ -10,7 +14,7 @@ public class AllConcepts {
 	private String startDate = "0";
 	
 	public AllConcepts(String[] line) {
-		this.patientNum = new Integer(line[0]);
+		this.patientNum = Integer.valueOf(line[0]);
 		this.conceptPath = line[1];
 		this.nvalNum = line[2];
 		this.tvalChar = line[3];
@@ -117,25 +121,33 @@ public class AllConcepts {
 		return true;
 	}
 	
+	/**
+	 * Converts this AllConcepts object to RFC 4180 compliant CSV format.
+	 * Uses OpenCSV's CSVWriter to ensure proper escaping of quotes, commas,
+	 * and newlines according to RFC 4180 specification.
+	 *
+	 * @return char array containing RFC 4180 compliant CSV line
+	 */
 	public char[] toCSV() {
-		
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append('"');
-		sb.append(patientNum);
-		sb.append("\",\"");
-		sb.append(conceptPath);
-		sb.append("\",\"");
-		sb.append(nvalNum);
-		sb.append("\",\"");
-		sb.append(tvalChar);
-		sb.append("\",\"");
-		sb.append(startDate);
-		sb.append('"');
-		sb.append('\n');
-		
-		return sb.toString().toCharArray();
-		
+		StringWriter stringWriter = new StringWriter();
+		try (CSVWriter csvWriter = new CSVWriter(stringWriter,
+				CSVWriter.DEFAULT_SEPARATOR,
+				CSVWriter.DEFAULT_QUOTE_CHARACTER,
+				CSVWriter.DEFAULT_ESCAPE_CHARACTER,
+				CSVWriter.RFC4180_LINE_END)) {
+			String[] fields = new String[]{
+					patientNum != null ? patientNum.toString() : "",
+					conceptPath != null ? conceptPath : "",
+					nvalNum != null ? nvalNum : "",
+					tvalChar != null ? tvalChar : "",
+					startDate != null ? startDate : ""
+			};
+			csvWriter.writeNext(fields, false);
+		} catch (IOException e) {
+			// StringWriter operations don't actually throw IOException, but CSVWriter requires handling it
+			throw new RuntimeException("Error writing CSV", e);
+		}
+		return stringWriter.toString().toCharArray();
 	}
 	
 	

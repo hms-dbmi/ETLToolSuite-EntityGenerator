@@ -42,7 +42,7 @@ public class GenerateAllConcepts extends Job {
     private static Set<String> MAPPINGS_WITH_BAD_DATA_TYPES = new HashSet<>();
 
     // Static map to see if patient has been created
-    private static Map<String, Integer> SEQUENCE_MAP = new HashMap<String, Integer>();
+    private static Map<String, Integer> SEQUENCE_MAP = new HashMap<>();
 
     private static Map<String, VariableAnalysis> VARIABLE_ANALYSIS = new TreeMap<>();
 
@@ -69,7 +69,7 @@ public class GenerateAllConcepts extends Job {
         public VariableAnalysis(Mapping mapping) {
 
             this.fileName = mapping.getKey().split(":")[0];
-            this.colIdx = new Integer(mapping.getKey().split(":")[1]);
+            this.colIdx = Integer.valueOf(mapping.getKey().split(":")[1]);
             this.mappingDataType = mapping.getDataType();
             this.conceptPath = mapping.getRootNode();
             this.totalFileRecordCount = 0;
@@ -100,7 +100,7 @@ public class GenerateAllConcepts extends Job {
                         for (Entry<String, Integer> pnv : va.possibleNumericVariablesAsText.entrySet()) {
                             String[] lineToWrite = new String[headers.length];
                             lineToWrite[0] = va.fileName;
-                            lineToWrite[1] = new Integer(va.colIdx).toString();
+                            lineToWrite[1] = Integer.toString(va.colIdx);
                             lineToWrite[2] = va.conceptPath;
                             lineToWrite[3] = va.mappingDataType;
                             lineToWrite[4] = pnv.getKey();
@@ -116,7 +116,7 @@ public class GenerateAllConcepts extends Job {
                         for (Entry<String, Integer> bnv : va.badNumericalVariables.entrySet()) {
                             String[] lineToWrite = new String[headers.length];
                             lineToWrite[0] = va.fileName;
-                            lineToWrite[1] = new Integer(va.colIdx).toString();
+                            lineToWrite[1] = Integer.toString(va.colIdx);
                             lineToWrite[2] = va.conceptPath;
                             lineToWrite[3] = va.mappingDataType;
                             lineToWrite[4] = bnv.getKey();
@@ -144,15 +144,15 @@ public class GenerateAllConcepts extends Job {
                     VariableAnalysis va = VAEntry.getValue();
                     String[] lineToWrite = new String[headers.length];
                     lineToWrite[0] = va.fileName;
-                    lineToWrite[1] = new Integer(va.colIdx).toString();
+                    lineToWrite[1] = Integer.toString(va.colIdx);
                     lineToWrite[2] = va.conceptPath;
                     lineToWrite[3] = va.mappingDataType;
-                    lineToWrite[4] = new Integer(va.totalFileRecordCount).toString();
-                    lineToWrite[5] = new Integer(va.totalVariableCount).toString();
-                    lineToWrite[6] = new Integer(va.totalValidVariableCount).toString();
-                    lineToWrite[7] = new Integer(va.totalBadNumericCount).toString();
-                    lineToWrite[8] = new Integer(va.totalEmptyOrNullValueCount).toString();
-                    lineToWrite[9] = new Integer(va.totalPossibleNumericVariablesAsTextCount).toString();
+                    lineToWrite[4] = Integer.toString(va.totalFileRecordCount);
+                    lineToWrite[5] = Integer.toString(va.totalVariableCount);
+                    lineToWrite[6] = Integer.toString(va.totalValidVariableCount);
+                    lineToWrite[7] = Integer.toString(va.totalBadNumericCount);
+                    lineToWrite[8] = Integer.toString(va.totalEmptyOrNullValueCount);
+                    lineToWrite[9] = Integer.toString(va.totalPossibleNumericVariablesAsTextCount);
 
                     buffer.write(toCsv(lineToWrite));
                 }
@@ -198,9 +198,6 @@ public class GenerateAllConcepts extends Job {
 
         List<PatientMapping> patientMappings = new ArrayList<>();
 
-        // populate seq map with current mappings
-        //if(USE_PATIENT_MAPPING) buildSeqMap();
-
         if (USE_PATIENT_MAPPING) {
 
             patientMappings = PatientMapping.readPatientMappingFile(PATIENT_MAPPING_FILE);
@@ -242,7 +239,6 @@ public class GenerateAllConcepts extends Job {
                     mapping.setRootNode(mapping.getRootNode().replace(OLD_SEPARATOR, PATH_SEPARATOR.charAt(0)));
 
                 }
-                ;
 
                 String[] options = mapping.getOptions().split(":");
 
@@ -261,7 +257,7 @@ public class GenerateAllConcepts extends Job {
 
                 String fileName = mapping.getKey().split(":")[0];
 
-                Integer column = new Integer(mapping.getKey().split(":")[1]);
+                Integer column = Integer.valueOf(mapping.getKey().split(":")[1]);
 
                 if (!Files.exists(Paths.get(DATA_DIR + fileName))) {
 
@@ -420,7 +416,7 @@ public class GenerateAllConcepts extends Job {
                 allConcept.setPatientNum(sequencePatient(line[PATIENT_COL]));
             } else {
                 if (NumberUtils.isCreatable(line[PATIENT_COL].trim())) {
-                    allConcept.setPatientNum(new Integer(line[PATIENT_COL].trim()));
+                    allConcept.setPatientNum(Integer.valueOf(line[PATIENT_COL].trim()));
                 }
             }
 
@@ -438,7 +434,7 @@ public class GenerateAllConcepts extends Job {
                     allConcept.setPatientNum(sequencePatient(line[PATIENT_COL]));
                 } else {
                     if (NumberUtils.isCreatable(line[PATIENT_COL])) {
-                        allConcept.setPatientNum(new Integer(line[PATIENT_COL]));
+                        allConcept.setPatientNum(Integer.valueOf(line[PATIENT_COL]));
                     }
                 }
 
@@ -469,8 +465,6 @@ public class GenerateAllConcepts extends Job {
 
         }
 
-        //analyzeVariable(mapping, line);
-
         return allConcept;
 
     }
@@ -478,11 +472,9 @@ public class GenerateAllConcepts extends Job {
     private static void analyzeVariable(Mapping mapping, String[] line) {
 
         VariableAnalysis va;
-        //Map<String,Integer> invalidVariables;
 
         if (VARIABLE_ANALYSIS.containsKey(mapping.getKey())) {
             va = VARIABLE_ANALYSIS.get(mapping.getKey());
-            //invalidVariables = VARIABLE_ANALYSIS.get(mapping.getKey()).invalidVariables;
         } else {
             va = new VariableAnalysis(mapping);
         }
@@ -547,7 +539,7 @@ public class GenerateAllConcepts extends Job {
             }
             if (properties.contains("patientcol")) {
 
-                PATIENT_COL = new Integer(properties.get("patientcol").toString());
+                PATIENT_COL = Integer.valueOf(properties.get("patientcol").toString());
 
             }
         }

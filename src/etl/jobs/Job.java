@@ -1,6 +1,7 @@
 package etl.jobs;
 
 import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
 import etl.etlinputs.managedinputs.ManagedInput;
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
 import etl.jobs.jobproperties.JobProperties;
@@ -10,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -181,10 +183,10 @@ public abstract class Job implements Serializable {
 				}
 			}
 			if(properties.contains("patientcol")) {
-				
-				PATIENT_COL = new Integer(properties.get("patientcol").toString());
-				
-				
+
+				PATIENT_COL = Integer.valueOf(properties.get("patientcol").toString());
+
+
 			}
 			CONCEPT_CD_STARTING_SEQ = properties.contains("conceptcdstartseq") ? Integer.valueOf(properties.getProperty("conceptcdstartseq")) : CONCEPT_CD_STARTING_SEQ;
 			ENCOUNTER_NUM_STARTING_SEQ = properties.contains("encounternumstartseq") ? Integer.valueOf(properties.getProperty("encounternumstartseq")) : ENCOUNTER_NUM_STARTING_SEQ;
@@ -196,9 +198,9 @@ public abstract class Job implements Serializable {
 		 */
 		for(String arg: args) {
 			if(arg.equalsIgnoreCase("patientcol")) {
-				
-				PATIENT_COL = new Integer(checkPassedArgs(arg, args));
-				
+
+				PATIENT_COL = Integer.valueOf(checkPassedArgs(arg, args));
+
 			}
 			if(arg.equalsIgnoreCase("-skipheaders")){
 				String skip = checkPassedArgs(arg, args);
@@ -487,26 +489,27 @@ public abstract class Job implements Serializable {
 	 */
 	
 	
+	/**
+	 * Converts a String array to RFC 4180 compliant CSV format.
+	 * This method uses OpenCSV's CSVWriter to ensure proper escaping of quotes,
+	 * commas, and newlines according to RFC 4180 specification.
+	 *
+	 * @param line Array of strings to convert to CSV format
+	 * @return char array containing RFC 4180 compliant CSV line
+	 */
 	protected static char[] toCsv(String[] line) {
-		StringBuilder sb = new StringBuilder();
-		
-		int lastNode = line.length - 1;
-		int x = 0;
-		for(String node: line) {
-			
-			sb.append('"');
-			sb.append(node);
-			sb.append('"');
-			
-			if(x == lastNode) {
-				sb.append('\n');
-			} else {
-				sb.append(',');
-			}
-			x++;
+		StringWriter stringWriter = new StringWriter();
+		try (CSVWriter csvWriter = new CSVWriter(stringWriter,
+				CSVWriter.DEFAULT_SEPARATOR,
+				CSVWriter.DEFAULT_QUOTE_CHARACTER,
+				CSVWriter.DEFAULT_ESCAPE_CHARACTER,
+				CSVWriter.RFC4180_LINE_END)) {
+			csvWriter.writeNext(line, false);
+		} catch (IOException e) {
+			// StringWriter operations don't actually throw IOException, but CSVWriter requires handling it
+			throw new RuntimeException("Error writing CSV", e);
 		}
-		
-		return sb.toString().toCharArray();
+		return stringWriter.toString().toCharArray();
 	}
 	protected static String arrToCsv(String[] line) {
 		
