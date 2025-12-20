@@ -19,6 +19,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.StructuredTaskScope;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
@@ -98,7 +99,7 @@ public class RemoveConsentZeroPatients extends BDCJob {
         }
     }
 
-    private static void execute() throws IOException {
+    private static void execute() throws IOException, InterruptedException, ExecutionException {
         logger.info("Starting consent-zero patient removal process");
         logger.info("Available processors: {}", Runtime.getRuntime().availableProcessors());
 
