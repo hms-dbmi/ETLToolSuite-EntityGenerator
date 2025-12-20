@@ -267,7 +267,7 @@ public class RemoveConsentZeroPatients extends BDCJob {
         String fileName = file.getName();
         long startTime = System.currentTimeMillis();
 
-        logger.info("Starting CHUNKED processing: {}", fileName);
+        logger.info("Starting processing: {} ({} MB)", fileName, file.length() / (1024.0 * 1024.0));
         performanceMonitor.startOperation("file_chunked_" + fileName);
 
         Path inputPath = Paths.get(BEFORE_REMOVAL_DIR + fileName);
@@ -279,8 +279,7 @@ public class RemoveConsentZeroPatients extends BDCJob {
         ChunkedFileReader chunkedReader = new ChunkedFileReader(inputPath, 64);
         List<ChunkedFileReader.FileChunk> chunks = chunkedReader.splitIntoChunks();
 
-        logger.info("Split {} ({} MB) into {} chunks", fileName,
-            chunkedReader.getFileSize() / (1024 * 1024), chunks.size());
+        logger.info("Split into {} chunks for parallel processing", chunks.size());
 
         // Process chunks in parallel using virtual threads
         List<ChunkProcessingResult> results = new ArrayList<>(Collections.nCopies(chunks.size(), null));
@@ -327,9 +326,16 @@ public class RemoveConsentZeroPatients extends BDCJob {
         long processingTime = System.currentTimeMillis() - startTime;
         performanceMonitor.endOperation("file_chunked_" + fileName);
 
-        logger.info("CHUNKED Complete: {} - Processed: {}, Removed: {}, Time: {} ms, Throughput: {} rows/sec",
-            fileName, totalProcessed.get(), totalRemoved.get(), processingTime,
-            (totalProcessed.get() * 1000L) / Math.max(processingTime, 1));
+        long throughput = (totalProcessed.get() * 1000L) / Math.max(processingTime, 1);
+        double removalRate = totalProcessed.get() > 0 ? (totalRemoved.get() * 100.0) / totalProcessed.get() : 0.0;
+
+        logger.info("Completed: {} - Processed: {}, Removed: {} ({}%), Time: {} ms, Throughput: {} rows/sec",
+                fileName,
+                totalProcessed.get(),
+                totalRemoved.get(),
+                String.format("%.2f", removalRate),
+                processingTime,
+                throughput);
 
         return new ProcessingResult(fileName, totalProcessed.get(), totalRemoved.get(), processingTime);
     }
@@ -341,6 +347,8 @@ public class RemoveConsentZeroPatients extends BDCJob {
             ChunkedFileReader reader,
             ChunkedFileReader.FileChunk chunk,
             String fileName) throws IOException {
+
+        logger.debug("Processing chunk {} of {} for {}", chunk.index + 1, fileName, fileName);
 
         List<String> lines = reader.readChunkAsLines(chunk);
         List<String> filteredLines = new ArrayList<>(lines.size());
@@ -354,27 +362,37 @@ public class RemoveConsentZeroPatients extends BDCJob {
 
             rowsProcessed++;
 
-            // Preprocess line
-            String processedLine = preprocessLine(line);
+            try {
+                // Preprocess line
+                String processedLine = preprocessLine(line);
 
-            // Parse CSV
-            String[] fields = parser.parseLine(processedLine);
+                // Parse CSV
+                String[] fields = parser.parseLine(processedLine);
 
-            if (fields.length == 0) {
-                filteredLines.add(processedLine);
-                continue;
-            }
+                if (fields.length == 0) {
+                    filteredLines.add(processedLine);
+                    continue;
+                }
 
-            // Extract patient number
-            String patientNum = extractPatientNum(fields[0]);
+                // Extract patient number
+                String patientNum = extractPatientNum(fields[0]);
 
-            // Check if should remove
-            if (!shouldRemoveRecord(patientNum, fields)) {
-                filteredLines.add(processedLine);
-            } else {
-                rowsRemoved++;
+                // Check if should remove
+                if (!shouldRemoveRecord(patientNum, fields)) {
+                    filteredLines.add(processedLine);
+                } else {
+                    rowsRemoved++;
+                }
+            } catch (Exception e) {
+                logger.error("Error processing row {} in chunk {} of {}: {}",
+                    rowsProcessed, chunk.index, fileName, e.getMessage());
+                logger.error("Problematic line: {}", line.substring(0, Math.min(200, line.length())));
+                throw e;
             }
         }
+
+        logger.debug("Completed chunk {} of {}: {} rows processed, {} removed",
+            chunk.index + 1, fileName, rowsProcessed, rowsRemoved);
 
         return new ChunkProcessingResult(chunk.index, rowsProcessed, rowsRemoved, filteredLines);
     }
@@ -416,7 +434,7 @@ public class RemoveConsentZeroPatients extends BDCJob {
 
         // Remove quotes and trim
         String cleaned = field.trim();
-        if (cleaned.startsWith("\"") && cleaned.endsWith("\"")) {
+        if (cleaned.startsWith("\"") && cleaned.endsWith("\"") && cleaned.length() > 1) {
             cleaned = cleaned.substring(1, cleaned.length() - 1);
         }
 
