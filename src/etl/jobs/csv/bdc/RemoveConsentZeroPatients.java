@@ -1,6 +1,7 @@
 package etl.jobs.csv.bdc;
 
 import etl.etlinputs.managedinputs.bdc.BDCManagedInput;
+import etl.jobs.csv.bdc.optimized.ChunkedFileReader;
 import etl.jobs.csv.bdc.optimized.ConsentCache;
 import etl.jobs.csv.bdc.optimized.OptimizedCSVParser;
 import etl.jobs.csv.bdc.optimized.PerformanceMonitor;
@@ -16,8 +17,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.StructuredTaskScope;
@@ -130,9 +134,10 @@ public class RemoveConsentZeroPatients extends BDCJob {
         try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
 
             // Submit all file processing tasks
+            // Use chunked processing for true parallelism
             List<StructuredTaskScope.Subtask<ProcessingResult>> tasks =
                 Arrays.stream(files)
-                    .map(file -> scope.fork(() -> processFileOptimized(file)))
+                    .map(file -> scope.fork(() -> processFileChunked(file)))
                     .toList();
 
             // Wait for all tasks to complete
@@ -230,7 +235,8 @@ public class RemoveConsentZeroPatients extends BDCJob {
                     }
 
                     // Batch write when queue reaches threshold
-                    if (writeQueue.size() >= config.getWriteBatchSize()) {
+                    // Reduced flush frequency for better throughput
+                    if (writeQueue.size() >= config.getWriteBatchSize() * 2) {
                         flushWriteQueue(writeQueue, writer);
                     }
                 });
@@ -250,6 +256,144 @@ public class RemoveConsentZeroPatients extends BDCJob {
             (processed * 1000L) / Math.max(processingTime, 1));
 
         return new ProcessingResult(fileName, processed, removed, processingTime);
+    }
+
+    /**
+     * Process file using TRUE parallel chunked processing.
+     * Splits file into chunks, processes each chunk in parallel,
+     * then writes results in order.
+     */
+    private static ProcessingResult processFileChunked(File file) throws IOException, InterruptedException, ExecutionException {
+        String fileName = file.getName();
+        long startTime = System.currentTimeMillis();
+
+        logger.info("Starting CHUNKED processing: {}", fileName);
+        performanceMonitor.startOperation("file_chunked_" + fileName);
+
+        Path inputPath = Paths.get(BEFORE_REMOVAL_DIR + fileName);
+        Path outputPath = Paths.get(DATA_DIR + fileName);
+
+        Files.createDirectories(outputPath.getParent());
+
+        // Split file into 64MB chunks for parallel processing
+        ChunkedFileReader chunkedReader = new ChunkedFileReader(inputPath, 64);
+        List<ChunkedFileReader.FileChunk> chunks = chunkedReader.splitIntoChunks();
+
+        logger.info("Split {} ({} MB) into {} chunks", fileName,
+            chunkedReader.getFileSize() / (1024 * 1024), chunks.size());
+
+        // Process chunks in parallel using virtual threads
+        List<ChunkProcessingResult> results = new ArrayList<>(Collections.nCopies(chunks.size(), null));
+        AtomicLong totalProcessed = new AtomicLong(0);
+        AtomicLong totalRemoved = new AtomicLong(0);
+
+        try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+            List<StructuredTaskScope.Subtask<ChunkProcessingResult>> tasks = new ArrayList<>();
+
+            for (ChunkedFileReader.FileChunk chunk : chunks) {
+                var task = scope.fork(() -> processChunkParallel(chunkedReader, chunk, fileName));
+                tasks.add(task);
+            }
+
+            scope.join();
+            scope.throwIfFailed();
+
+            // Collect results in order
+            for (var task : tasks) {
+                ChunkProcessingResult result = task.get();
+                results.set(result.chunkIndex, result);
+                totalProcessed.addAndGet(result.rowsProcessed);
+                totalRemoved.addAndGet(result.rowsRemoved);
+            }
+        }
+
+        // Write results in order to preserve data integrity
+        try (BufferedWriter writer = Files.newBufferedWriter(
+                outputPath,
+                StandardCharsets.UTF_8,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING)) {
+
+            for (ChunkProcessingResult result : results) {
+                if (result != null && result.filteredLines != null) {
+                    for (String line : result.filteredLines) {
+                        writer.write(line);
+                        writer.write('\n');
+                    }
+                }
+            }
+        }
+
+        long processingTime = System.currentTimeMillis() - startTime;
+        performanceMonitor.endOperation("file_chunked_" + fileName);
+
+        logger.info("CHUNKED Complete: {} - Processed: {}, Removed: {}, Time: {} ms, Throughput: {} rows/sec",
+            fileName, totalProcessed.get(), totalRemoved.get(), processingTime,
+            (totalProcessed.get() * 1000L) / Math.max(processingTime, 1));
+
+        return new ProcessingResult(fileName, totalProcessed.get(), totalRemoved.get(), processingTime);
+    }
+
+    /**
+     * Process a single chunk in parallel (NO shared writer bottleneck)
+     */
+    private static ChunkProcessingResult processChunkParallel(
+            ChunkedFileReader reader,
+            ChunkedFileReader.FileChunk chunk,
+            String fileName) throws IOException {
+
+        List<String> lines = reader.readChunkAsLines(chunk);
+        List<String> filteredLines = new ArrayList<>(lines.size());
+        OptimizedCSVParser parser = new OptimizedCSVParser(config);
+
+        long rowsProcessed = 0;
+        long rowsRemoved = 0;
+
+        for (String line : lines) {
+            if (line.isEmpty()) continue;
+
+            rowsProcessed++;
+
+            // Preprocess line
+            String processedLine = preprocessLine(line);
+
+            // Parse CSV
+            String[] fields = parser.parseLine(processedLine);
+
+            if (fields.length == 0) {
+                filteredLines.add(processedLine);
+                continue;
+            }
+
+            // Extract patient number
+            String patientNum = extractPatientNum(fields[0]);
+
+            // Check if should remove
+            if (!shouldRemoveRecord(patientNum, fields)) {
+                filteredLines.add(processedLine);
+            } else {
+                rowsRemoved++;
+            }
+        }
+
+        return new ChunkProcessingResult(chunk.index, rowsProcessed, rowsRemoved, filteredLines);
+    }
+
+    /**
+     * Result from processing a chunk
+     */
+    private static class ChunkProcessingResult {
+        final int chunkIndex;
+        final long rowsProcessed;
+        final long rowsRemoved;
+        final List<String> filteredLines;
+
+        ChunkProcessingResult(int chunkIndex, long rowsProcessed, long rowsRemoved, List<String> filteredLines) {
+            this.chunkIndex = chunkIndex;
+            this.rowsProcessed = rowsProcessed;
+            this.rowsRemoved = rowsRemoved;
+            this.filteredLines = filteredLines;
+        }
     }
 
     /**
