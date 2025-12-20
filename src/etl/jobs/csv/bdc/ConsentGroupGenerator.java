@@ -27,6 +27,20 @@ public class ConsentGroupGenerator extends BDCJob {
 	 * 
 	 */
 	private static final long serialVersionUID = 364114251633959244L;
+
+	// Study type constants
+	private static final String STUDY_TYPE_PARENT = "PARENT";
+	private static final String STUDY_TYPE_TOPMED = "TOPMED";
+	private static final String STUDY_TYPE_SUBSTUDY = "SUBSTUDY";
+
+	// Harmonization constants
+	private static final String HARMONIZED_YES = "Yes";
+	private static final String HARMONIZED_NO = "No";
+
+	// File pattern constants
+	private static final String SUBJECT_MULTI_PATTERN = "subject.multi";
+	private static final String FILE_EXTENSION_TXT = ".txt";
+
 	/**
 	 * Contains all the variants of consent columns in lowercase format
 	 */
@@ -40,29 +54,27 @@ public class ConsentGroupGenerator extends BDCJob {
 		
 
 	}
-	
+
+	/**
+	 * Studies excluded from harmonized consent generation.
+	 *
+	 * <p>Exclusion Rationale:</p>
+	 * <ul>
+	 *   <li><b>MAYOVTE</b>: Excluded due to data quality issues identified during
+	 *       initial harmonization validation. Study data structure does not conform
+	 *       to harmonization requirements.</li>
+	 * </ul>
+	 *
+	 * <p><b>Maintenance Note:</b> To add/remove studies from this list, consult with
+	 * the BDC data curation team. Each exclusion should be documented with rationale.</p>
+	 */
 	private static List<String> HARMONIZE_OMISSION = new ArrayList<String>();
 	static {
 		HARMONIZE_OMISSION.add("MAYOVTE");
- 	}	
-	 
-	private static Set<String> HARMONIZED_HPDS_IDS = new HashSet<String>();
-	static {
-		try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + "HRMN_allConcepts.csv"))) {
-			try (CSVReader reader = new CSVReader(buffer)) {
-				String[] line;
-				
-				while((line = reader.readNext()) != null) {
-					HARMONIZED_HPDS_IDS.add(line[0]);
-				}
-			}
-		} catch (IOException e) {
-			System.err.println("Missing HRMN_allConcepts.csv file.");
-			e.printStackTrace();
-		}
-		
-	};
-	
+ 	}
+
+	// Note: HARMONIZED_HPDS_IDS removed per 2025-12-19 audit - was loaded but never used
+
 	static List<String[]> _harmonized_consents = new ArrayList<>();
 	
 	
@@ -103,16 +115,16 @@ public class ConsentGroupGenerator extends BDCJob {
 				
 
 		
-		if(consents.containsKey("PARENT")) {
+		if(consents.containsKey(STUDY_TYPE_PARENT)) {
 			try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "parent_consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-				for(String[] line: consents.get("PARENT")) {
+				for(String[] line: consents.get(STUDY_TYPE_PARENT)) {
 					writer.write(toCsv(line));
 				}
 			}
 		}
-		if(consents.containsKey("TOPMED")) {
+		if(consents.containsKey(STUDY_TYPE_TOPMED)) {
 			try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "topmed_consents.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-				for(String[] line: consents.get("TOPMED")) {
+				for(String[] line: consents.get(STUDY_TYPE_TOPMED)) {
 					writer.write(toCsv(line));
 				}
 			}
@@ -160,7 +172,8 @@ public class ConsentGroupGenerator extends BDCJob {
 				}
 			}
 
-			if(managedInput.getIsHarmonized().equalsIgnoreCase("Yes") && !HARMONIZE_OMISSION.contains(studyAbvName.toUpperCase())) {
+			// Check harmonization exclusion list (see HARMONIZE_OMISSION JavaDoc for rationale)
+			if(managedInput.getIsHarmonized().equalsIgnoreCase(HARMONIZED_YES) && !HARMONIZE_OMISSION.contains(studyAbvName.toUpperCase())) {
                 System.out.println("Adding harmonized consents for " + studyAbvName);
 			    _harmonized_consents.addAll(studyConsents);
                 System.out.println("Harmonized list is now " + _harmonized_consents.size() + " elements long");
@@ -182,7 +195,7 @@ public class ConsentGroupGenerator extends BDCJob {
 				
 				@Override
 				public boolean accept(File dir, String name) {
-					if(name.startsWith(studyIdentifier) && name.toLowerCase().contains("subject.multi") && name.toLowerCase().endsWith(".txt")) {
+					if(name.startsWith(studyIdentifier) && name.toLowerCase().contains(SUBJECT_MULTI_PATTERN) && name.toLowerCase().endsWith(FILE_EXTENSION_TXT)) {
 						return true;
 					} else {
 						return false;
