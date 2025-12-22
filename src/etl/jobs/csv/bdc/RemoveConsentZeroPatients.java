@@ -106,7 +106,10 @@ public class RemoveConsentZeroPatients extends BDCJob {
             logger.info("=== PROCESSING COMPLETE ===");
             logger.info("Total execution time: {} ms ({} minutes)",
                 totalTime, totalTime / 60000.0);
-            logger.info("Performance statistics: {}", performanceMonitor.getStatistics());
+
+            // Print detailed performance report
+            logger.info("Performance statistics:\n{}",
+                performanceMonitor.getStatistics().getDetailedReport());
 
         } catch (Exception e) {
             logger.error("Fatal error during processing", e);
