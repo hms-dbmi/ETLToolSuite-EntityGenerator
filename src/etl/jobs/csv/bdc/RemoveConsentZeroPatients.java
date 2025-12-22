@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.StructuredTaskScope;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -60,10 +61,13 @@ public class RemoveConsentZeroPatients extends BDCJob {
     // Pre-compiled regex patterns for performance
     private static final Pattern PHS_PATTERN = Pattern.compile("phs\\d+");
     private static final Pattern QUOTE_PATTERN = Pattern.compile("\"");
-    private static final Pattern MU_PATTERN = Pattern.compile("µ");
 
     private static final String GLOBAL_CONSENTS_PATH = "µ_consentsµ";
     private static final String BEFORE_REMOVAL_DIR = "./beforeRemoval/";
+
+    // Safe study ID deduplication pool (replaces dangerous String.intern())
+    // Study IDs have low cardinality (~100-1000 unique values), making manual pooling safe
+    private static final ConcurrentHashMap<String, String> studyIdPool = new ConcurrentHashMap<>();
 
     // Configuration loaded from properties
     private static ProcessingConfig config;
@@ -273,6 +277,11 @@ public class RemoveConsentZeroPatients extends BDCJob {
      * - Memory usage: O(1) typical, O(k) worst case (k = number of out-of-order chunks buffered)
      * - Benefit: 85M rows (4.9GB file) uses 8-12GB RAM, no swap, 20x faster throughput
      *
+     * CONCURRENCY CONTROL:
+     * - Semaphore limits concurrent chunk processing to avoid excessive I/O
+     * - Bound: max(4, available processors) concurrent chunks
+     * - Prevents virtual thread explosion on large files
+     *
      * How it works:
      * 1. Open output file BEFORE processing (not after)
      * 2. As each chunk completes, submit to OrderedWriter
@@ -305,6 +314,11 @@ public class RemoveConsentZeroPatients extends BDCJob {
 
         logger.info("Split into {} chunks for parallel processing", chunks.size());
 
+        // Bound concurrency to prevent virtual thread explosion
+        int maxConcurrentChunks = Math.max(4, Runtime.getRuntime().availableProcessors());
+        Semaphore chunkSemaphore = new Semaphore(maxConcurrentChunks);
+        logger.info("Limiting concurrent chunk processing to {} chunks", maxConcurrentChunks);
+
         // Statistics tracking
         AtomicLong totalProcessed = new AtomicLong(0);
         AtomicLong totalRemoved = new AtomicLong(0);
@@ -326,24 +340,31 @@ public class RemoveConsentZeroPatients extends BDCJob {
 
                 for (ChunkedFileReader.FileChunk chunk : chunks) {
                     var task = scope.fork(() -> {
-                        // Process chunk
-                        ChunkProcessingResult result = processChunkParallel(chunkedReader, chunk, fileName);
-
-                        // CRITICAL CHANGE: Submit chunk for immediate writing (if in order)
-                        // This replaces the previous "collect all results" pattern
+                        // Acquire permit to limit concurrency
+                        chunkSemaphore.acquire();
                         try {
-                            orderedWriter.submitChunk(result);
-                        } catch (IOException e) {
-                            logger.error("Failed to write chunk {} of {}", result.chunkIndex, fileName, e);
-                            throw new RuntimeException("Write failed for chunk " + result.chunkIndex, e);
+                            // Process chunk
+                            ChunkProcessingResult result = processChunkParallel(chunkedReader, chunk, fileName);
+
+                            // CRITICAL CHANGE: Submit chunk for immediate writing (if in order)
+                            // This replaces the previous "collect all results" pattern
+                            try {
+                                orderedWriter.submitChunk(result);
+                            } catch (IOException e) {
+                                logger.error("Failed to write chunk {} of {}", result.chunkIndex, fileName, e);
+                                throw new RuntimeException("Write failed for chunk " + result.chunkIndex, e);
+                            }
+
+                            // Update statistics
+                            totalProcessed.addAndGet(result.rowsProcessed);
+                            totalRemoved.addAndGet(result.rowsRemoved);
+
+                            // Return result for task tracking (lines already written, memory released)
+                            return result;
+                        } finally {
+                            // Always release permit, even on exception
+                            chunkSemaphore.release();
                         }
-
-                        // Update statistics
-                        totalProcessed.addAndGet(result.rowsProcessed);
-                        totalRemoved.addAndGet(result.rowsRemoved);
-
-                        // Return result for task tracking (lines already written, memory released)
-                        return result;
                     });
                     tasks.add(task);
                 }
@@ -599,16 +620,18 @@ public class RemoveConsentZeroPatients extends BDCJob {
 
     /**
      * Preprocess line - replace µ with \ in-stream (eliminates bash sed)
+     * Optimized: Use simple char replacement instead of expensive regex
      */
     private static String preprocessLine(String line) {
         if (line.indexOf('µ') >= 0) {
-            return MU_PATTERN.matcher(line).replaceAll("\\\\");
+            return line.replace('µ', '\\');
         }
         return line;
     }
 
     /**
-     * Extract patient number with zero-copy optimization where possible
+     * Extract patient number - NO INTERNING
+     * Patient IDs have unbounded cardinality; interning them creates a memory leak.
      */
     private static String extractPatientNum(String field) {
         if (field == null || field.isEmpty()) {
@@ -621,8 +644,7 @@ public class RemoveConsentZeroPatients extends BDCJob {
             cleaned = cleaned.substring(1, cleaned.length() - 1);
         }
 
-        // Intern frequently used strings to reduce memory
-        return cleaned.intern();
+        return cleaned; // Return directly, no intern()
     }
 
     /**
@@ -685,6 +707,7 @@ public class RemoveConsentZeroPatients extends BDCJob {
 
     /**
      * Extract phsXXXXXX pattern using pre-compiled regex
+     * Uses safe manual caching instead of dangerous String.intern()
      */
     private static String extractPhsIdOptimized(String text) {
         if (text == null || text.isEmpty()) {
@@ -693,8 +716,9 @@ public class RemoveConsentZeroPatients extends BDCJob {
 
         var matcher = PHS_PATTERN.matcher(text);
         if (matcher.find()) {
-            // Intern study IDs as they repeat frequently
-            return matcher.group().intern();
+            String studyId = matcher.group();
+            // Safe deduplication: use manual pool instead of String.intern()
+            return studyIdPool.computeIfAbsent(studyId, k -> k);
         }
 
         return null;
@@ -702,6 +726,7 @@ public class RemoveConsentZeroPatients extends BDCJob {
 
     /**
      * Read consents and build optimized cache with bloom filter
+     * Optimized: No double-read, sequential stream, safe study ID pooling
      */
     private static void readConsentsWithStudyPrecision(String globalConsentsPath)
             throws IOException {
@@ -714,8 +739,9 @@ public class RemoveConsentZeroPatients extends BDCJob {
             throw new IOException("Global concepts file not found: " + globalConceptsPath);
         }
 
-        // Initialize consent cache with bloom filter
-        long estimatedEntries = Files.lines(globalConceptsPath).count();
+        // Estimate entry count from file size (avoids double-read wastage)
+        // Assume ~60 bytes per line average
+        long estimatedEntries = Files.size(globalConceptsPath) / 60;
         consentCache = new ConsentCache(estimatedEntries, config.getBloomFilterFpp());
 
         logger.info("Estimated consent entries: {}", estimatedEntries);
@@ -726,9 +752,9 @@ public class RemoveConsentZeroPatients extends BDCJob {
         AtomicLong consentCount = new AtomicLong(0);
         AtomicLong consentZeroCount = new AtomicLong(0);
 
+        // Sequential stream (no .parallel()) - sufficient for loading, avoids contention
         try (Stream<String> lines = Files.lines(globalConceptsPath, StandardCharsets.UTF_8)) {
-            lines.parallel()
-                .forEach(line -> {
+            lines.forEach(line -> {
                     String[] fields = parser.parseLine(line);
 
                     if (fields.length > 3 &&
@@ -743,7 +769,8 @@ public class RemoveConsentZeroPatients extends BDCJob {
                             if (consentValue.contains(".")) {
                                 String[] parts = consentValue.split("\\.", 2);
                                 if (parts.length == 2) {
-                                    String studyId = parts[0].intern(); // phsXXXXXX
+                                    // Safe study ID deduplication using manual pool
+                                    String studyId = studyIdPool.computeIfAbsent(parts[0], k -> k);
                                     String consent = parts[1]; // cX
 
                                     // Add to cache
