@@ -87,6 +87,17 @@ public class ConsentCache {
     }
 
     /**
+     * Check if ANY consent-zero patients exist for a given study
+     * Useful for skipping entire study files with no consent-zero data
+     */
+    public boolean hasAnyConsentZeroForStudy(String studyId) {
+        // Fast check: scan all consent-zero keys for this study
+        String studySuffix = "|" + studyId;
+        return consentZeroPatientStudies.stream()
+            .anyMatch(key -> key.endsWith(studySuffix));
+    }
+
+    /**
      * Get consent value for a patient-study combination
      */
     public String getConsent(String patientNum, String studyId) {

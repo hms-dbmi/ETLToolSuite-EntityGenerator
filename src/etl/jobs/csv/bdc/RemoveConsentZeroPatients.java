@@ -308,6 +308,30 @@ public class RemoveConsentZeroPatients extends BDCJob {
 
         Files.createDirectories(outputPath.getParent());
 
+        // Extract study ID from filename (e.g., "phs000007_allConcepts.csv" -> "phs000007")
+        String studyId = extractStudyIdFromFilename(fileName);
+
+        // Early exit: Skip file if no consent-zero patients exist for this study
+        if (studyId != null && !consentCache.hasAnyConsentZeroForStudy(studyId)) {
+            logger.info("SKIPPING {}: No consent-zero patients for study {}", fileName, studyId);
+
+            // Copy file as-is (no filtering needed)
+            Files.copy(inputPath, outputPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            long copyTime = System.currentTimeMillis() - startTime;
+            long fileSize = Files.size(inputPath);
+            long estimatedRows = fileSize / 200; // Rough estimate
+
+            logger.info("COPIED (no c0): {} - ~{} rows, Time: {} ms ({}x faster than processing)",
+                fileName, estimatedRows, copyTime,
+                Math.max(1, (estimatedRows * 1000) / Math.max(copyTime * 150000, 1)));
+
+            performanceMonitor.endOperation("file_chunked_" + fileName);
+            return new ProcessingResult(fileName, estimatedRows, 0, copyTime);
+        }
+
+        logger.info("Processing {} - study {} has consent-zero patients", fileName, studyId);
+
         // Split file into 64MB chunks for parallel processing
         ChunkedFileReader chunkedReader = new ChunkedFileReader(inputPath, 64);
         List<ChunkedFileReader.FileChunk> chunks = chunkedReader.splitIntoChunks();
@@ -722,6 +746,18 @@ public class RemoveConsentZeroPatients extends BDCJob {
         }
 
         return null;
+    }
+
+    /**
+     * Extract study ID from filename
+     * Examples: "phs000007_allConcepts.csv" -> "phs000007"
+     *           "phs123456_allConcepts_new_search.csv" -> "phs123456"
+     */
+    private static String extractStudyIdFromFilename(String filename) {
+        if (filename == null || filename.isEmpty()) {
+            return null;
+        }
+        return extractPhsIdOptimized(filename);
     }
 
     /**
