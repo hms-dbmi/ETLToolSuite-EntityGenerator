@@ -126,16 +126,33 @@ public class RemoveConsentZeroPatients extends BDCJob {
         logger.info("Bloom filter false positive rate: ~{}%",
             consentCache.getBloomFilterFalsePositiveRate() * 100);
 
-        // Find all allConcepts files
+        // Find all allConcepts files (strict format check)
         Path dataDir = Paths.get(BEFORE_REMOVAL_DIR);
         File[] files = dataDir.toFile().listFiles(
-            (dir, name) -> name.contains("allConcepts")
+            (dir, name) -> name.contains("allConcepts") && name.endsWith(".csv")
         );
 
         if (files == null || files.length == 0) {
-            logger.warn("No allConcepts files found in {}", BEFORE_REMOVAL_DIR);
+            logger.warn("No allConcepts CSV files found in {}", BEFORE_REMOVAL_DIR);
             return;
         }
+
+        // Validate files are in allConcepts format (4+ fields: patientNum, conceptPath, nvalNum, tvalChar)
+        List<File> validFiles = new ArrayList<>();
+        for (File file : files) {
+            if (isAllConceptsFormat(file)) {
+                validFiles.add(file);
+            } else {
+                logger.warn("SKIPPING {}: Not in valid allConcepts format (expected 4+ fields)", file.getName());
+            }
+        }
+
+        if (validFiles.isEmpty()) {
+            logger.warn("No valid allConcepts files to process");
+            return;
+        }
+
+        files = validFiles.toArray(new File[0]);
 
         logger.info("Found {} allConcepts files to process", files.length);
 
@@ -335,7 +352,7 @@ public class RemoveConsentZeroPatients extends BDCJob {
         // Extract study ID from filename (e.g., "phs000007_allConcepts.csv" -> "phs000007")
         String studyId = extractStudyIdFromFilename(fileName);
 
-        // Early exit: Skip file if no consent-zero patients exist for this study
+        // Early exit: Study has study ID and no consent-zero patients for that study
         if (studyId != null && !consentCache.hasAnyConsentZeroForStudy(studyId)) {
             logger.info("SKIPPING {}: No consent-zero patients for study {}", fileName, studyId);
 
@@ -346,15 +363,19 @@ public class RemoveConsentZeroPatients extends BDCJob {
             long fileSize = Files.size(inputPath);
             long estimatedRows = fileSize / 200; // Rough estimate
 
-            logger.info("COPIED (no c0): {} - ~{} rows, Time: {} ms ({}x faster than processing)",
-                fileName, estimatedRows, copyTime,
-                Math.max(1, (estimatedRows * 1000) / Math.max(copyTime * 150000, 1)));
+            logger.info("COPIED (no c0): {} - ~{} rows, Time: {} ms",
+                fileName, estimatedRows, copyTime);
 
             performanceMonitor.endOperation("file_chunked_" + fileName);
             return new ProcessingResult(fileName, estimatedRows, 0, copyTime);
         }
 
-        logger.info("Processing {} - study {} has consent-zero patients", fileName, studyId);
+        // Log processing mode
+        if (studyId != null) {
+            logger.info("Processing {} - study-specific mode (study: {})", fileName, studyId);
+        } else {
+            logger.info("Processing {} - cross-study mode (patient-only matching for harmonized data)", fileName);
+        }
 
         // Split file into 64MB chunks for parallel processing
         ChunkedFileReader chunkedReader = new ChunkedFileReader(inputPath, 64);
@@ -710,6 +731,11 @@ public class RemoveConsentZeroPatients extends BDCJob {
 
     /**
      * Determine if record should be removed (optimized with bloom filter)
+     *
+     * Strategy:
+     * 1. Try to extract study ID from the record (concept path or text value)
+     * 2. If study ID found: Use fast study-specific lookup (bloom filter + HashMap)
+     * 3. If NO study ID found: Fallback to patient-only lookup (for harmonized files)
      */
     private static boolean shouldRemoveRecord(String patientNum, String[] fields) {
         if (patientNum.isEmpty() || fields.length < 2) {
@@ -720,13 +746,15 @@ public class RemoveConsentZeroPatients extends BDCJob {
         String studyId = extractStudyIdOptimized(fields);
 
         if (studyId != null) {
-            // Bloom filter pre-check (O(1) with low false positive rate)
+            // Fast path: Study-specific matching (bloom filter + HashMap)
             // If bloom filter says "not present", it's definitely not present
             // If it says "maybe present", check HashMap
             return consentCache.hasConsentZero(patientNum, studyId);
+        } else {
+            // Slow path: No study ID in record (harmonized/cross-study file)
+            // Check if patient has consent-zero in ANY study
+            return consentCache.hasAnyConsentZero(patientNum);
         }
-
-        return false;
     }
 
     /**
@@ -777,6 +805,44 @@ public class RemoveConsentZeroPatients extends BDCJob {
             return null;
         }
         return extractPhsIdOptimized(filename);
+    }
+
+    /**
+     * Validate file is in allConcepts format
+     * Expected format: patientNum, conceptPath, nvalNum, tvalChar (4+ fields)
+     */
+    private static boolean isAllConceptsFormat(File file) {
+        try (Stream<String> lines = Files.lines(file.toPath(), StandardCharsets.UTF_8)) {
+            // Check first non-empty line (skip potential headers)
+            String firstLine = lines
+                .filter(line -> !line.trim().isEmpty())
+                .findFirst()
+                .orElse(null);
+
+            if (firstLine == null) {
+                return false;
+            }
+
+            // Parse with OptimizedCSVParser
+            OptimizedCSVParser parser = new OptimizedCSVParser(config);
+            String[] fields = parser.parseLine(firstLine);
+
+            // Must have at least 4 fields: patientNum, conceptPath, nvalNum, tvalChar
+            if (fields.length < 4) {
+                return false;
+            }
+
+            // First field should be parseable as integer (patientNum)
+            try {
+                Integer.parseInt(fields[0].trim().replace("\"", ""));
+                return true;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        } catch (IOException e) {
+            logger.error("Error validating file format for {}: {}", file.getName(), e.getMessage());
+            return false;
+        }
     }
 
     /**

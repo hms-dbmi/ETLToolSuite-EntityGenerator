@@ -41,6 +41,10 @@ public class ConsentCache {
     // Key: patientNum, Value: Map of studyId -> consentValue
     private final Map<String, Map<String, String>> patientConsentsByStudy;
 
+    // Pre-built lookup set: all patient IDs with consent-zero in any study
+    // Built lazily on first access, cached for harmonized file processing
+    private Set<String> consentZeroPatientIds = null;
+
     // Statistics
     private final double falsePositiveRate;
 
@@ -95,6 +99,65 @@ public class ConsentCache {
         String studySuffix = "|" + studyId;
         return consentZeroPatientStudies.stream()
             .anyMatch(key -> key.endsWith(studySuffix));
+    }
+
+    /**
+     * Check if patient has consent-zero in ANY study
+     * Used for harmonized/cross-study files where study ID is not in the data
+     *
+     * Performance: Builds lookup set on first call, then uses O(1) HashSet lookup
+     */
+    public boolean hasAnyConsentZero(String patientNum) {
+        // Lazy initialization of patient ID lookup set
+        if (consentZeroPatientIds == null) {
+            synchronized (this) {
+                if (consentZeroPatientIds == null) {
+                    consentZeroPatientIds = buildConsentZeroPatientSet();
+                }
+            }
+        }
+
+        // Fast O(1) lookup
+        return consentZeroPatientIds.contains(patientNum);
+    }
+
+    /**
+     * Build set of all patient IDs with consent-zero in any study
+     * Called once and cached for the lifetime of the cache
+     */
+    private Set<String> buildConsentZeroPatientSet() {
+        long startTime = System.currentTimeMillis();
+        Set<String> patientIds = ConcurrentHashMap.newKeySet();
+
+        for (String key : consentZeroPatientStudies) {
+            int separatorIndex = key.indexOf('|');
+            if (separatorIndex > 0) {
+                String patientId = key.substring(0, separatorIndex);
+                patientIds.add(patientId);
+            }
+        }
+
+        long buildTime = System.currentTimeMillis() - startTime;
+        System.out.println(String.format(
+            "[ConsentCache] Built patient-only lookup set: %d unique patients with c0 (from %d patient-study entries) in %d ms",
+            patientIds.size(), consentZeroPatientStudies.size(), buildTime));
+
+        return patientIds;
+    }
+
+    /**
+     * Get all consent-zero patient IDs (for external use)
+     * Returns a set of patient IDs that have consent-zero in at least one study
+     */
+    public Set<String> getAllConsentZeroPatients() {
+        if (consentZeroPatientIds == null) {
+            synchronized (this) {
+                if (consentZeroPatientIds == null) {
+                    consentZeroPatientIds = buildConsentZeroPatientSet();
+                }
+            }
+        }
+        return new HashSet<>(consentZeroPatientIds);
     }
 
     /**
