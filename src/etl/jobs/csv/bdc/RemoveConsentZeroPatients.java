@@ -24,8 +24,10 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.StructuredTaskScope;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
@@ -36,7 +38,7 @@ import java.util.stream.Stream;
  *
  * Key optimizations:
  * - Virtual threads (Project Loom) for massive concurrency
- * - StructuredTaskScope for structured concurrency management
+ * - ExecutorService with virtual threads for concurrent task management
  * - Custom streaming CSV parser eliminating OpenCSV overhead
  * - Bloom filter for O(1) consent-zero lookups
  * - Memory-mapped file support for large file handling
@@ -168,14 +170,14 @@ public class RemoveConsentZeroPatients extends BDCJob {
         logger.info("Concurrency limits: {} files, {} total chunks (global)",
             maxConcurrentFiles, maxConcurrentChunks);
 
-        // Process files using structured concurrency with virtual threads
-        try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+        // Process files using virtual threads
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
 
             // Submit all file processing tasks
             // Use chunked processing for true parallelism
-            List<StructuredTaskScope.Subtask<ProcessingResult>> tasks =
+            List<Future<ProcessingResult>> futures =
                 Arrays.stream(files)
-                    .map(file -> scope.fork(() -> {
+                    .map(file -> executor.submit(() -> {
                         // Acquire file-level permit
                         fileSemaphore.acquire();
                         try {
@@ -186,16 +188,21 @@ public class RemoveConsentZeroPatients extends BDCJob {
                     }))
                     .toList();
 
-            // Wait for all tasks to complete
-            scope.join();
-            scope.throwIfFailed();
+            // Wait for all and collect results
+            List<ProcessingResult> results = new ArrayList<>();
+            for (Future<ProcessingResult> future : futures) {
+                try {
+                    results.add(future.get());
+                } catch (ExecutionException e) {
+                    throw new IOException("Task failed", e.getCause());
+                }
+            }
 
-            // Collect and log results
+            // Log results
             long totalRowsProcessed = 0;
             long totalRowsRemoved = 0;
 
-            for (var task : tasks) {
-                ProcessingResult result = task.get();
+            for (ProcessingResult result : results) {
                 totalRowsProcessed += result.rowsProcessed;
                 totalRowsRemoved += result.rowsRemoved;
 
@@ -399,11 +406,11 @@ public class RemoveConsentZeroPatients extends BDCJob {
             OrderedWriter orderedWriter = new OrderedWriter(writer, fileName);
 
             // Process chunks in parallel using virtual threads
-            try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
-                List<StructuredTaskScope.Subtask<ChunkProcessingResult>> tasks = new ArrayList<>();
+            try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+                List<Future<ChunkProcessingResult>> futures = new ArrayList<>();
 
                 for (ChunkedFileReader.FileChunk chunk : chunks) {
-                    var task = scope.fork(() -> {
+                    Future<ChunkProcessingResult> future = executor.submit(() -> {
                         // Acquire permit to limit concurrency
                         chunkSemaphore.acquire();
                         try {
@@ -430,12 +437,17 @@ public class RemoveConsentZeroPatients extends BDCJob {
                             chunkSemaphore.release();
                         }
                     });
-                    tasks.add(task);
+                    futures.add(future);
                 }
 
                 // Wait for all processing and writing to complete
-                scope.join();
-                scope.throwIfFailed();
+                for (Future<ChunkProcessingResult> future : futures) {
+                    try {
+                        future.get();
+                    } catch (ExecutionException e) {
+                        throw new IOException("Chunk processing failed", e.getCause());
+                    }
+                }
 
                 // Verify all chunks were written in order
                 orderedWriter.verifyComplete(chunks.size());
