@@ -78,6 +78,10 @@ public class RemoveConsentZeroPatients extends BDCJob {
     // Performance monitoring
     private static PerformanceMonitor performanceMonitor;
 
+    // Concurrency control
+    private static Semaphore fileSemaphore;      // Limits concurrent files
+    private static Semaphore chunkSemaphore;     // Global limit on concurrent chunks across all files
+
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
 
@@ -135,6 +139,18 @@ public class RemoveConsentZeroPatients extends BDCJob {
 
         logger.info("Found {} allConcepts files to process", files.length);
 
+        // Initialize concurrency control semaphores
+        // File-level: Limit concurrent files to prevent resource monopolization
+        // Chunk-level: Global limit shared across all files to match available CPU
+        int maxConcurrentFiles = 4;
+        int maxConcurrentChunks = Math.max(16, Runtime.getRuntime().availableProcessors());
+
+        fileSemaphore = new Semaphore(maxConcurrentFiles);
+        chunkSemaphore = new Semaphore(maxConcurrentChunks);
+
+        logger.info("Concurrency limits: {} files, {} total chunks (global)",
+            maxConcurrentFiles, maxConcurrentChunks);
+
         // Process files using structured concurrency with virtual threads
         try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
 
@@ -142,7 +158,15 @@ public class RemoveConsentZeroPatients extends BDCJob {
             // Use chunked processing for true parallelism
             List<StructuredTaskScope.Subtask<ProcessingResult>> tasks =
                 Arrays.stream(files)
-                    .map(file -> scope.fork(() -> processFileChunked(file)))
+                    .map(file -> scope.fork(() -> {
+                        // Acquire file-level permit
+                        fileSemaphore.acquire();
+                        try {
+                            return processFileChunked(file);
+                        } finally {
+                            fileSemaphore.release();
+                        }
+                    }))
                     .toList();
 
             // Wait for all tasks to complete
@@ -337,11 +361,6 @@ public class RemoveConsentZeroPatients extends BDCJob {
         List<ChunkedFileReader.FileChunk> chunks = chunkedReader.splitIntoChunks();
 
         logger.info("Split into {} chunks for parallel processing", chunks.size());
-
-        // Bound concurrency to prevent virtual thread explosion
-        int maxConcurrentChunks = Math.max(4, Runtime.getRuntime().availableProcessors());
-        Semaphore chunkSemaphore = new Semaphore(maxConcurrentChunks);
-        logger.info("Limiting concurrent chunk processing to {} chunks", maxConcurrentChunks);
 
         // Statistics tracking
         AtomicLong totalProcessed = new AtomicLong(0);
