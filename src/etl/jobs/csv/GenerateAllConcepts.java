@@ -233,7 +233,7 @@ public class GenerateAllConcepts extends Job {
 
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + TRIAL_ID + "_allConcepts.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 
-            mappings.parallelStream().forEach(mapping -> {
+            mappings.stream().forEach(mapping -> {
 
                 // validations
                 if (mapping.getKey().split(":").length != 2) return;
