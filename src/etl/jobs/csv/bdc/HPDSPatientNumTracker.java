@@ -9,8 +9,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -38,9 +40,11 @@ public class HPDSPatientNumTracker extends BDCJob {
 	private static  String PATIENT_NUM_FILE = "PatientPool.txt";
 
 	private static Set<Integer> PATIENT_NUMS = new TreeSet<>();
-	
+
 	private static Boolean IS_REVERSE_ENGINEER = false;
-	
+
+	private static Boolean IS_AUDIT_COLLISIONS = false;
+
 	private static Integer CURRENT_PATIENT_NUM = 1;
 	
 	public static void main(String[] args) {
@@ -73,30 +77,32 @@ public class HPDSPatientNumTracker extends BDCJob {
 	private static void execute() throws IOException {
 		if(IS_REVERSE_ENGINEER) {
 			reverseEngineerFromPatientMappings();
+		} else if(IS_AUDIT_COLLISIONS) {
+			auditPatientCollisions();
 		} else {
-			
+
 			// build patient mapping and add to the patient num file
 			populatePatientNums();
-			
+
 			List<BDCManagedInput> managedInputs = getManagedInputs();
-			
+
 			for(BDCManagedInput managedInput: managedInputs) {
-				
+
 				//if(NON_DBGAP_STUDY.contains(managedInput.getStudyAbvName().toUpperCase())) continue;
-				
+
 				if(managedInput.getDataProcessed().toUpperCase().startsWith("Y")) continue;
 				if(managedInput.getReadyToProcess().toUpperCase().startsWith("N")) continue;
-				
+
 				List<String[]> pms = updatePatientMapping(managedInput);
-				
+
 				try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(DATA_DIR + managedInput.getStudyAbvName().toUpperCase() + "_PatientMapping.v2.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-				
+
 					for(String[] pm: pms) {
 						if(pm[0].trim().isEmpty()) continue;
 						writer.write(toCsv(pm));
-					
+
 					}
-				
+
 				}
 
 			}
@@ -105,7 +111,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 					writer.write(i.toString()+'\n');
 				}
 			}
-			
+
 		}
 	}
 
@@ -249,12 +255,12 @@ public class HPDSPatientNumTracker extends BDCJob {
 
 
 	private static void reverseEngineerFromPatientMappings() throws IOException {
-		
+
 		File f = new File(DATA_DIR);
-		
+
 		if(f.isDirectory()) {
 			File[] files = new File(DATA_DIR).listFiles(new FilenameFilter() {
-				
+
 				//apply a filter
 				@Override
 				public boolean accept(File dir, String name) {
@@ -267,14 +273,14 @@ public class HPDSPatientNumTracker extends BDCJob {
 					}
 					return result;
 				}
-			
+
 			});
-			
+
 			for(File file: files) {
 				try(BufferedReader buffer = Files.newBufferedReader(Paths.get(file.getAbsolutePath()))) {
 					try (CSVReader reader = new CSVReader(buffer)) {
 						String[] line;
-						
+
 						while((line = reader.readNext()) != null) {
 							if(line.length < 3) continue;
 							if(!NumberUtils.isCreatable(line[2])) continue;
@@ -284,14 +290,14 @@ public class HPDSPatientNumTracker extends BDCJob {
 							}
 						}
 					} catch (NumberFormatException e) {
-						
+
 						e.printStackTrace();
 					}
-					
+
 				}
-				
+
 			}
-			
+
 			try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "PatientPool.txt"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 				for(Integer patnum: PATIENT_NUMS) {
 					System.out.println(patnum.toString());
@@ -301,7 +307,127 @@ public class HPDSPatientNumTracker extends BDCJob {
 		} else {
 			System.err.println(DATA_DIR + "is an invalid directory.");
 		}
-		
+
+	}
+
+	/**
+	 * Audits patient collisions across all patient mappings.
+	 * Unlike reverseEngineerFromPatientMappings, this method doesn't throw on collisions
+	 * but instead tracks, logs, and reports them in a CSV file.
+	 */
+	private static void auditPatientCollisions() throws IOException {
+
+		File f = new File(DATA_DIR);
+
+		if(!f.isDirectory()) {
+			System.err.println(DATA_DIR + " is an invalid directory.");
+			return;
+		}
+
+		// Map patient_num -> List of [dbgap_subject_id, study_name, file_name]
+		Map<Integer, List<String[]>> patientNumMap = new HashMap<>();
+		List<String[]> collisions = new ArrayList<>();
+		int totalMappingsProcessed = 0;
+		int collisionCount = 0;
+
+		File[] files = f.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.toUpperCase().endsWith("PATIENTMAPPING.V2.CSV");
+			}
+		});
+
+		if(files == null || files.length == 0) {
+			System.out.println("No patient mapping files found in " + DATA_DIR);
+			return;
+		}
+
+		System.out.println("Scanning " + files.length + " patient mapping files for collisions...");
+
+		// First pass: collect all mappings
+		for(File file: files) {
+			System.out.println("Processing: " + file.getName());
+			try(BufferedReader buffer = Files.newBufferedReader(Paths.get(file.getAbsolutePath()))) {
+				try (CSVReader reader = new CSVReader(buffer)) {
+					String[] line;
+
+					while((line = reader.readNext()) != null) {
+						if(line.length < 3) continue;
+						if(!NumberUtils.isCreatable(line[2])) continue;
+
+						totalMappingsProcessed++;
+						Integer patientNum = Integer.parseInt(line[2]);
+						String dbgapSubjectId = line[0];
+						String studyName = line[1];
+
+						// Create mapping record: [dbgap_subject_id, study_name, file_name]
+						String[] mappingRecord = new String[]{dbgapSubjectId, studyName, file.getName()};
+
+						if(!patientNumMap.containsKey(patientNum)) {
+							patientNumMap.put(patientNum, new ArrayList<>());
+						}
+						patientNumMap.get(patientNum).add(mappingRecord);
+					}
+				} catch (NumberFormatException e) {
+					System.err.println("Error parsing patient num in file: " + file.getName());
+					e.printStackTrace();
+				}
+			}
+		}
+
+		System.out.println("Total patient mappings processed: " + totalMappingsProcessed);
+		System.out.println("Unique patient nums found: " + patientNumMap.size());
+
+		// Second pass: identify collisions
+		for(Map.Entry<Integer, List<String[]>> entry: patientNumMap.entrySet()) {
+			Integer patientNum = entry.getKey();
+			List<String[]> mappings = entry.getValue();
+
+			if(mappings.size() > 1) {
+				// Collision detected
+				collisionCount++;
+				System.err.println("COLLISION DETECTED for patient_num: " + patientNum + " (appears " + mappings.size() + " times)");
+
+				for(String[] mapping: mappings) {
+					System.err.println("  - dbgap_subject_id: " + mapping[0] + ", study: " + mapping[1] + ", file: " + mapping[2]);
+
+					// Add to collision report: [patient_num, dbgap_subject_id, study_name, file_name, collision_count]
+					String[] collisionRecord = new String[]{
+						patientNum.toString(),
+						mapping[0],
+						mapping[1],
+						mapping[2],
+						String.valueOf(mappings.size())
+					};
+					collisions.add(collisionRecord);
+				}
+			}
+		}
+
+		// Write collision report
+		String reportFileName = WRITE_DIR + "PatientCollisionReport.csv";
+		try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(reportFileName), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+			// Write header
+			writer.write("patient_num,dbgap_subject_id,study_name,source_file,total_occurrences\n");
+
+			// Write collision records
+			for(String[] collision: collisions) {
+				writer.write(toCsv(collision));
+			}
+		}
+
+		System.out.println("\n=== COLLISION AUDIT SUMMARY ===");
+		System.out.println("Total patient mappings processed: " + totalMappingsProcessed);
+		System.out.println("Unique patient nums: " + patientNumMap.size());
+		System.out.println("Patient nums with collisions: " + collisionCount);
+		System.out.println("Total collision records: " + collisions.size());
+		System.out.println("Collision report written to: " + reportFileName);
+
+		if(collisionCount > 0) {
+			System.err.println("\nWARNING: " + collisionCount + " patient num collision(s) detected!");
+		} else {
+			System.out.println("\nSUCCESS: No collisions detected. All patient nums are unique.");
+		}
 	}
 
 
@@ -310,7 +436,10 @@ public class HPDSPatientNumTracker extends BDCJob {
 			if(arg.equalsIgnoreCase( "--revengineer" )){
 				IS_REVERSE_ENGINEER = true;
 			}
-			
+			if(arg.equalsIgnoreCase( "--auditcollisions" )){
+				IS_AUDIT_COLLISIONS = true;
+			}
+
 		}
 	}
 }
