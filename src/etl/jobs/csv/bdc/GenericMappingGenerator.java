@@ -3,8 +3,6 @@ package etl.jobs.csv.bdc;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
-import com.opencsv.CSVParserBuilder;
 import etl.jobs.mappings.Mapping;
 
 import java.io.BufferedReader;
@@ -55,7 +53,6 @@ public class GenericMappingGenerator extends BDCJob {
 		try (BufferedWriter writer = Files.newBufferedWriter(out,
 				StandardOpenOption.CREATE,
 				StandardOpenOption.TRUNCATE_EXISTING)) {
-
 			for (Mapping mapping : mappings) {
 				writer.write(mapping.toCSV());
 				writer.write('\n');
@@ -95,7 +92,6 @@ public class GenericMappingGenerator extends BDCJob {
 				continue;
 			}
 
-			// Only process .csv and .txt
 			boolean isCsv = name.toLowerCase().endsWith(".csv");
 			boolean isTxt = name.toLowerCase().endsWith(".txt");
 			if (!isCsv && !isTxt) {
@@ -106,24 +102,67 @@ public class GenericMappingGenerator extends BDCJob {
 			System.out.println("Processing mappings for: " + name + " with datatable format set to " + HASDATATABLES);
 
 			Path p = Paths.get(DATA_DIR, name);
-			try (BufferedReader buffer = Files.newBufferedReader(p);
-				 CSVReader reader = isTxt
-						 ? new CSVReaderBuilder(buffer)
-						 .withCSVParser(new CSVParserBuilder().withSeparator('\t').build()) // TSV headers
-						 .build()
-						 : new CSVReader(buffer) // CSV headers
-			) {
-				String[] headers = reader.readNext();
-				if (headers == null) {
-					System.err.println(name + " has an issue with its headers.");
-					continue;
-				}
 
-				addHeaderMappings(headers, name, varMap, mappings);
+			if (isCsv) {
+				// CSV: first record is the header
+				try (BufferedReader buffer = Files.newBufferedReader(p);
+					 CSVReader reader = new CSVReader(buffer)) {
+
+					String[] headers = reader.readNext();
+					if (headers == null) {
+						System.err.println(name + " has an issue with its headers.");
+						continue;
+					}
+
+					addHeaderMappings(headers, name, varMap, mappings);
+				}
+			} else {
+				// TSV: skip leading comment/metadata lines, then take first non-comment row as header
+				try (BufferedReader buffer = Files.newBufferedReader(p)) {
+					String[] headers = readTsvHeaderSkippingComments(buffer);
+					if (headers == null) {
+						System.err.println(name + " has no header after comment lines.");
+						continue;
+					}
+
+					addHeaderMappings(headers, name, varMap, mappings);
+				}
 			}
 		}
 
 		return mappings;
+	}
+
+	/**
+	 * Reads dbGaP / BioLINCC-style TSV where the file begins with comment/metadata lines.
+	 * We skip:
+	 *  - blank lines
+	 *  - lines whose first non-whitespace character is '#'
+	 * Then the first remaining line is treated as the TSV header row.
+	 */
+	private static String[] readTsvHeaderSkippingComments(BufferedReader br) throws IOException {
+		String line;
+		while ((line = br.readLine()) != null) {
+			// remove UTF-8 BOM if present
+			line = line.replace("\uFEFF", "");
+
+			String trimmed = line.trim();
+			if (trimmed.isEmpty()) {
+				continue;
+			}
+
+			if (trimmed.startsWith("#")) {
+				continue;
+			}
+
+			// Optional: ensure it looks tab-delimited before accepting
+			if (!line.contains("\t")) {
+				continue;
+			}
+
+			return line.split("\t", -1);
+		}
+		return null;
 	}
 
 	private static void addHeaderMappings(String[] headers,
@@ -141,10 +180,7 @@ public class GenericMappingGenerator extends BDCJob {
 				String key = (col == null ? "" : col).toLowerCase();
 				String path = varMap.get(key);
 
-				if (path == null && !"dbgap_subject_id".equals(key)) {
-					rootNode = PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + col + PATH_SEPARATOR;
-				} else if (path == null) {
-					// For dbgap_subject_id with no mapping present, fall back to default (safe + consistent)
+				if (path == null) {
 					rootNode = PATH_SEPARATOR + TRIAL_ID + PATH_SEPARATOR + col + PATH_SEPARATOR;
 				} else {
 					rootNode = path.replaceAll("^\"|\"$", "");
