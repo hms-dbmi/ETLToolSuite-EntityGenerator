@@ -87,37 +87,63 @@ public class GenericMappingGenerator extends BDCJob {
 		for (File f : files) {
 			String name = f.getName();
 
-			// Skip AppleDouble / metadata files
 			if (name.startsWith("._")) {
 				continue;
 			}
 
-			// Treat BOTH .csv and .txt as CSV now
-			boolean isCsvLike = name.toLowerCase().endsWith(".csv") || name.toLowerCase().endsWith(".txt");
-			if (!isCsvLike) {
+			boolean isCsv = name.toLowerCase().endsWith(".csv");
+			boolean isTxt = name.toLowerCase().endsWith(".txt");
+			if (!isCsv && !isTxt) {
 				continue;
 			}
 
 			System.out.println("Generating mapping for: " + name);
 			System.out.println("Processing mappings for: " + name + " with datatable format set to " + HASDATATABLES);
 
-			Path p = Paths.get(DATA_DIR, name);
-
-			// Read header as CSV (comma-separated) for both .csv and .txt
-			try (BufferedReader buffer = Files.newBufferedReader(p);
-				 CSVReader reader = new CSVReader(buffer)) {
-
-				String[] headers = reader.readNext();
+			String[] headers;
+			if (isTxt) {
+				headers = getFixedHeadersForMultiTxt(name);
 				if (headers == null) {
-					System.err.println(name + " has an issue with its headers.");
-					continue;
+					// Treat other .txt files as CSV-like (first row is header)
+					headers = readCsvHeader(Paths.get(DATA_DIR, name), name);
 				}
-
-				addHeaderMappings(headers, name, varMap, mappings);
+			} else {
+				headers = readCsvHeader(Paths.get(DATA_DIR, name), name);
 			}
+
+			if (headers == null || headers.length == 0) {
+				System.err.println(name + " has an issue with its headers.");
+				continue;
+			}
+
+			addHeaderMappings(headers, name, varMap, mappings);
 		}
 
 		return mappings;
+	}
+
+	private static String[] readCsvHeader(Path p, String name) {
+		try (BufferedReader buffer = Files.newBufferedReader(p);
+			 CSVReader reader = new CSVReader(buffer)) {
+			return reader.readNext();
+		} catch (Exception e) {
+			System.err.println("Failed reading header for " + name + ": " + e.getMessage());
+			return null;
+		}
+	}
+
+	private static String[] getFixedHeadersForMultiTxt(String fileName) {
+		String lower = fileName.toLowerCase();
+
+		if (lower.endsWith("subject.multi.txt")) {
+			return new String[]{"DBGAP_SUBJECT_ID", "SUBJECT_ID", "CONSENT"};
+		}
+
+		if (lower.endsWith("sample.multi.txt")) {
+			return new String[]{"DBGAP_SUBJECT_ID", "DBGAP_SAMPLE_ID", "SUBJECT_ID", "SAMPLE_ID"};
+		}
+
+		return null;
 	}
 
 	private static void addHeaderMappings(String[] headers,
@@ -162,7 +188,6 @@ public class GenericMappingGenerator extends BDCJob {
 		System.out.println("Getting metadata paths from: " + dictionaryFile.getAbsolutePath());
 
 		if (dictTree != null && dictTree.size() > 0 && dictTree.get(0).get("study_phs_number") != null) {
-			// original json format
 			System.out.println("Study id from file is " + dictTree.get(0).get("study_phs_number").asText());
 
 			dictTree.get(0).path("form_group").elements().forEachRemaining(
@@ -180,7 +205,6 @@ public class GenericMappingGenerator extends BDCJob {
 			);
 
 		} else if (dictTree != null && dictTree.size() > 0 && dictTree.get(0).get("dataset_ref") != null) {
-			// simplified json format
 			dictTree.elements().forEachRemaining(
 					var -> {
 						String varId = var.get("name").asText().toLowerCase();
