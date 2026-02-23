@@ -8,7 +8,6 @@ import etl.jobs.mappings.Mapping;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,6 +52,7 @@ public class GenericMappingGenerator extends BDCJob {
 		try (BufferedWriter writer = Files.newBufferedWriter(out,
 				StandardOpenOption.CREATE,
 				StandardOpenOption.TRUNCATE_EXISTING)) {
+
 			for (Mapping mapping : mappings) {
 				writer.write(mapping.toCSV());
 				writer.write('\n');
@@ -92,9 +92,9 @@ public class GenericMappingGenerator extends BDCJob {
 				continue;
 			}
 
-			boolean isCsv = name.toLowerCase().endsWith(".csv");
-			boolean isTxt = name.toLowerCase().endsWith(".txt");
-			if (!isCsv && !isTxt) {
+			// Treat BOTH .csv and .txt as CSV now
+			boolean isCsvLike = name.toLowerCase().endsWith(".csv") || name.toLowerCase().endsWith(".txt");
+			if (!isCsvLike) {
 				continue;
 			}
 
@@ -103,66 +103,21 @@ public class GenericMappingGenerator extends BDCJob {
 
 			Path p = Paths.get(DATA_DIR, name);
 
-			if (isCsv) {
-				// CSV: first record is the header
-				try (BufferedReader buffer = Files.newBufferedReader(p);
-					 CSVReader reader = new CSVReader(buffer)) {
+			// Read header as CSV (comma-separated) for both .csv and .txt
+			try (BufferedReader buffer = Files.newBufferedReader(p);
+				 CSVReader reader = new CSVReader(buffer)) {
 
-					String[] headers = reader.readNext();
-					if (headers == null) {
-						System.err.println(name + " has an issue with its headers.");
-						continue;
-					}
-
-					addHeaderMappings(headers, name, varMap, mappings);
+				String[] headers = reader.readNext();
+				if (headers == null) {
+					System.err.println(name + " has an issue with its headers.");
+					continue;
 				}
-			} else {
-				// TSV: skip leading comment/metadata lines, then take first non-comment row as header
-				try (BufferedReader buffer = Files.newBufferedReader(p)) {
-					String[] headers = readTsvHeaderSkippingComments(buffer);
-					if (headers == null) {
-						System.err.println(name + " has no header after comment lines.");
-						continue;
-					}
 
-					addHeaderMappings(headers, name, varMap, mappings);
-				}
+				addHeaderMappings(headers, name, varMap, mappings);
 			}
 		}
 
 		return mappings;
-	}
-
-	/**
-	 * Reads dbGaP / BioLINCC-style TSV where the file begins with comment/metadata lines.
-	 * We skip:
-	 *  - blank lines
-	 *  - lines whose first non-whitespace character is '#'
-	 * Then the first remaining line is treated as the TSV header row.
-	 */
-	private static String[] readTsvHeaderSkippingComments(BufferedReader br) throws IOException {
-		String line;
-		while ((line = br.readLine()) != null) {
-			// remove UTF-8 BOM if present
-			line = line.replace("\uFEFF", "");
-
-			String trimmed = line.trim();
-			if (trimmed.isEmpty()) {
-				continue;
-			}
-
-			if (trimmed.startsWith("#")) {
-				continue;
-			}
-
-			// Optional: ensure it looks tab-delimited before accepting
-			if (!line.contains("\t")) {
-				continue;
-			}
-
-			return line.split("\t", -1);
-		}
-		return null;
 	}
 
 	private static void addHeaderMappings(String[] headers,
