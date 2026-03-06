@@ -330,12 +330,7 @@ public class HPDSPatientNumTracker extends BDCJob {
 		int totalMappingsProcessed = 0;
 		int collisionCount = 0;
 
-		File[] files = f.listFiles(new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-				return name.toUpperCase().endsWith("PATIENTMAPPING.V2.CSV");
-			}
-		});
+File[] files = f.listFiles((dir, name) -> name.toUpperCase().endsWith("PATIENTMAPPING.V2.CSV"));
 
 		if(files == null || files.length == 0) {
 			System.out.println("No patient mapping files found in " + DATA_DIR);
