@@ -361,12 +361,8 @@ public class HPDSPatientNumTracker extends BDCJob {
 						String studyName = line[1];
 
 						// Create mapping record: [dbgap_subject_id, study_name, file_name]
-						String[] mappingRecord = new String[]{dbgapSubjectId, studyName, file.getName()};
-
-						if(!patientNumMap.containsKey(patientNum)) {
-							patientNumMap.put(patientNum, new ArrayList<>());
-						}
-						patientNumMap.get(patientNum).add(mappingRecord);
+patientNumMap.computeIfAbsent(patientNum, k -> new ArrayList<>())
+    .add(new String[]{dbgapSubjectId, studyName, file.getName()});
 					}
 				} catch (NumberFormatException e) {
 					System.err.println("Error parsing patient num in file: " + file.getName());
