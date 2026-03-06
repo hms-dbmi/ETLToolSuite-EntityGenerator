@@ -392,14 +392,13 @@ patientNumMap.computeIfAbsent(patientNum, k -> new ArrayList<>())
 					System.err.println("  - dbgap_subject_id: " + mapping[0] + ", study: " + mapping[1] + ", file: " + mapping[2]);
 
 					// Add to collision report: [patient_num, dbgap_subject_id, study_name, file_name, collision_count]
-					String[] collisionRecord = new String[]{
+					collisions.add(new String[]{
 						patientNum.toString(),
 						mapping[0],
 						mapping[1],
 						mapping[2],
 						String.valueOf(mappings.size())
-					};
-					collisions.add(collisionRecord);
+					});
 				}
 			}
 		}
