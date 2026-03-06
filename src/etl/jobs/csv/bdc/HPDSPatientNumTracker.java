@@ -352,8 +352,12 @@ public class HPDSPatientNumTracker extends BDCJob {
 					String[] line;
 
 					while((line = reader.readNext()) != null) {
-						if(line.length < 3) continue;
-						if(!NumberUtils.isCreatable(line[2])) continue;
+						if(line.length < 3) {
+						    continue;
+						}
+						if(!NumberUtils.isCreatable(line[2])) {
+						    continue;
+						}
 
 						totalMappingsProcessed++;
 						Integer patientNum = Integer.parseInt(line[2]);
