@@ -119,7 +119,7 @@ public class DataAnalyzer extends Job {
                                         vals.add(rec[col].trim());
                                     }
                                     catch (ArrayIndexOutOfBoundsException e){
-                                        System.out.println("Array out of bounds on " + Arrays.toString(rec) + " for col " + col + ". Array size is " + rec.length );
+                                        throw new RuntimeException("Array out of bounds on " + Arrays.toString(rec) + " for col " + col + ". Array size is " + rec.length + ". The data must be fixed and reprocessed.");
                                     }
                                 });
                                 newMappings.add(analyzeData(m, vals));
