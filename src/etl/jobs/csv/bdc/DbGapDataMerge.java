@@ -36,7 +36,7 @@ public class DbGapDataMerge extends Job {
 			System.err.println(e);
 			e.printStackTrace();
 		}
-		
+
 		try {
 			execute();
 		} catch (Exception e) {
@@ -46,9 +46,9 @@ public class DbGapDataMerge extends Job {
 	}
 
 	private static void execute() throws Exception {
-		
+
 		Map<String, List<String>> rootNodeSort = sortByRootNodes();
-		
+
 		try(BufferedWriter buffer = Files.newBufferedWriter(Paths.get(WRITE_DIR + "allConcepts.csv"), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)){
 			buffer.write(BDCJob.toCsv(AC_HEADERS));
 			buffer.close();
@@ -58,15 +58,15 @@ public class DbGapDataMerge extends Job {
             files.forEach(file -> {
 				try {
 				ProcessBuilder processBuilder = new ProcessBuilder();
-			
+
 				processBuilder.command("bash", "-c", "cat " + file + " >> " + WRITE_DIR + "allConcepts.csv");
-	
+
 				//processBuilder.command("bash", "-c", "sed 's/µ/\\\\/g' " + entry.getValue() + " >> " + WRITE_DIR + "allConcepts.csv");
-				
+
 				Process process = processBuilder.start();
 
 				StringBuilder output = new StringBuilder();
-			
+
 				BufferedReader reader = new BufferedReader(
 					new InputStreamReader(process.getInputStream()));
 
@@ -87,34 +87,40 @@ public class DbGapDataMerge extends Job {
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
-			}		
+			}
 			});
 			System.out.print("all files in " + root + " merge Success!");
 		});
-		
+
 	}
 
 	// filename and rootnode
 	private static Map<String, List<String>> sortByRootNodes() throws IOException {
-		
+
 		File dataDir = new File(DATA_DIR);
 		// Map of rootNode and trial id
 		Map<String,List<String>> rootnodes = new TreeMap<>();
-		
+
 		if(dataDir.isDirectory()) {
-			
+
 			for(File f: dataDir.listFiles()) {
-				
+
 				if(f.getName().contains("_allConcepts")) {
-					
+
 					try(BufferedReader buffer = Files.newBufferedReader(Paths.get(DATA_DIR + f.getName()))){
 						String line;
 						String fileName = DATA_DIR + f.getName();
 						while((line = buffer.readLine()) != null) {
 							String[] record = line.split(",");
-							if(record.length < 1) continue;
+                            if (record.length < 2) {
+
+                                System.err.println("Skipping malformed first line in " + fileName + ": " + line);
+
+                                continue;
+
+                            }
 							String rootNode = record[1];
-							
+
 							rootNode = rootNode.replaceAll("\"", "");
 							rootNode = rootNode.substring(1);
 							rootNode = rootNode.replaceAll("\\\\.*", "");
@@ -126,16 +132,16 @@ public class DbGapDataMerge extends Job {
 								files.add(fileName);
 								rootnodes.put(rootNode, files);
 							}
-							
+
 							break;
 						}
-						
+
 					}
-					
+
 				}
-				
+
 			}
-			
+
 		}
 		return rootnodes;
 	}
