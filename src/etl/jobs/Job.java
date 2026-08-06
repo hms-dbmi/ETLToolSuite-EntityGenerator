@@ -13,7 +13,6 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.Map.Entry;
 
 public abstract class Job implements Serializable {
 	
@@ -522,17 +521,6 @@ public abstract class Job implements Serializable {
 	 * @return
 	 */
 	public static String mappingLookup(String sourceId, Map<String, String> map) {
-		Entry<String,String> result = map.entrySet().parallelStream()
-				.filter(pm -> pm.getKey().equals(sourceId))
-				.findFirst()
-				.orElse(null);
-		/*for(String[] pm: patientMappings) {
-			if(pm[0].equals(sourceId)) {
-				return pm[2];
-			}
-		}*/
-		if(result == null) return null;
-		return result.getValue();
-		
+		return map == null ? null : map.get(sourceId);
 	}
 }
