@@ -75,6 +75,7 @@
         <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="true" source="${source}" target="${target}">
             <src path="src"/>
             <src path="resources"/>
+            <exclude name="test/**"/>
             <classpath refid="classpath"/>
         </javac>
 		<jar destfile="${jar.output.dir}/GenericMappingGenerator.jar">
@@ -128,6 +129,14 @@
         <jar destfile="${jar.output.dir}/JsonMetadataGenerator.jar">
             <manifest>
                 <attribute name="Main-Class" value="etl.jobs.csv.JsonMetadataGenerator"/>
+            </manifest>
+            <fileset dir="bin" includes="**/*.class" />
+            <fileset dir="bin" includes="*.xml"></fileset>
+            <zipgroupfileset dir="bin" includes="**/*.jar" />
+        </jar>
+        <jar destfile="${jar.output.dir}/DbgapDecodeFiles.jar">
+            <manifest>
+                <attribute name="Main-Class" value="etl.jobs.csv.bdc.DbgapDecodeFiles"/>
             </manifest>
             <fileset dir="bin" includes="**/*.class" />
             <fileset dir="bin" includes="*.xml"></fileset>
