@@ -147,14 +147,18 @@ public class DbgapDecodeFiles extends Job {
                 String[] lineToWrite = new String[headers.length];
 
                 if (hasDbgapSubjId || isSampleId) {
+                    int trimmedRows = 0;
                     while ((line = reader.readNext()) != null) {
-                        if (headers.length != line.length) {
+                        String[] fitted = fitToHeader(headers, line);
+                        if (fitted == null) {
                                 System.err.println("Malformed row detected - skipping row inside " + data.getName());
                                 System.err.println("Row data: " + Arrays.toString(line));
                                 System.err.println("Row data count: " + line.length);
                                 warnCount++;
                                 continue; // Skip this row, don't crash
                         }
+                        if (fitted.length != line.length) trimmedRows++;
+                        line = fitted;
 
                         int colidx = 0;
                         for (String cell : line) {
@@ -182,6 +186,9 @@ public class DbgapDecodeFiles extends Job {
                         buffer.write(toCsv(lineToWrite));
                         buffer.flush();
                     }
+                    if (trimmedRows > 0) {
+                        System.out.println("Trimmed trailing empty cells on " + trimmedRows + " row(s) in " + data.getName());
+                    }
                 } else {
                     System.err.println("Missing dbgap subject id in file: " + data.getName());
                     // Note: If you want to delete the file on failure, you must do it AFTER this try block closes the writer.
@@ -197,6 +204,22 @@ public class DbgapDecodeFiles extends Job {
         }
 
         return warnCount;
+    }
+
+    /**
+     * dbGaP exports pad data rows with trailing empty tab-separated cells, so a row can have more
+     * cells than the header. Returns the row unchanged when it matches the header length, a copy cut
+     * to the header length when it is longer and every extra cell is empty, and null otherwise
+     * (a shorter row, or extra cells that hold data) so the caller skips it as malformed.
+     */
+    static String[] fitToHeader(String[] headers, String[] line) {
+        if (line.length == headers.length) return line;
+        if (line.length < headers.length) return null;
+
+        for (int idx = headers.length; idx < line.length; idx++) {
+            if (line[idx] != null && !line[idx].trim().isEmpty()) return null;
+        }
+        return Arrays.copyOf(line, headers.length);
     }
 
     private static void setSampleToSubject() throws IOException {
